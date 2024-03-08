@@ -408,7 +408,7 @@ open class AuthContainerViewTest : SysuiTestCase() {
     @Test
     fun testCredentialViewUsesEffectiveUserId() {
         whenever(userManager.getCredentialOwnerProfile(anyInt())).thenReturn(200)
-        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(eq(200))).thenReturn(
+        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(eq(200), eq(true))).thenReturn(
             DevicePolicyManager.PASSWORD_QUALITY_SOMETHING
         )
 
@@ -487,7 +487,7 @@ open class AuthContainerViewTest : SysuiTestCase() {
             addToView: Boolean = true,
     ): TestAuthContainerView {
         whenever(userManager.getCredentialOwnerProfile(anyInt())).thenReturn(20)
-        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(eq(20))).thenReturn(
+        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(eq(20), eq(true))).thenReturn(
             DevicePolicyManager.PASSWORD_QUALITY_NUMERIC
         )
 

@@ -33,7 +33,7 @@ public class DuressPasswordHelper {
         this.spManager = spManager;
     }
 
-    void onVerifyCredentialResult(@Nullable VerifyCredentialResponse res, @Nullable LockscreenCredential credential) {
+    protected void onVerifyCredentialResult(@Nullable VerifyCredentialResponse res, @Nullable LockscreenCredential credential) {
         if (res != null && res.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
             return;
         }
@@ -58,11 +58,11 @@ public class DuressPasswordHelper {
 
         int userId = UserHandle.USER_SYSTEM;
 
-        if (lockSettingsService.getCredentialType(userId) == CREDENTIAL_TYPE_NONE) {
+        if (lockSettingsService.getCredentialType(userId, true) == CREDENTIAL_TYPE_NONE) {
             if (!ownerCredential.isNone()) {
                 throw new IllegalArgumentException("!ownerCredential.isNone()");
             }
-        } else if (lockSettingsService.checkCredential(ownerCredential, userId, null)
+        } else if (lockSettingsService.checkCredential(ownerCredential, true, userId, null)
                 .getResponseCode() != VerifyCredentialResponse.RESPONSE_OK) {
             throw new SecurityException("owner credential verification failed");
         }

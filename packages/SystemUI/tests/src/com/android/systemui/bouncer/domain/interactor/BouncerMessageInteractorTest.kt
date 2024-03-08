@@ -99,7 +99,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         userRepository.setUserInfos(listOf(PRIMARY_USER))
         testScope = TestScope()
         allowTestableLooperAsMainThread()
-        whenever(securityModel.getSecurityMode(PRIMARY_USER_ID)).thenReturn(PIN)
+        whenever(securityModel.getSecurityMode(PRIMARY_USER_ID, false)).thenReturn(PIN)
         biometricSettingsRepository.setIsFingerprintAuthCurrentlyAllowed(true)
         overrideResource(kg_trust_agent_disabled, "Trust agent is unavailable")
     }
@@ -151,7 +151,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         testScope.runTest {
             init()
             val bouncerMessage by collectLastValue(underTest.bouncerMessage)
-            underTest.onPrimaryAuthIncorrectAttempt()
+            underTest.onAuthIncorrectAttempt(true)
 
             assertThat(bouncerMessage).isNotNull()
             assertThat(primaryResMessage(bouncerMessage)).isEqualTo("Wrong PIN. Try again.")
@@ -162,7 +162,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         testScope.runTest {
             init()
             val bouncerMessage by collectLastValue(underTest.bouncerMessage)
-            underTest.onPrimaryAuthIncorrectAttempt()
+            underTest.onAuthIncorrectAttempt(true)
             assertThat(primaryResMessage(bouncerMessage)).isEqualTo("Wrong PIN. Try again.")
 
             underTest.onPrimaryBouncerUserInput()

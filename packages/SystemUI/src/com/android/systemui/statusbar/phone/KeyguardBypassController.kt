@@ -80,7 +80,8 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
      */
     private data class PendingUnlock(
         val pendingUnlockType: BiometricSourceType,
-        val isStrongBiometric: Boolean
+        val isStrongBiometric: Boolean,
+        val isSecondFactorEnabled: Boolean
     )
 
     lateinit var unlockController: BiometricUnlockController
@@ -198,12 +199,14 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
      */
     fun onBiometricAuthenticated(
         biometricSourceType: BiometricSourceType,
-        isStrongBiometric: Boolean
+        isStrongBiometric: Boolean,
+        isSecondFactorEnabled: Boolean,
     ): Boolean {
         if (biometricSourceType == BiometricSourceType.FACE && bypassEnabled) {
             val can = canBypass()
             if (!can && (isPulseExpanding || qsExpanded)) {
-                pendingUnlock = PendingUnlock(biometricSourceType, isStrongBiometric)
+                pendingUnlock = PendingUnlock(biometricSourceType, isStrongBiometric,
+                        isSecondFactorEnabled)
             }
             return can
         }
@@ -213,9 +216,10 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
     fun maybePerformPendingUnlock() {
         if (pendingUnlock != null) {
             if (onBiometricAuthenticated(pendingUnlock!!.pendingUnlockType,
-                            pendingUnlock!!.isStrongBiometric)) {
+                            pendingUnlock!!.isStrongBiometric,
+                            pendingUnlock!!.isSecondFactorEnabled)) {
                 unlockController.startWakeAndUnlock(pendingUnlock!!.pendingUnlockType,
-                        pendingUnlock!!.isStrongBiometric)
+                        pendingUnlock!!.isStrongBiometric, pendingUnlock!!.isSecondFactorEnabled)
                 pendingUnlock = null
             }
         }

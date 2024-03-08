@@ -16,6 +16,7 @@
 
 package com.android.systemui.biometrics;
 
+import static com.android.systemui.util.mockito.KotlinMockitoHelpersKt.eq;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -115,7 +116,7 @@ public class UdfpsKeyguardViewLegacyControllerTest extends
 
         // WHEN biometric is authenticated
         captureKeyguardStateControllerCallback();
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(true);
         mKeyguardStateControllerCallback.onUnlockedChanged();
 
         // THEN pause auth

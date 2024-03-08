@@ -1038,6 +1038,7 @@ public class KeyguardManager {
             success = mLockPatternUtils.setLockCredential(
                     credential,
                     /* savedPassword= */ LockscreenCredential.createNone(),
+                    true,
                     userId);
         } catch (Exception e) {
             Log.e(TAG, "Save lock exception", e);
@@ -1225,7 +1226,7 @@ public class KeyguardManager {
             Log.e(TAG, "New credential is not valid: " + errors.get(0));
             return false;
         }
-        return mLockPatternUtils.setLockCredential(newCredential, currentCredential, userId);
+        return mLockPatternUtils.setLockCredential(newCredential, currentCredential, true, userId);
     }
 
     /**
@@ -1247,7 +1248,7 @@ public class KeyguardManager {
         final LockscreenCredential credential = createLockscreenCredential(
                 lockType, password);
         final VerifyCredentialResponse response = mLockPatternUtils.verifyCredential(
-                credential, mContext.getUserId(), /* flags= */ 0);
+                credential, true, mContext.getUserId(), /* flags= */ 0);
         if (response == null) {
             return false;
         }

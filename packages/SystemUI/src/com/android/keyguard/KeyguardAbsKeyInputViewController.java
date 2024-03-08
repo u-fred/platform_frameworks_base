@@ -20,7 +20,9 @@ import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
@@ -55,6 +57,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     protected AsyncTask<?, ?, ?> mPendingLockCheck;
     protected boolean mResumed;
     protected boolean mLockedOut;
+    protected boolean mIsForPrimaryCredential;
 
     private final KeyDownListener mKeyDownListener = (keyCode, keyEvent) -> {
         // Fingerprint sensor sends a KeyEvent.KEYCODE_UNKNOWN.
@@ -89,6 +92,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLatencyTracker = latencyTracker;
         mFalsingCollector = falsingCollector;
         mEmergencyButtonController = emergencyButtonController;
+        mIsForPrimaryCredential = securityMode != SecurityMode.BiometricSecondFactorPin;
     }
 
     abstract void resetState();
@@ -105,9 +109,9 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId());
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential);
         if (shouldLockout(deadline)) {
-            handleAttemptLockout(deadline);
+            handleAttemptLockout(deadline, true);
         }
     }
 
@@ -143,10 +147,15 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     }
 
     // Prevent user from using the PIN/Password entry until scheduled deadline.
-    protected void handleAttemptLockout(long elapsedRealtimeDeadline) {
+    protected void handleAttemptLockout(long elapsedRealtimeDeadline, boolean viewJustAttached) {
         mView.setPasswordEntryEnabled(false);
         mView.setPasswordEntryInputEnabled(false);
         mLockedOut = true;
+        if (!mIsForPrimaryCredential && !viewJustAttached) {
+            // Secondary won't have a countdown here because after lockout we must use primary auth.
+            mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
+            return;
+        }
         long elapsedRealtime = SystemClock.elapsedRealtime();
         long secondsInFuture = (long) Math.ceil(
                 (elapsedRealtimeDeadline - elapsedRealtime) / 1000.0);
@@ -178,20 +187,32 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
+                    true, 0);
+            if (!mIsForPrimaryCredential) {
+                FingerprintManager fm = (FingerprintManager) getContext().getSystemService(
+                        Context.FINGERPRINT_SERVICE);
+                if (fm != null) {
+                    fm.addPendingAuthTokenToKeyStore(userId);
+                }
+            }
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
-                getKeyguardSecurityCallback().dismiss(true, userId, getSecurityMode());
+                // bypassSecondaryLockscreen for secondary as it's not done on normal fingerprint
+                // unlock.
+                getKeyguardSecurityCallback().dismiss(true, userId,
+                        !mIsForPrimaryCredential, getSecurityMode());
             }
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
             if (isValidPassword) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
+                        false, timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, timeoutMs);
-                    handleAttemptLockout(deadline);
+                            userId, mIsForPrimaryCredential, timeoutMs);
+                    handleAttemptLockout(deadline, false);
                 }
             }
             if (timeoutMs == 0) {
@@ -230,6 +251,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mPendingLockCheck = LockPatternChecker.checkCredential(
                 mLockPatternUtils,
                 password,
+                mIsForPrimaryCredential,
                 userId,
                 new LockPatternChecker.OnCheckCallback() {
 

@@ -120,7 +120,8 @@ constructor(
             .stateIn(applicationScope, SharingStarted.Eagerly, false)
 
     private val currentSecurityMode
-        get() = securityModel.getSecurityMode(currentUserId)
+        // TODO: Change primaryModesOnly to false and add BiometricSecondFactorPin messages.
+        get() = securityModel.getSecurityMode(currentUserId, true)
     private val currentUserId
         get() = userRepository.getSelectedUserInfo().id
 
@@ -155,8 +156,10 @@ constructor(
             override fun onBiometricAuthenticated(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
-                isStrongBiometric: Boolean
+                isStrongBiometric: Boolean,
+                isSecondFactorEnabled: Boolean,
             ) {
+                // TODO: Might have to update this when BouncerMessageInteractor is used.
                 repository.setMessage(defaultMessage)
             }
         }
@@ -254,11 +257,16 @@ constructor(
         countDownTimerUtil.startNewTimer(secondsBeforeLockoutReset * 1000, 1000, callback)
     }
 
-    fun onPrimaryAuthIncorrectAttempt() {
+    fun onAuthIncorrectAttempt(primary: Boolean) {
         if (!Flags.revampedBouncerMessages()) return
 
+        val fingerprintAllowed : Boolean = if (primary) {
+            isFingerprintAuthCurrentlyAllowed.value
+        } else {
+            false
+        }
         repository.setMessage(
-            incorrectSecurityInput(currentSecurityMode, isFingerprintAuthCurrentlyAllowed.value)
+            incorrectSecurityInput(currentSecurityMode, fingerprintAllowed)
         )
     }
 
@@ -392,6 +400,7 @@ private fun incorrectSecurityInput(
     return if (fpAuthIsAllowed) {
         incorrectSecurityInputWithFingerprint(securityMode)
     } else
+        // TODO: SecurityMode.BiometricSecondFactorPin -> Pair(kg_wrong_pin_try_again, 0)
         when (securityMode) {
             SecurityMode.Pattern -> Pair(kg_wrong_pattern_try_again, 0)
             SecurityMode.Password -> Pair(kg_wrong_password_try_again, 0)

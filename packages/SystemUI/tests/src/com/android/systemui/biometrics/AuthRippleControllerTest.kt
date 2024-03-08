@@ -179,7 +179,8 @@ class AuthRippleControllerTest : SysuiTestCase() {
         captor.value.onBiometricAuthenticated(
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
-            false /* isStrongBiometric */)
+            false /* isStrongBiometric */,
+                false)
 
         // THEN no ripple
         verify(rippleView, never()).startUnlockedRipple(any())
@@ -201,7 +202,8 @@ class AuthRippleControllerTest : SysuiTestCase() {
         captor.value.onBiometricAuthenticated(
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
-            false /* isStrongBiometric */)
+            false /* isStrongBiometric */,
+                false)
 
         // THEN no ripple
         verify(rippleView, never()).startUnlockedRipple(any())
@@ -218,7 +220,8 @@ class AuthRippleControllerTest : SysuiTestCase() {
         captor.value.onBiometricAuthenticated(
             0 /* userId */,
             BiometricSourceType.FACE /* type */,
-            false /* isStrongBiometric */)
+            false /* isStrongBiometric */,
+                false)
         verify(rippleView, never()).startUnlockedRipple(any())
     }
 
@@ -233,7 +236,8 @@ class AuthRippleControllerTest : SysuiTestCase() {
         captor.value.onBiometricAuthenticated(
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
-            false /* isStrongBiometric */)
+            false /* isStrongBiometric */,
+                false)
         verify(rippleView, never()).startUnlockedRipple(any())
     }
 

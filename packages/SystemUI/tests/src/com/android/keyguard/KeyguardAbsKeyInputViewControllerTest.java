@@ -16,6 +16,7 @@
 
 package com.android.keyguard;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,6 +27,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import android.content.Context;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.SystemClock;
 import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper.RunWithLooper;
@@ -65,7 +68,6 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     private BouncerKeyguardMessageArea mKeyguardMessageArea;
     @Mock
     private KeyguardUpdateMonitor mKeyguardUpdateMonitor;
-    @Mock
     private SecurityMode mSecurityMode;
     @Mock
     private LockPatternUtils mLockPatternUtils;
@@ -89,6 +91,7 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
+        mSecurityMode = SecurityMode.PIN;
         when(mKeyguardMessageAreaControllerFactory.create(any(KeyguardMessageArea.class)))
                 .thenReturn(mKeyguardMessageAreaController);
         when(mAbsKeyInputView.getPasswordTextViewId()).thenReturn(1);
@@ -174,7 +177,6 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
                 false);
     }
 
-
     @Test
     public void testReset() {
         mKeyguardAbsKeyInputViewController.reset();
@@ -182,18 +184,56 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     }
 
     @Test
-    public void testOnViewAttached() {
+    public void testOnViewAttached_Primary_GetsLockoutAttemptDeadline() {
+        mSecurityMode = SecurityMode.PIN;
+        mKeyguardAbsKeyInputViewController = createTestObject();
         reset(mLockPatternUtils);
         mKeyguardAbsKeyInputViewController.onViewAttached();
-        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt());
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(true));
+    }
+
+    @Test
+    public void testOnViewAttached_Secondary_GetsLockoutAttemptDeadline() {
+        mSecurityMode = SecurityMode.BiometricSecondFactorPin;
+        mKeyguardAbsKeyInputViewController = createTestObject();
+        reset(mLockPatternUtils);
+        mKeyguardAbsKeyInputViewController.onViewAttached();
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(false));
     }
 
     @Test
     public void testLockedOut_verifyPasswordAndUnlock_doesNotEnableViewInput() {
-        mKeyguardAbsKeyInputViewController.handleAttemptLockout(SystemClock.elapsedRealtime());
+        mKeyguardAbsKeyInputViewController.handleAttemptLockout(SystemClock.elapsedRealtime(),
+                /** ignored **/ true);
         verify(mAbsKeyInputView).setPasswordEntryInputEnabled(false);
         verify(mAbsKeyInputView).setPasswordEntryEnabled(false);
         verify(mAbsKeyInputView, never()).setPasswordEntryInputEnabled(true);
         verify(mAbsKeyInputView, never()).setPasswordEntryEnabled(true);
+    }
+
+    @Test
+    public void handleAttemptLockout_Secondary_DisplaysErrorMessageWithoutCountdown() {
+        int wrongPasswordStringId = 1000;
+        when(mAbsKeyInputView.getWrongPasswordStringId()).thenReturn(wrongPasswordStringId);
+
+        mSecurityMode = SecurityMode.BiometricSecondFactorPin;
+        mKeyguardAbsKeyInputViewController = createTestObject();
+
+        mKeyguardAbsKeyInputViewController.handleAttemptLockout(0, false);
+        verify(mKeyguardMessageAreaController).setMessage(wrongPasswordStringId);
+    }
+
+    @Test
+    public void onPasswordChecked_SecondaryMatched_AddsAuthTokenToKeyStore() {
+        FingerprintManager mockFingerprintManager = mock(FingerprintManager.class);
+        mContext.addMockSystemService(Context.FINGERPRINT_SERVICE, mockFingerprintManager);
+        when(mAbsKeyInputView.getContext()).thenReturn(mContext);
+
+        mSecurityMode = SecurityMode.BiometricSecondFactorPin;
+        mKeyguardAbsKeyInputViewController = createTestObject();
+
+        int userId = 0;
+        mKeyguardAbsKeyInputViewController.onPasswordChecked(userId, true, 0, true);
+        verify(mockFingerprintManager).addPendingAuthTokenToKeyStore(userId);
     }
 }

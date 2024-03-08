@@ -1956,6 +1956,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                     lpu.setLockCredential(
                             LockscreenCredential.createPattern(cellPattern),
                             LockscreenCredential.createNone(),
+                            true,
                             UserHandle.USER_SYSTEM);
                 } catch (IllegalArgumentException e) {
                     // Don't want corrupted lock pattern to hang the reboot process

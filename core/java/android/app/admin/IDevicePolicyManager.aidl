@@ -106,7 +106,7 @@ interface IDevicePolicyManager {
     int getRequiredPasswordComplexity(String callerPackageName, boolean parent);
     int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly);
     boolean isUsingUnifiedPassword(in ComponentName admin);
-    int getCurrentFailedPasswordAttempts(String callerPackageName, int userHandle, boolean parent);
+    int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary, int userHandle, boolean parent);
     int getProfileWithMinimumFailedPasswordsForWipe(int userHandle, boolean parent);
 
     void setMaximumFailedPasswordsForWipe(
@@ -170,9 +170,9 @@ interface IDevicePolicyManager {
     void forceRemoveActiveAdmin(in ComponentName policyReceiver, int userHandle);
     boolean hasGrantedPolicy(in ComponentName policyReceiver, int usesPolicy, int userHandle);
 
-    void reportPasswordChanged(in PasswordMetrics metrics, int userId);
-    void reportFailedPasswordAttempt(int userHandle, boolean parent);
-    void reportSuccessfulPasswordAttempt(int userHandle);
+    void reportPasswordChanged(in PasswordMetrics metrics, int userId, boolean primary);
+    void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent);
+    void reportSuccessfulPasswordAttempt(int userHandle, boolean primary);
     void reportFailedBiometricAttempt(int userHandle);
     void reportSuccessfulBiometricAttempt(int userHandle);
     void reportKeyguardDismissed(int userHandle);

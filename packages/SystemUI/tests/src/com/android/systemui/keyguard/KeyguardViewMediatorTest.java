@@ -78,6 +78,7 @@ import com.android.internal.foldables.FoldGracePeriodProvider;
 import com.android.internal.jank.InteractionJankMonitor;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.logging.UiEventLogger;
+import com.android.internal.widget.ILockSettings;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardDisplayManager;
 import com.android.keyguard.KeyguardSecurityView;
@@ -161,6 +162,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
     private @Mock UserTracker mUserTracker;
     private @Mock DevicePolicyManager mDevicePolicyManager;
     private @Mock LockPatternUtils mLockPatternUtils;
+    private @Mock ILockSettings mLockSettingsService;
     private @Mock KeyguardUpdateMonitor mUpdateMonitor;
     private @Mock StatusBarKeyguardViewManager mStatusBarKeyguardViewManager;
     private @Mock BroadcastDispatcher mBroadcastDispatcher;
@@ -233,6 +235,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
         mFalsingCollector = new FalsingCollectorFake();
         mSystemClock = new FakeSystemClock();
         when(mLockPatternUtils.getDevicePolicyManager()).thenReturn(mDevicePolicyManager);
+        when(mLockPatternUtils.getLockSettings()).thenReturn(mLockSettingsService);
         when(mPowerManager.newWakeLock(anyInt(), any())).thenReturn(mock(WakeLock.class));
         when(mPowerManager.isInteractive()).thenReturn(true);
         when(mInteractionJankMonitor.begin(any(), anyInt())).thenReturn(true);
@@ -456,7 +459,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
     @Test
     @TestableLooper.RunWithLooper(setAsMainLooper = true)
     public void testOnStartedWakingUp_whileSleeping_ifWakeAndUnlocking_doesNotShowKeyguard() {
-        when(mLockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(false);
+        when(mLockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false);
         when(mLockPatternUtils.getPowerButtonInstantlyLocks(anyInt())).thenReturn(true);
         mViewMediator.onSystemReady();
         TestableLooper.get(this).processAllMessages();
@@ -476,7 +479,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
     @Test
     @TestableLooper.RunWithLooper(setAsMainLooper = true)
     public void testOnStartedWakingUp_whileSleeping_ifNotWakeAndUnlocking_showsKeyguard() {
-        when(mLockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(false);
+        when(mLockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false);
         when(mLockPatternUtils.getPowerButtonInstantlyLocks(anyInt())).thenReturn(true);
         mViewMediator.onSystemReady();
         TestableLooper.get(this).processAllMessages();

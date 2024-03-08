@@ -253,10 +253,22 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                         getSensorId(), getTargetUserId(), byteToken);
             }
 
+            boolean shouldAddAuthToken = false;
             // For BP, BiometricService will add the authToken to Keystore.
             if (!isBiometricPrompt() && mIsStrongBiometric) {
+                boolean isSecondFactorEnabled = getBiometricContext().getLockPatternUtils()
+                        .isBiometricSecondFactorEnabled(getTargetUserId());
+                shouldAddAuthToken = !isSecondFactorEnabled;
+                if (isSecondFactorEnabled) {
+                    getBiometricContext().getAuthTokenStore().storePendingSecondFactorAuthToken(
+                            getTargetUserId(), byteToken);
+                }
+            }
+
+            // For BP, BiometricService will add the authToken to Keystore.
+            if (shouldAddAuthToken) {
                 final int result = KeyStore.getInstance().addAuthToken(byteToken);
-                if (result != KeyStore.NO_ERROR) {
+                if (result != 0 /* success */) {
                     Slog.d(TAG, "Error adding auth token : " + result);
                 } else {
                     Slog.d(TAG, "addAuthToken: " + result);

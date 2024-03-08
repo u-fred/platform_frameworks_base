@@ -72,7 +72,8 @@ public class KeyguardPinViewController
         mFeatureFlags = featureFlags;
         view.setIsLockScreenLandscapeEnabled(mFeatureFlags.isEnabled(LOCKSCREEN_ENABLE_LANDSCAPE));
         mBackspaceKey = view.findViewById(R.id.delete_button);
-        mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId());
+        mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId(),
+                mIsForPrimaryCredential);
         mUiEventLogger = uiEventLogger;
     }
 
@@ -126,14 +127,15 @@ public class KeyguardPinViewController
     }
 
     @Override
-    protected void handleAttemptLockout(long elapsedRealtimeDeadline) {
-        super.handleAttemptLockout(elapsedRealtimeDeadline);
+    protected void handleAttemptLockout(long elapsedRealtimeDeadline, boolean viewJustAttached) {
+        super.handleAttemptLockout(elapsedRealtimeDeadline, viewJustAttached);
         updateAutoConfirmationState();
     }
 
     private void updateAutoConfirmationState() {
         mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId()) >= MIN_FAILED_PIN_ATTEMPTS;
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential) >=
+                MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
         updatePinHinting();
@@ -189,7 +191,7 @@ public class KeyguardPinViewController
     private boolean isAutoPinConfirmEnabledInSettings() {
         //Checks if user has enabled the auto confirm in Settings
         return mLockPatternUtils.isAutoPinConfirmEnabled(
-                mSelectedUserInteractor.getSelectedUserId())
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential)
                 && mPinLength != LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
     }
 
@@ -207,6 +209,15 @@ public class KeyguardPinViewController
         @Override
         public int getId() {
             return mId;
+        }
+    }
+
+    @Override
+    protected int getInitialMessageResId() {
+        if (mIsForPrimaryCredential) {
+            return super.getInitialMessageResId();
+        } else {
+            return R.string.keyguard_enter_biometric_second_factor_pin;
         }
     }
 }

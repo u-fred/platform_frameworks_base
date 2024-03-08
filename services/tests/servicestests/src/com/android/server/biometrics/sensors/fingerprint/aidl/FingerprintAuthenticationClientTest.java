@@ -63,10 +63,12 @@ import android.platform.test.flag.junit.CheckFlagsRule;
 import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.testing.TestableContext;
+import android.util.SparseArray;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
@@ -75,6 +77,7 @@ import com.android.server.biometrics.log.OperationContextExt;
 import com.android.server.biometrics.log.Probe;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
 import com.android.server.biometrics.sensors.AuthenticationStateListeners;
+import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 import com.android.server.biometrics.sensors.ClientMonitorCallback;
 import com.android.server.biometrics.sensors.ClientMonitorCallbackConverter;
 import com.android.server.biometrics.sensors.LockoutTracker;
@@ -131,6 +134,10 @@ public class FingerprintAuthenticationClientTest {
     @Mock
     private BiometricContext mBiometricContext;
     @Mock
+    private LockPatternUtils mLockPatternUtils;
+    @Mock
+    private BiometricAuthTokenStore mBiometricAuthTokenStore;
+    @Mock
     private BiometricManager mBiometricManager;
     @Mock
     private IUdfpsOverlayController mUdfpsOverlayController;
@@ -174,6 +181,8 @@ public class FingerprintAuthenticationClientTest {
                 new CallbackWithProbe<>(mLuxProbe, i.getArgument(0)));
         when(mBiometricContext.updateContext(any(), anyBoolean())).thenAnswer(
                 i -> i.getArgument(0));
+        when(mBiometricContext.getLockPatternUtils()).thenReturn(mLockPatternUtils);
+        when(mBiometricContext.getAuthTokenStore()).thenReturn(mBiometricAuthTokenStore);
     }
 
     @Test
@@ -603,6 +612,20 @@ public class FingerprintAuthenticationClientTest {
     }
 
     @Test
+    public void testOnAuthenticated_secondFactorEnabled_storesPendingAuthToken() throws RemoteException {
+        final FingerprintAuthenticationClient client = createClient(1 /* version */,
+                true /* allowBackgroundAuthentication */, mClientMonitorCallbackConverter,
+                mLockoutTracker, 0);
+
+        when(mLockPatternUtils.isBiometricSecondFactorEnabled(anyInt())).thenReturn(true);
+
+        client.onAuthenticated(new Fingerprint("friendly", 1 /* fingerId */,
+                2 /* deviceId */), true /* authenticated */, new ArrayList<>());
+
+        verify(mBiometricAuthTokenStore).storePendingSecondFactorAuthToken(eq(USER_ID), any());
+    }
+
+    @Test
     @RequiresFlagsEnabled(Flags.FLAG_DE_HIDL)
     public void testLockoutTracker_authFailed() throws RemoteException {
         final FingerprintAuthenticationClient client = createClient(1 /* version */,
@@ -639,7 +662,13 @@ public class FingerprintAuthenticationClientTest {
 
     private FingerprintAuthenticationClient createClient(int version,
             boolean allowBackgroundAuthentication, ClientMonitorCallbackConverter listener,
-            LockoutTracker lockoutTracker)
+            LockoutTracker lockoutTracker) throws RemoteException {
+        return createClient(version, allowBackgroundAuthentication, listener, lockoutTracker, 4);
+    }
+
+    private FingerprintAuthenticationClient createClient(int version,
+            boolean allowBackgroundAuthentication, ClientMonitorCallbackConverter listener,
+            LockoutTracker lockoutTracker, int cookie)
             throws RemoteException {
         when(mHal.getInterfaceVersion()).thenReturn(version);
 
@@ -651,7 +680,7 @@ public class FingerprintAuthenticationClientTest {
                 .build();
         return new FingerprintAuthenticationClient(mContext, () -> aidl, mToken,
                 REQUEST_ID, listener, OP_ID,
-                false /* restricted */, options, 4 /* cookie */,
+                false /* restricted */, options, cookie /* cookie */,
                 false /* requireConfirmation */,
                 mBiometricLogger, mBiometricContext,
                 true /* isStrongBiometric */,
