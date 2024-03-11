@@ -72,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Utilities for the lock pattern and its settings.
@@ -211,7 +212,7 @@ public class LockPatternUtils {
 
     public static final String AUTO_PIN_CONFIRM = "lockscreen.auto_pin_confirm";
 
-    public static final String CURRENT_LSKF_BASED_PROTECTOR_ID_KEY = "sp-handle";
+    public static final String CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE = "sp-handle";
     public static final String PASSWORD_HISTORY_DELIMITER = ",";
 
     private static final String GSI_RUNNING_PROP = "ro.gsid.image_running";
@@ -652,7 +653,17 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public int getActivePasswordQuality(int userId) {
-        return getKeyguardStoredPasswordQuality(userId);
+        return getActivePasswordQuality(userId, true);
+    }
+
+    /**
+     * Used by device policy manager to validate the current password
+     * information it has.
+     * @Deprecated use {@link #getKeyguardStoredPasswordQuality}
+     */
+    @UnsupportedAppUsage
+    public int getActivePasswordQuality(int userId, boolean primaryCredential) {
+        return getKeyguardStoredPasswordQuality(userId, primaryCredential);
     }
 
     /**
@@ -686,9 +697,29 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public boolean isLockScreenDisabled(int userId) {
-        if (isSecure(userId)) {
+        return isLockScreenDisabled(userId, true);
+    }
+
+    /**
+     * Determine if LockScreen is disabled for the current user. This is used to decide whether
+     * LockScreen is shown after reboot or after screen timeout / short press on power.
+     *
+     * @return true if lock screen is disabled
+     */
+    @UnsupportedAppUsage
+    public boolean isLockScreenDisabled(int userId, boolean primaryCredential) {
+        if (isSecure(userId, primaryCredential)) {
             return false;
         }
+
+        if (!primaryCredential) {
+            // TODO: Review this. When it isn't set, ScreenLockPreferenceDetailUtils#getSummaryResId
+            //  is returning a value that results in "Swipe" being displayed instead of "None". It
+            //  goes from "Swipe" to "None" if "None" is selected manually. Maybe look at
+            //  setLockCredentialWithSpLocked None path.
+            return true;
+        }
+
         boolean disabledByDefault = mContext.getResources().getBoolean(
                 com.android.internal.R.bool.config_disableLockscreenByDefault);
         UserInfo userInfo = getUserManager().getUserInfo(userId);
@@ -869,7 +900,21 @@ public class LockPatternUtils {
     @UnsupportedAppUsage
     @Deprecated
     public int getKeyguardStoredPasswordQuality(int userHandle) {
-        return credentialTypeToPasswordQuality(getCredentialTypeForUser(userHandle));
+        return getKeyguardStoredPasswordQuality(userHandle, true);
+    }
+
+    /**
+     * Retrieves the quality mode for {@code userHandle}.
+     * @see DevicePolicyManager#getPasswordQuality(android.content.ComponentName)
+     *
+     * @return stored password quality
+     * @deprecated use {@link #getCredentialTypeForUser(int)} instead
+     */
+    @UnsupportedAppUsage
+    @Deprecated
+    public int getKeyguardStoredPasswordQuality(int userHandle, boolean primaryCredential) {
+        return credentialTypeToPasswordQuality(getCredentialTypeForUser(userHandle,
+                primaryCredential));
     }
 
     /**
@@ -996,22 +1041,51 @@ public class LockPatternUtils {
     }
 
     /**
+     * Used as the query type when querying for credential type.
+     */
+    private static class CredentialQuery {
+        private final int mUserHandle;
+        private final boolean mPrimaryCredential;
+
+        private CredentialQuery(int userHandle, boolean primaryCredential) {
+            mUserHandle = userHandle;
+            mPrimaryCredential = primaryCredential;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(mUserHandle, mPrimaryCredential);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) return true;
+            if (!(o instanceof CredentialQuery)) return false;
+            final CredentialQuery other = (CredentialQuery) o;
+            return mUserHandle == other.mUserHandle &&
+                    mPrimaryCredential == other.mPrimaryCredential;
+        }
+    }
+
+    /**
      * Retrieve the credential type of a user.
      */
-    private final PropertyInvalidatedCache.QueryHandler<Integer, Integer> mCredentialTypeQuery =
+    private final PropertyInvalidatedCache.QueryHandler<CredentialQuery, Integer>
+            mCredentialTypeQuery =
             new PropertyInvalidatedCache.QueryHandler<>() {
                 @Override
-                public Integer apply(Integer userHandle) {
+                public Integer apply(CredentialQuery q) {
                     try {
-                        return getLockSettings().getCredentialType(userHandle);
+                        return getLockSettings().getCredentialType2(q.mUserHandle,
+                                q.mPrimaryCredential);
                     } catch (RemoteException re) {
                         Log.e(TAG, "failed to get credential type", re);
                         return CREDENTIAL_TYPE_NONE;
                     }
                 }
                 @Override
-                public boolean shouldBypassCache(Integer userHandle) {
-                    return isSpecialUserId(userHandle);
+                public boolean shouldBypassCache(CredentialQuery q) {
+                    return isSpecialUserId(q.mUserHandle);
                 }
             };
 
@@ -1023,7 +1097,7 @@ public class LockPatternUtils {
     /**
      * Cache the credential type of a user.
      */
-    private final PropertyInvalidatedCache<Integer, Integer> mCredentialTypeCache =
+    private final PropertyInvalidatedCache<CredentialQuery, Integer> mCredentialTypeCache =
             new PropertyInvalidatedCache<>(4, PropertyInvalidatedCache.MODULE_SYSTEM,
                     CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API, mCredentialTypeQuery);
 
@@ -1042,7 +1116,17 @@ public class LockPatternUtils {
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
     public @CredentialType int getCredentialTypeForUser(int userHandle) {
-        return mCredentialTypeCache.query(userHandle);
+        return getCredentialTypeForUser(userHandle, true);
+    }
+
+    /**
+     * Returns the credential type of the user, can be one of {@link #CREDENTIAL_TYPE_NONE},
+     * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
+     * {@link #CREDENTIAL_TYPE_PASSWORD}
+     */
+    public @CredentialType int getCredentialTypeForUser(int userHandle, boolean primayCredential) {
+        CredentialQuery q = new CredentialQuery(userHandle, primayCredential);
+        return mCredentialTypeCache.query(q);
     }
 
     /**
@@ -1051,7 +1135,16 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public boolean isSecure(int userId) {
-        int type = getCredentialTypeForUser(userId);
+        return isSecure(userId, true);
+    }
+
+    /**
+     * @param userId the user for which to report the value
+     * @return Whether the lock screen is secured.
+     */
+    @UnsupportedAppUsage
+    public boolean isSecure(int userId, boolean primaryCredential) {
+        int type = getCredentialTypeForUser(userId, primaryCredential);
         return type != CREDENTIAL_TYPE_NONE;
     }
 

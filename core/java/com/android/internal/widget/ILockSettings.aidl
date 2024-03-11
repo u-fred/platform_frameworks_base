@@ -112,4 +112,6 @@ interface ILockSettings {
     boolean onAutoRebootEvent(int event);
     void setDuressCredentials(in LockscreenCredential ownerCredential, in LockscreenCredential duressPin, in LockscreenCredential duressPassword);
     boolean hasDuressCredentials();
+    // Not possible to overload getCredentialType, so create a separate method.
+    int getCredentialType2(int userId, boolean primaryCredential);
 }

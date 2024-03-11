@@ -111,7 +111,8 @@ import java.util.Set;
  *                              PERSONALIZATION_AUTHSECRET_ENCRYPTION_KEY.
  *
  *     For each protector, stored under the corresponding protector ID:
- *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value).  Always exists.
+ *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value). Always exists unless
+ *                     protector is used only for verification of secondary LSKF.
  *       PASSWORD_DATA_NAME: Data used for LSKF verification, such as the scrypt salt and
  *                           parameters.  Only exists for LSKF-based protectors.  Doesn't exist when
  *                           the LSKF is empty, except in old protectors.
@@ -998,6 +999,7 @@ class SyntheticPasswordManager {
     public long createLskfBasedProtector(IGateKeeperService gatekeeper,
             LockscreenCredential credential, SyntheticPassword sp, int userId) {
         long protectorId = generateProtectorId();
+
         int pinLength = PIN_LENGTH_UNAVAILABLE;
         if (isAutoPinConfirmationFeatureAvailable()) {
             pinLength = derivePinLength(credential.size(), credential.isPin(), userId);
@@ -1009,7 +1011,8 @@ class SyntheticPasswordManager {
         long sid = GateKeeper.INVALID_SECURE_USER_ID;
         final byte[] protectorSecret;
 
-        Slogf.i(TAG, "Creating LSKF-based protector %016x for user %d", protectorId, userId);
+        Slogf.i(TAG, "Creating LSKF-based protector %016x for user %d; primaryCredential %b",
+                protectorId, userId, credential.getPrimaryCredential());
 
         final IWeaver weaver = getWeaverService();
         if (weaver != null) {
@@ -1025,8 +1028,11 @@ class SyntheticPasswordManager {
             }
             saveWeaverSlot(weaverSlot, protectorId, userId);
             mPasswordSlotManager.markSlotInUse(weaverSlot);
-            // No need to pass in quality since the credential type already encodes sufficient info
-            synchronizeWeaverFrpPassword(pwd, 0, userId, weaverSlot);
+            if (credential.getPrimaryCredential()) {
+                // No need to pass in quality since the credential type already encodes sufficient
+                // info
+                synchronizeWeaverFrpPassword(pwd, 0, userId, weaverSlot);
+            }
 
             protectorSecret = transformUnderWeaverSecret(stretchedLskf, weaverSecret);
         } else {
@@ -1042,6 +1048,10 @@ class SyntheticPasswordManager {
                 // In case GK enrollment leaves persistent state around (in RPMB), this will nuke
                 // them to prevent them from accumulating and causing problems.
                 try {
+                    // The observed behaviour is that this does not prevent using the cleared SID
+                    // (technically its handle) for later authentication. It probably would prevent
+                    // keys from being used, but that's not important for LSKF verification. Thus,
+                    // we will not use separate IDs for primary/secondary credentials.
                     gatekeeper.clearSecureUserId(fakeUserId(userId));
                 } catch (RemoteException ignore) {
                     Slog.w(TAG, "Failed to clear SID from gatekeeper");
@@ -1071,8 +1081,11 @@ class SyntheticPasswordManager {
             saveState(PASSWORD_DATA_NAME, pwd.toBytes(), protectorId, userId);
             savePasswordMetrics(credential, sp, protectorId, userId);
         }
-        createSyntheticPasswordBlob(protectorId, PROTECTOR_TYPE_LSKF_BASED, sp, protectorSecret,
-                sid, userId);
+        // Secondary protectors are only used for LSKF verification, no need for SP.
+        if (credential.getPrimaryCredential()) {
+            createSyntheticPasswordBlob(protectorId, PROTECTOR_TYPE_LSKF_BASED, sp, protectorSecret,
+                    sid, userId);
+        }
         syncState(userId); // ensure the new files are really saved to disk
         return protectorId;
     }
@@ -1415,6 +1428,7 @@ class SyntheticPasswordManager {
             if (result.gkResponse.getResponseCode() != VerifyCredentialResponse.RESPONSE_OK) {
                 return result;
             }
+            // result.gkResponse.getGatekeeperHAT is not a HAT.
             protectorSecret = transformUnderWeaverSecret(stretchedLskf,
                     result.gkResponse.getGatekeeperHAT());
         } else {
@@ -1488,6 +1502,10 @@ class SyntheticPasswordManager {
             } catch (RemoteException e) {
                 Slog.w(TAG, "progressCallback throws exception", e);
             }
+        }
+        if (!credential.getPrimaryCredential()) {
+            result.gkResponse = VerifyCredentialResponse.OK;
+            return result;
         }
         result.syntheticPassword = unwrapSyntheticPasswordBlob(protectorId,
                 PROTECTOR_TYPE_LSKF_BASED, protectorSecret, sid, userId);
@@ -1742,6 +1760,10 @@ class SyntheticPasswordManager {
         List<Long> protectorIds =
             mStorage.listSyntheticPasswordProtectorsForUser(SP_BLOB_NAME, userId);
         for (long protectorId : protectorIds) {
+            // Secondary LSKF protectors don't have SP_BLOB_NAME.
+            if (!hasState(SP_BLOB_NAME, protectorId, userId)) {
+                continue;
+            }
             SyntheticPasswordBlob blob = SyntheticPasswordBlob.fromBytes(loadState(SP_BLOB_NAME,
                     protectorId, userId));
             if (blob.mProtectorType == PROTECTOR_TYPE_WEAK_TOKEN_BASED) {
