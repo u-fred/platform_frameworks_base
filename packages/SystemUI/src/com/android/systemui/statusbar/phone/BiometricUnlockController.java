@@ -414,8 +414,17 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
         Optional.ofNullable(BiometricUiEvent.SUCCESS_EVENT_BY_SOURCE_TYPE.get(biometricSourceType))
                 .ifPresent(event -> UI_EVENT_LOGGER.log(event, getSessionId()));
 
+        // TODO: Review this. Do we need to check if type is fingerpint?
+        if (mUpdateMonitor.getBiometricSecondFactorEnabled(userId)) {
+            startWakeAndUnlock(MODE_SHOW_BOUNCER);
+            return;
+        }
+
         boolean unlockAllowed =
                 mKeyguardStateController.isOccluded()
+                        // TODO: Although it shouldn't matter here, do we need to update this
+                        //  method to prevent it returning true when biometric second factor is
+                        //  enabled?
                         || mKeyguardBypassController.onBiometricAuthenticated(
                                 biometricSourceType, isStrongBiometric);
         if (unlockAllowed) {

@@ -21,6 +21,7 @@ import static android.app.WindowConfiguration.ACTIVITY_TYPE_ASSISTANT;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.app.WindowConfiguration.WINDOWING_MODE_UNDEFINED;
+import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.content.Intent.ACTION_USER_REMOVED;
 import static android.content.Intent.ACTION_USER_STOPPED;
 import static android.content.Intent.ACTION_USER_UNLOCKED;
@@ -451,6 +452,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     private final KeyguardActiveUnlockModel.Buffer mActiveUnlockTriggerBuffer =
             new KeyguardActiveUnlockModel.Buffer();
 
+    // TODO: Verify that values in here are cleared at appropriate times. Would be very bad if
+    //  they weren't. clearBiometricRecognized appears to do it.
     @VisibleForTesting
     SparseArray<BiometricAuthenticated> mUserFingerprintAuthenticated = new SparseArray<>();
 
@@ -1358,7 +1361,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     }
 
     public boolean getUserCanSkipBouncer(int userId) {
-        return getUserHasTrust(userId) || getUserUnlockedWithBiometric(userId);
+        return getUserHasTrust(userId) || (getUserUnlockedWithBiometric(userId) && !getBiometricSecondFactorEnabled(userId));
     }
 
     public boolean getUserHasTrust(int userId) {
@@ -1380,6 +1383,19 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
 
 
     /**
+     * Returns whether the user has biometric second factor enabled for fingerprint.
+     */
+    public boolean getBiometricSecondFactorEnabled(int userId) {
+        // TODO: Need to make sure case where user deletes primary unlock is handled properly. I
+        //  don't know if it would matter because it deletes biometric and therefore this would
+        //  never get called, but review it.
+        // Could potentially implement this with a callback that is called when the user modifies
+        // their biometric second factor settings, but this works for now.
+        return mLockPatternUtils.getActivePasswordQuality(userId, false)
+                != PASSWORD_QUALITY_UNSPECIFIED;
+    }
+
+    /**
      * Returns whether the user is unlocked with face.
      * @deprecated Use {@link KeyguardFaceAuthInteractor#isAuthenticated()} instead
      */
@@ -1393,6 +1409,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
      * the lock screen.
      */
     public boolean getUserUnlockedWithBiometricAndIsBypassing(int userId) {
+        // TODO: Review and update this once we can run tests. By the looks of it we would need
+        //  to check if biometric second factor is enabled.
         BiometricAuthenticated fingerprint = mUserFingerprintAuthenticated.get(userId);
         // fingerprint always bypasses
         boolean fingerprintAllowed = fingerprint != null && fingerprint.mAuthenticated
@@ -2762,7 +2780,11 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                         && (!mKeyguardGoingAway || !mDeviceInteractive)
                         && mIsSystemUser
                         && biometricEnabledForUser
-                        && !isUserInLockdown(user);
+                        && !isUserInLockdown(user)
+                        // Don't want to listen for fingerprint when being prompted for secondary
+                        // PIN.
+                        // TODO: Verify that contains is sufficient and don't need null check.
+                        && !mUserFingerprintAuthenticated.contains(user);
         final boolean strongerAuthRequired = !isUnlockingWithFingerprintAllowed();
         final boolean isSideFps = isSfpsSupported() && isSfpsEnrolled();
         final boolean shouldListenBouncerState =

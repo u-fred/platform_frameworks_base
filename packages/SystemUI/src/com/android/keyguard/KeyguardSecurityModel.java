@@ -21,6 +21,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.res.Resources;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.android.internal.widget.LockPatternUtils;
 import com.android.systemui.dagger.SysUISingleton;
@@ -72,8 +73,12 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
+        // TODO: Verify that contains is sufficient and don't need null check.
+        boolean primaryCredential = !mKeyguardUpdateMonitor.mUserFingerprintAuthenticated.contains(
+                userId);
+
         final int security = whitelistIpcs(() ->
-                mLockPatternUtils.getActivePasswordQuality(userId));
+                mLockPatternUtils.getActivePasswordQuality(userId, primaryCredential));
         switch (security) {
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC:
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX:

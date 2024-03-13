@@ -867,7 +867,11 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             finish = true;
             eventSubtype = BOUNCER_DISMISS_EXTENDED_ACCESS;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_EXTENDED_ACCESS;
-        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId)) {
+        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
+                mUpdateMonitor.getBiometricSecondFactorEnabled(targetUserId) && !authenticated) {
+            showSecurityScreen(mSecurityModel.getSecurityMode(targetUserId));
+        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
+                !mUpdateMonitor.getBiometricSecondFactorEnabled(targetUserId)) {
             finish = true;
             eventSubtype = BOUNCER_DISMISS_BIOMETRIC;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_BIOMETRIC;
@@ -885,6 +889,8 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 case Pattern:
                 case Password:
                 case PIN:
+                    // TODO: This should not be primary auth in cases where it was biometric second
+                    //  factor. Also need to consider what we are doing with HAT from fingerprint.
                     authenticatedWithPrimaryAuth = true;
                     finish = true;
                     eventSubtype = BOUNCER_DISMISS_PASSWORD;

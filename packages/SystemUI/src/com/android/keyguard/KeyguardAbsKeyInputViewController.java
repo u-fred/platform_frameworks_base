@@ -214,6 +214,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         }
 
         final int userId = mSelectedUserInteractor.getSelectedUserId();
+        if (mKeyguardUpdateMonitor.mUserFingerprintAuthenticated.contains(userId) &&
+                mKeyguardUpdateMonitor.getBiometricSecondFactorEnabled(userId)) {
+            password.setPrimaryCredential(false);
+        }
+
         if (password.size() <= MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT) {
             // to avoid accidental lockout, only count attempts that are long enough to be a
             // real password. This may require some tweaking.
