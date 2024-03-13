@@ -246,6 +246,13 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
         return mPrimaryCredential;
     }
 
+    /**
+     * Set whether this is a primary credential.
+     */
+    public void setPrimaryCredential(boolean primaryCredential) {
+        mPrimaryCredential = primaryCredential;
+    }
+
     /** Returns whether this is a none credential */
     public boolean isNone() {
         ensureNotZeroized();
@@ -286,7 +293,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     public LockscreenCredential duplicate() {
         return new LockscreenCredential(mType,
                 mCredential != null ? Arrays.copyOf(mCredential, mCredential.length) : null,
-                mHasInvalidChars);
+                mHasInvalidChars, mPrimaryCredential);
     }
 
     /**
