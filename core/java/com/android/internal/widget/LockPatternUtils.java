@@ -686,6 +686,7 @@ public class LockPatternUtils {
      * @param userId User ID of the user this has effect on
      */
     public void setLockScreenDisabled(boolean disable, int userId) {
+        // TODO: Do we need this for secondary?
         setBoolean(DISABLE_LOCKSCREEN_KEY, disable, userId);
     }
 
@@ -979,6 +980,7 @@ public class LockPatternUtils {
     }
 
     private boolean isManagedProfile(int userHandle) {
+        // TODO: This and surrounding methods good for understanding profiles/users.
         final UserInfo info = getUserManager().getUserInfo(userHandle);
         return info != null && info.isManagedProfile();
     }

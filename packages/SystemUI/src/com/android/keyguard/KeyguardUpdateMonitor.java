@@ -177,6 +177,9 @@ import javax.inject.Provider;
  */
 @SysUISingleton
 public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpable {
+    // TODO: If a user swipes up to open the primary bouncer and then submits a fingerprint, it will
+    //  prompt them for biometric second factor instead of primary credential. Is this how it should
+    //  be?
 
     private static final String TAG = "KeyguardUpdateMonitor";
     private static final int BIOMETRIC_LOCKOUT_RESET_DELAY_MS = 600;

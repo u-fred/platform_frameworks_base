@@ -1382,6 +1382,11 @@ class SyntheticPasswordManager {
     public AuthenticationResult unlockLskfBasedProtector(IGateKeeperService gatekeeper,
             long protectorId, @NonNull LockscreenCredential credential, int userId,
             ICheckCredentialProgressCallback progressCallback) {
+        // TODO: Verify that throttling of primary and secondary credentials is separate. I think
+        //  it is broken at the moment, it might be because we are using same fake user id for both.
+        //  More importantly need to see how it behaves with Weaver, would assume that each slot
+        //  is throttled separately.
+
         AuthenticationResult result = new AuthenticationResult();
 
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
