@@ -18,6 +18,7 @@ package com.android.server.biometrics;
 
 import static android.Manifest.permission.USE_BIOMETRIC_INTERNAL;
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
+import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.hardware.biometrics.BiometricManager.Authenticators;
 
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_BOOT;
@@ -417,6 +418,14 @@ public class Utils {
         }
 
         return false;
+    }
+
+    // TODO: Unrelated to this, but rename UI classes to BiometricSecondFactor.
+    // TODO: This is duplicated in KeyguardUpdateMonitor#getBiometricSecondFactorEnabled, see if
+    //  we can eliminate that.
+    public static boolean getBiometricSecondFactorEnabled(LockPatternUtils lpu, int userId) {
+        return lpu.getActivePasswordQuality(userId, false)
+                != PASSWORD_QUALITY_UNSPECIFIED;
     }
 
     public static boolean isStrongBiometric(int sensorId) {
