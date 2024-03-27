@@ -96,6 +96,10 @@ public final class FingerprintAuthenticateOptions implements AuthenticateOptions
     private static AuthenticateReason.Vendor defaultVendorReason() {
         return null;
     }
+
+    /**
+     * Whether biometric second factor is enabled.
+     */
     private boolean mBiometricSecondFactorEnabled;
     private static boolean defaultBiometricSecondFactorEnabled() { return false; }
 
