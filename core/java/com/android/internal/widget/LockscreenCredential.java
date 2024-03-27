@@ -63,7 +63,8 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     // Stores raw credential bytes, or null if credential has been zeroized. A none credential
     // is represented as a byte array of length 0.
     private byte[] mCredential;
-    // True if this credential is for the primary lock screen knowledge factor.
+    // True if this credential is for the primary lock screen knowledge factor. False if it is for
+    // biometric second factor.
     private boolean mPrimaryCredential;
 
     // This indicates that the credential used characters outside ASCII 32–127.
@@ -114,19 +115,23 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
         mType = type;
         mCredential = credential;
         mHasInvalidChars = hasInvalidChars;
+        mPrimaryCredential = primaryCredential;
+    }
+
+    private LockscreenCredential(int type, byte[] credential, boolean hasInvalidChars) {
+        this(type, credential, hasInvalidChars, true);
     }
 
     private LockscreenCredential(int type, CharSequence credential, boolean primaryCredential) {
-        this(type, charsToBytesTruncating(credential), hasInvalidChars(credential), primaryCredential);
+        this(type, charsToBytesTruncating(credential), hasInvalidChars(credential),
+                primaryCredential);
     }
 
     private LockscreenCredential(int type, CharSequence credential) {
         this(type, charsToBytesTruncating(credential), hasInvalidChars(credential), true);
     }
 
-    private LockscreenCredential(int type, byte[] credential, boolean hasInvalidChars) {
-        this(type, credential, hasInvalidChars, true);
-    }
+
 
     /**
      * Creates a LockscreenCredential object representing a none credential.
@@ -422,7 +427,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
         @Override
         public LockscreenCredential createFromParcel(Parcel source) {
             return new LockscreenCredential(source.readInt(), source.createByteArray(),
-                    source.readBoolean());
+                    source.readBoolean(), source.readBoolean());
         }
 
         @Override
