@@ -60,6 +60,11 @@ interface IFingerprintService {
     long authenticate(IBinder token, long operationId, IFingerprintServiceReceiver receiver,
             in FingerprintAuthenticateOptions options);
 
+    // Add a hardware auth token that was encumbered pending biometric second factor verification to
+    // KeyStore now that verification has succeeded. This is protected by
+    // USE_FINGERPRINT/USE_BIOMETRIC permission.
+    int addPendingBiometricSecondFactorAuthTokenToKeyStore(IBinder token, in byte[] authToken);
+
     // Uses the fingerprint hardware to detect for the presence of a finger, without giving details
     // about accept/reject/lockout. A requestId is returned that can be used to cancel this
     // operation.

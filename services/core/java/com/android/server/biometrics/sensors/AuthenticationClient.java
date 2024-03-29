@@ -180,10 +180,8 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
     @Override
     public void onAuthenticated(BiometricAuthenticator.Identifier identifier,
             boolean authenticated, ArrayList<Byte> hardwareAuthToken) {
-        onAuthenticated(identifier, authenticated, hardwareAuthToken, true);
+        onAuthenticated(identifier, authenticated, hardwareAuthToken, false);
     }
-
-
     public void onAuthenticated(BiometricAuthenticator.Identifier identifier,
             boolean authenticated, ArrayList<Byte> hardwareAuthToken,
             boolean biometricSecondFactorEnabled) {
@@ -255,17 +253,15 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
             }
 
             if (mIsStrongBiometric) {
-                // TODO: Verify it is safe to do this regardless of biometricSecondFactorEnabled.
                 mBiometricManager.resetLockoutTimeBound(getToken(),
                         getContext().getOpPackageName(),
                         getSensorId(), getTargetUserId(), byteToken);
             }
 
             // For BP, BiometricService will add the authToken to Keystore.
-            if (!isBiometricPrompt() && mIsStrongBiometric) {
-                // TODO: Only do this if !biometricSecondFactorEnabled.
+            if (!isBiometricPrompt() && mIsStrongBiometric && !biometricSecondFactorEnabled) {
                 final int result = KeyStore.getInstance().addAuthToken(byteToken);
-                if (result != KeyStore.NO_ERROR) {
+                if (result != 0 /* success */) {
                     Slog.d(TAG, "Error adding auth token : " + result);
                 } else {
                     Slog.d(TAG, "addAuthToken: " + result);

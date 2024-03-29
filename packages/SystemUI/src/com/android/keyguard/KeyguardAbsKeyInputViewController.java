@@ -21,10 +21,15 @@ import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_U
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
 import android.content.res.ColorStateList;
+import android.hardware.security.keymint.HardwareAuthToken;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
+import android.security.AuthTokenUtils;
+import android.security.KeyStore;
+import android.util.Log;
 import android.util.PluralsMessageFormatter;
+import android.util.Slog;
 import android.view.KeyEvent;
 
 import com.android.internal.util.LatencyTracker;
@@ -179,6 +184,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
         if (matched) {
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+            // Adds the pending auth token if this is a second factor unlock, otherwise is a no op.
+            mKeyguardUpdateMonitor.addPendingBiometricSecondFactorAuthTokenToKeyStore(userId);
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);

@@ -54,12 +54,14 @@ import android.hardware.biometrics.SensorProperties;
 import android.hardware.biometrics.fingerprint.PointerContext;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.CancellationSignal.OnCancelListener;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.IRemoteCallback;
 import android.os.Looper;
+import android.os.Message;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.UserHandle;
@@ -107,6 +109,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
     private static final int MSG_UDFPS_POINTER_UP = 109;
     private static final int MSG_POWER_BUTTON_PRESSED = 110;
     private static final int MSG_UDFPS_OVERLAY_SHOWN = 111;
+    private static final String KEY_AUTH_TOKEN = "auth_token";
 
     /**
      * @hide
@@ -338,6 +341,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
         private CryptoObject mCryptoObject;
         private int mUserId;
         private boolean mIsStrongBiometric;
+        private byte[] mAuthToken;
 
         /**
          * Authentication result
@@ -347,11 +351,12 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
          * @hide
          */
         public AuthenticationResult(CryptoObject crypto, Fingerprint fingerprint, int userId,
-                boolean isStrongBiometric) {
+                boolean isStrongBiometric, byte[] authToken) {
             mCryptoObject = crypto;
             mFingerprint = fingerprint;
             mUserId = userId;
             mIsStrongBiometric = isStrongBiometric;
+            mAuthToken = authToken;
         }
 
         /**
@@ -384,6 +389,12 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
         public boolean isStrongBiometric() {
             return mIsStrongBiometric;
         }
+
+        /**
+         * Obtain the hardware auth token generated as part of the authentication.
+         * @hide
+         */
+        public byte[] getAuthToken() { return mAuthToken; }
     }
 
     /**
@@ -694,6 +705,24 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
             }
         }
     }
+
+    /**
+     * Add a HardwareAuthToken to KeyStore now that biometric second factor has been verified.
+     *
+     * @param authToken raw bytes of HardwareAuthToken to add to KeyStore.
+     * @hide
+     */
+    @RequiresPermission(anyOf = {USE_BIOMETRIC, USE_FINGERPRINT})
+    public void addPendingBiometricSecondFactorAuthTokenToKeyStore(byte[] authToken) {
+        if (mService != null) {
+            try {
+                mService.addPendingBiometricSecondFactorAuthTokenToKeyStore(mToken, authToken);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+    }
+
 
     /**
      * Uses the fingerprint hardware to detect for the presence of a finger, without giving details
@@ -1365,8 +1394,9 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
                             msg.arg2 /* vendorCode */);
                     break;
                 case MSG_AUTHENTICATION_SUCCEEDED:
+                    byte[] authToken = msg.getData().getByteArray(KEY_AUTH_TOKEN);
                     sendAuthenticatedSucceeded((Fingerprint) msg.obj, msg.arg1 /* userId */,
-                            msg.arg2 == 1 /* isStrongBiometric */);
+                            msg.arg2 == 1 /* isStrongBiometric */, authToken);
                     break;
                 case MSG_AUTHENTICATION_FAILED:
                     sendAuthenticatedFailed();
@@ -1441,10 +1471,10 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
         }
     }
 
-    private void sendAuthenticatedSucceeded(Fingerprint fp, int userId, boolean isStrongBiometric) {
+    private void sendAuthenticatedSucceeded(Fingerprint fp, int userId, boolean isStrongBiometric, byte[] authToken) {
         if (mAuthenticationCallback != null) {
             final AuthenticationResult result =
-                    new AuthenticationResult(mCryptoObject, fp, userId, isStrongBiometric);
+                    new AuthenticationResult(mCryptoObject, fp, userId, isStrongBiometric, authToken);
             mAuthenticationCallback.onAuthenticationSucceeded(result);
         }
     }
@@ -1786,9 +1816,13 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
 
         @Override // binder call
         public void onAuthenticationSucceeded(Fingerprint fp, int userId,
-                boolean isStrongBiometric) {
-            mHandler.obtainMessage(MSG_AUTHENTICATION_SUCCEEDED, userId, isStrongBiometric ? 1 : 0,
-                    fp).sendToTarget();
+                boolean isStrongBiometric, byte[] authToken) {
+            Bundle b = new Bundle();
+            b.putByteArray(KEY_AUTH_TOKEN, authToken);
+            Message m = mHandler.obtainMessage(MSG_AUTHENTICATION_SUCCEEDED, userId,
+                    isStrongBiometric ? 1 : 0, fp);
+            m.setData(b);
+            m.sendToTarget();
         }
 
         @Override

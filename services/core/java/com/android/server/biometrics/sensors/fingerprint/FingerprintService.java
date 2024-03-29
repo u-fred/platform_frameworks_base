@@ -70,6 +70,7 @@ import android.os.ShellCallback;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
+import android.security.KeyStore;
 import android.util.EventLog;
 import android.util.Pair;
 import android.util.Slog;
@@ -353,6 +354,19 @@ public class FingerprintService extends SystemService {
                     restricted, statsClient, isKeyguard);
         }
 
+        // Binder call
+        @Override
+        public int addPendingBiometricSecondFactorAuthTokenToKeyStore(final IBinder token,
+                byte[] authToken) {
+            final int result = KeyStore.getInstance().addAuthToken(authToken);
+            if (result != 0 /* success */) {
+                Slog.d(TAG, "Error adding auth token : " + result);
+            } else {
+                Slog.d(TAG, "addAuthToken: " + result);
+            }
+            return result;
+        }
+
         private long authenticateWithPrompt(
                 final long operationId,
                 @NonNull final FingerprintSensorPropertiesInternal props,
@@ -405,7 +419,8 @@ public class FingerprintService extends SystemService {
                             final Fingerprint fingerprint = new Fingerprint("", 0, 0L);
                             final boolean isStrong = props.sensorStrength == STRENGTH_STRONG;
                             try {
-                                receiver.onAuthenticationSucceeded(fingerprint, userId, isStrong);
+                                // TODO: Test null auth token.
+                                receiver.onAuthenticationSucceeded(fingerprint, userId, isStrong, null);
                             } catch (RemoteException e) {
                                 Slog.e(TAG, "Remote exception in onAuthenticationSucceeded()", e);
                             }
