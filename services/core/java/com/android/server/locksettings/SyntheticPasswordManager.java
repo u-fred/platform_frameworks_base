@@ -111,8 +111,9 @@ import java.util.Set;
  *                              PERSONALIZATION_AUTHSECRET_ENCRYPTION_KEY.
  *
  *     For each protector, stored under the corresponding protector ID:
- *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value). Always exists unless
- *                     protector is used only for verification of secondary LSKF.
+ *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value). Always exists for
+ *                     primary credential protector. Never exists for biometric second factor
+ *                     credential protector.
  *       PASSWORD_DATA_NAME: Data used for LSKF verification, such as the scrypt salt and
  *                           parameters.  Only exists for LSKF-based protectors.  Doesn't exist when
  *                           the LSKF is empty, except in old protectors.
@@ -757,7 +758,9 @@ class SyntheticPasswordManager {
         // Remove potential persistent state (in RPMB), to prevent them from accumulating and
         // causing problems.
         try {
-            gatekeeper.clearSecureUserId(fakeUserId(userId));
+            // TODO: Verify can clear second even if does not exist.
+            gatekeeper.clearSecureUserId(fakeUserId(userId, true));
+            gatekeeper.clearSecureUserId(fakeUserId(userId, false));
         } catch (RemoteException ignore) {
             Slog.w(TAG, "Failed to clear SID from gatekeeper");
         }
@@ -1048,18 +1051,16 @@ class SyntheticPasswordManager {
                 // In case GK enrollment leaves persistent state around (in RPMB), this will nuke
                 // them to prevent them from accumulating and causing problems.
                 try {
-                    // The observed behaviour is that this does not prevent using the cleared SID
-                    // (technically its handle) for later authentication. It probably would prevent
-                    // keys from being used, but that's not important for LSKF verification. Thus,
-                    // we will not use separate IDs for primary/secondary credentials.
-                    gatekeeper.clearSecureUserId(fakeUserId(userId));
+                    gatekeeper.clearSecureUserId(fakeUserId(userId,
+                            credential.getPrimaryCredential()));
                 } catch (RemoteException ignore) {
                     Slog.w(TAG, "Failed to clear SID from gatekeeper");
                 }
                 Slogf.i(TAG, "Enrolling LSKF for user %d into Gatekeeper", userId);
                 GateKeeperResponse response;
                 try {
-                    response = gatekeeper.enroll(fakeUserId(userId), null, null,
+                    response = gatekeeper.enroll(fakeUserId(userId,
+                                    credential.getPrimaryCredential()), null, null,
                             stretchedLskfToGkPassword(stretchedLskf));
                 } catch (RemoteException e) {
                     throw new IllegalStateException("Failed to enroll LSKF for new SP protector"
@@ -1449,7 +1450,8 @@ class SyntheticPasswordManager {
                 byte[] gkPassword = stretchedLskfToGkPassword(stretchedLskf);
                 GateKeeperResponse response;
                 try {
-                    response = gatekeeper.verifyChallenge(fakeUserId(userId), 0L,
+                    response = gatekeeper.verifyChallenge(fakeUserId(userId,
+                                    credential.getPrimaryCredential()), 0L,
                             pwd.passwordHandle, gkPassword);
                 } catch (RemoteException e) {
                     Slog.e(TAG, "gatekeeper verify failed", e);
@@ -1462,7 +1464,8 @@ class SyntheticPasswordManager {
                     if (response.getShouldReEnroll()) {
                         GateKeeperResponse reenrollResponse;
                         try {
-                            reenrollResponse = gatekeeper.enroll(fakeUserId(userId),
+                            reenrollResponse = gatekeeper.enroll(fakeUserId(userId,
+                                            credential.getPrimaryCredential()),
                                     pwd.passwordHandle, gkPassword, gkPassword);
                         } catch (RemoteException e) {
                             Slog.w(TAG, "Fail to invoke gatekeeper.enroll", e);
@@ -1937,8 +1940,14 @@ class SyntheticPasswordManager {
     }
 
     @VisibleForTesting
+    static int fakeUserId(int userId, boolean primaryCredential) {
+        return 100000 + (userId * 2) + (primaryCredential ? 0 : 1);
+    }
+
+    // TODO: Remove this.
+    @VisibleForTesting
     static int fakeUserId(int userId) {
-        return 100000 + userId;
+        return fakeUserId(userId, true);
     }
 
     private String getProtectorKeyAlias(long protectorId) {
