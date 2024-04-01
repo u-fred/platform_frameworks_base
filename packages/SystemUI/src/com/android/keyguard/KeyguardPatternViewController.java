@@ -162,11 +162,12 @@ public class KeyguardPatternViewController
             }
         }
 
+        // TODO: Sync with PIN/password.
         private void onPatternChecked(int userId, boolean matched, int timeoutMs,
                 boolean isValidPattern) {
             boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
             if (matched) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, true,true, 0);
                 if (dismissKeyguard) {
                     mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Correct);
                     mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
@@ -175,7 +176,7 @@ public class KeyguardPatternViewController
             } else {
                 mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
                 if (isValidPattern) {
-                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, true,false, timeoutMs);
                     if (timeoutMs > 0) {
                         long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                                 userId, timeoutMs);

@@ -5720,6 +5720,7 @@ public class DevicePolicyManager {
         }
         return false;
     }
+
     /**
      * Retrieve the number of times the user has failed at entering a password since that last
      * successful password entry.
@@ -5760,6 +5761,31 @@ public class DevicePolicyManager {
             try {
                 return mService.getCurrentFailedPasswordAttempts(
                         mContext.getPackageName(), userHandle, mParentInstance);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+        return -1;
+    }
+
+    // TODO: This comment and annotations were copied frm getCurrentFailedPassword attempts, but
+    //  I can't see how this permission is enforced. Review it.
+    /**
+     * Retrieve the number of times the given user has failed at entering biometric second factor
+     * since their last successful entry.
+     *
+     * <p>The calling device admin must have requested
+     * {@link DeviceAdminInfo#USES_POLICY_WATCH_LOGIN} to be able to call this method; if it has
+     * not and it is not the system uid, a security exception will be thrown.
+     *
+     * @hide
+     */
+    @UnsupportedAppUsage
+    public int getCurrentFailedBiometricSecondFactorAttempts(int userHandle) {
+        if (mService != null) {
+            try {
+                return mService.getCurrentFailedBiometricSecondFactorAttempts(
+                        mContext.getPackageName(), userHandle);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -8987,10 +9013,40 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportFailedBiometricSecondFactorAttempt(int userHandle) {
+        if (mService != null) {
+            try {
+                mService.reportFailedBiometricSecondFactorAttempt(userHandle);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+    }
+
+    /**
+     * @hide
+     */
+    @UnsupportedAppUsage
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle) {
         if (mService != null) {
             try {
                 mService.reportSuccessfulPasswordAttempt(userHandle);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+    }
+
+    /**
+     * @hide
+     */
+    @UnsupportedAppUsage
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportSuccessfulBiometricSecondFactorAttempt(int userHandle) {
+        if (mService != null) {
+            try {
+                mService.reportSuccessfulBiometricSecondFactorAttempt(userHandle);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9015,6 +9071,7 @@ public class DevicePolicyManager {
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    // TODO: Is this called before second factor is verified? Should it be?
     public void reportSuccessfulBiometricAttempt(int userHandle) {
         if (mService != null) {
             try {

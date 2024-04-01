@@ -1402,6 +1402,14 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         return fingerprintAllowed || unlockedByFace;
     }
 
+    /**
+     * Returns whether the user has authenticated with fingerprint.
+     */
+    // TODO: Is this a duplicate?
+    // TODO: Replace all direct uses of mUserFingerprintAuthenticated outside of this class.
+    public boolean getUserAuthenticatedWithFingerprint(int userId) {
+        return mUserFingerprintAuthenticated.contains(userId);
+    }
 
     /**
      * Returns whether the user has biometric second factor enabled for fingerprint.
@@ -3634,7 +3642,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         clearFingerprintRecognized(unlockedUser);
     }
 
-    private void clearFingerprintRecognized(int unlockedUser) {
+    protected void clearFingerprintRecognized(int unlockedUser) {
+        Log.d("LockoutDebug", "KeyguardUpdateMonitor clearFingerprintRecognized()");
         Assert.isMainThread();
         mUserFingerprintAuthenticated.clear();
         // TODO: gc?

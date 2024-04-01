@@ -21,15 +21,11 @@ import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_U
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
 import android.content.res.ColorStateList;
-import android.hardware.security.keymint.HardwareAuthToken;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
-import android.security.AuthTokenUtils;
-import android.security.KeyStore;
 import android.util.Log;
 import android.util.PluralsMessageFormatter;
-import android.util.Slog;
 import android.view.KeyEvent;
 
 import com.android.internal.util.LatencyTracker;
@@ -60,6 +56,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     protected AsyncTask<?, ?, ?> mPendingLockCheck;
     protected boolean mResumed;
     protected boolean mLockedOut;
+    // True if a primary credential is being entered, false if it is a biometric second factor.
+    private boolean mPrimary;
 
     private final KeyDownListener mKeyDownListener = (keyCode, keyEvent) -> {
         // Fingerprint sensor sends a KeyEvent.KEYCODE_UNKNOWN.
@@ -93,7 +91,18 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLockPatternUtils = lockPatternUtils;
         mLatencyTracker = latencyTracker;
         mFalsingCollector = falsingCollector;
+
+        final int userId = mSelectedUserInteractor.getSelectedUserId();
         mEmergencyButtonController = emergencyButtonController;
+        // TODO: It doesn't matter because this will be removed, but I believe the value of user
+        //  can change, so this would not be valid. If we end up keeping it, move to a method
+        //  getPrimary() and use that everywhere instead.
+        if (mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId) &&
+                mKeyguardUpdateMonitor.getBiometricSecondFactorEnabled(userId)) {
+            mPrimary = false;
+        } else {
+            mPrimary = true;
+        }
     }
 
     abstract void resetState();
@@ -110,7 +119,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId());
+                mSelectedUserInteractor.getSelectedUserId(), mPrimary);
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -183,9 +192,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
-            // Adds the pending auth token if this is a second factor unlock, otherwise is a no op.
-            mKeyguardUpdateMonitor.addPendingBiometricSecondFactorAuthTokenToKeyStore(userId);
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mPrimary, true, 0);
+            if (!mPrimary) {
+                mKeyguardUpdateMonitor.addPendingBiometricSecondFactorAuthTokenToKeyStore(userId);
+            }
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
@@ -194,11 +204,34 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
             if (isValidPassword) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, mPrimary,
+                        false, timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, timeoutMs);
+                            userId, mPrimary, timeoutMs);
                     handleAttemptLockout(deadline);
+
+                    // This is working but broken. No point making it better because this will all
+                    // be moved to separate controller soon.
+                    if (!mPrimary) {
+                        // If primary is PIN too we will keep this controller so need to cancel
+                        // countdown.
+                        mCountdownTimer.cancel();
+                        mPrimary = true;
+                        resetState();
+
+                        // onDevicePolicyManagerStateChanged() calls showPrimarySecurityScreen.
+                        // This doesn't matter but could look into what causes it. Maybe it is
+                        // called on every failed attempt as policy is saved?
+
+                        mKeyguardUpdateMonitor.clearFingerprintRecognized(userId);
+                        // Not sure about this.
+                        mDismissing = false;
+                        // I don't think this is strictly needed because same call is made by
+                        // onDevicePolicyManagerStateChanged(), but it can't hurt and makes code
+                        // more explicit and robust.
+                        getKeyguardSecurityCallback().showCurrentSecurityScreen();
+                    }
                 }
             }
             if (timeoutMs == 0) {
@@ -221,8 +254,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         }
 
         final int userId = mSelectedUserInteractor.getSelectedUserId();
-        if (mKeyguardUpdateMonitor.mUserFingerprintAuthenticated.contains(userId) &&
-                mKeyguardUpdateMonitor.getBiometricSecondFactorEnabled(userId)) {
+        if (!mPrimary) {
             password.setPrimaryCredential(false);
         }
 
@@ -238,6 +270,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL);
         mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL_UNLOCKED);
 
+        // TODO: ?
         mKeyguardUpdateMonitor.setCredentialAttempted();
         mPendingLockCheck = LockPatternChecker.checkCredential(
                 mLockPatternUtils,

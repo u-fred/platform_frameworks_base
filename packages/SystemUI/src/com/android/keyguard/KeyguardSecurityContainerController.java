@@ -250,9 +250,15 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         }
 
         @Override
-        public void reportUnlockAttempt(int userId, boolean success, int timeoutMs) {
+        public void reportUnlockAttempt(int userId, boolean primary, boolean success,
+                int timeoutMs) {
             if (timeoutMs == 0 && !success) {
-                mBouncerMessageInteractor.onPrimaryAuthIncorrectAttempt();
+                if (primary) {
+                    mBouncerMessageInteractor.onPrimaryAuthIncorrectAttempt();
+                } else {
+                    // TODO: This is untested as this is flag is not activated.
+                    mBouncerMessageInteractor.onBiometricSecondFactorAuthIncorrectAttempt();
+                }
             }
             int bouncerSide = SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__SIDE__DEFAULT;
             if (mView.isSidedSecurityMode()) {
@@ -265,7 +271,12 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__SUCCESS,
                         bouncerSide);
-                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId);
+                if (primary) {
+                    mLockPatternUtils.reportSuccessfulPasswordAttempt(userId);
+                } else {
+                    mLockPatternUtils.reportSuccessfulBiometricSecondFactorAttempt(userId);
+                }
+
                 // Force a garbage collection in an attempt to erase any lockscreen password left in
                 // memory. Do it asynchronously with a 5-sec delay to avoid making the keyguard
                 // dismiss animation janky.
@@ -282,7 +293,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__FAILURE,
                         bouncerSide);
-                reportFailedUnlockAttempt(userId, timeoutMs);
+                reportFailedUnlockAttempt(userId, primary, timeoutMs);
             }
             mMetricsLogger.write(new LogMaker(MetricsEvent.BOUNCER)
                     .setType(success ? MetricsEvent.TYPE_SUCCESS : MetricsEvent.TYPE_FAILURE));
@@ -867,6 +878,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             finish = true;
             eventSubtype = BOUNCER_DISMISS_EXTENDED_ACCESS;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_EXTENDED_ACCESS;
+            // TODO: for now should just be unlocked with fingerprint
         } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
                 mUpdateMonitor.getBiometricSecondFactorEnabled(targetUserId) && !authenticated) {
             showSecurityScreen(mSecurityModel.getSecurityMode(targetUserId));
@@ -1131,47 +1143,65 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                         /* colorState= */ null, /* animated= */ true), mFalsingA11yDelegate);
     }
 
-    public void reportFailedUnlockAttempt(int userId, int timeoutMs) {
+    public void reportFailedUnlockAttempt(int userId, boolean primary, int timeoutMs) {
         // +1 for this time
-        final int failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId) + 1;
+        int failedAttempts;
+        if (primary) {
+            failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId) + 1;
+        } else {
+            failedAttempts = mLockPatternUtils.getCurrentFailedBiometricSecondFactorAttempts(userId)
+                    + 1;
+        }
 
         if (DEBUG) Log.d(TAG, "reportFailedPatternAttempt: #" + failedAttempts);
 
         final DevicePolicyManager dpm = mLockPatternUtils.getDevicePolicyManager();
-        final int failedAttemptsBeforeWipe =
-                dpm.getMaximumFailedPasswordsForWipe(null, userId);
+        if (primary) {
+            final int failedAttemptsBeforeWipe =
+                    dpm.getMaximumFailedPasswordsForWipe(null, userId);
 
-        final int remainingBeforeWipe = failedAttemptsBeforeWipe > 0
-                ? (failedAttemptsBeforeWipe - failedAttempts)
-                : Integer.MAX_VALUE; // because DPM returns 0 if no restriction
-        if (remainingBeforeWipe < LockPatternUtils.FAILED_ATTEMPTS_BEFORE_WIPE_GRACE) {
-            // The user has installed a DevicePolicyManager that requests a user/profile to be wiped
-            // N attempts. Once we get below the grace period, we post this dialog every time as a
-            // clear warning until the deletion fires.
-            // Check which profile has the strictest policy for failed password attempts
-            final int expiringUser = dpm.getProfileWithMinimumFailedPasswordsForWipe(userId);
-            int userType = USER_TYPE_PRIMARY;
-            if (expiringUser == userId) {
-                // TODO: http://b/23522538
-                if (expiringUser != UserHandle.USER_SYSTEM) {
-                    userType = USER_TYPE_SECONDARY_USER;
+            final int remainingBeforeWipe = failedAttemptsBeforeWipe > 0
+                    ? (failedAttemptsBeforeWipe - failedAttempts)
+                    : Integer.MAX_VALUE; // because DPM returns 0 if no restriction
+            if (remainingBeforeWipe < LockPatternUtils.FAILED_ATTEMPTS_BEFORE_WIPE_GRACE) {
+                // The user has installed a DevicePolicyManager that requests a user/profile to be wiped
+                // N attempts. Once we get below the grace period, we post this dialog every time as a
+                // clear warning until the deletion fires.
+                // Check which profile has the strictest policy for failed password attempts
+                final int expiringUser = dpm.getProfileWithMinimumFailedPasswordsForWipe(userId);
+                int userType = USER_TYPE_PRIMARY;
+                if (expiringUser == userId) {
+                    // TODO: http://b/23522538
+                    if (expiringUser != UserHandle.USER_SYSTEM) {
+                        userType = USER_TYPE_SECONDARY_USER;
+                    }
+                } else if (expiringUser != UserHandle.USER_NULL) {
+                    userType = USER_TYPE_WORK_PROFILE;
+                } // If USER_NULL, which shouldn't happen, leave it as USER_TYPE_PRIMARY
+                if (remainingBeforeWipe > 0) {
+                    mView.showAlmostAtWipeDialog(failedAttempts, remainingBeforeWipe, userType);
+                } else {
+                    // Too many attempts. The device will be wiped shortly.
+                    Slog.i(TAG, "Too many unlock attempts; user " + expiringUser + " will be wiped!");
+                    mView.showWipeDialog(failedAttempts, userType);
                 }
-            } else if (expiringUser != UserHandle.USER_NULL) {
-                userType = USER_TYPE_WORK_PROFILE;
-            } // If USER_NULL, which shouldn't happen, leave it as USER_TYPE_PRIMARY
-            if (remainingBeforeWipe > 0) {
-                mView.showAlmostAtWipeDialog(failedAttempts, remainingBeforeWipe, userType);
-            } else {
-                // Too many attempts. The device will be wiped shortly.
-                Slog.i(TAG, "Too many unlock attempts; user " + expiringUser + " will be wiped!");
-                mView.showWipeDialog(failedAttempts, userType);
             }
         }
-        mLockPatternUtils.reportFailedPasswordAttempt(userId);
+
+        if (primary) {
+            mLockPatternUtils.reportFailedPasswordAttempt(userId);
+        } else {
+            mLockPatternUtils.reportFailedBiometricSecondFactorAttempt(userId);
+        }
+
         if (timeoutMs > 0) {
-            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId);
+            if (primary) {
+                // TODO: Secondary?
+                mLockPatternUtils.reportPasswordLockout(timeoutMs, userId);
+            }
             if (!mFeatureFlags.isEnabled(REVAMPED_BOUNCER_MESSAGES)) {
-                mView.showTimeoutDialog(userId, timeoutMs, mLockPatternUtils,
+                // TODO: Remove this entirely for secondary
+                mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
                         mSecurityModel.getSecurityMode(userId));
             }
         }

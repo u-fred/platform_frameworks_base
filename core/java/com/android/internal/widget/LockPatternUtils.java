@@ -231,7 +231,8 @@ public class LockPatternUtils {
     private ILockSettings mLockSettingsService;
     private UserManager mUserManager;
     private final Handler mHandler;
-    private final SparseLongArray mLockoutDeadlines = new SparseLongArray();
+    private final SparseLongArray mPrimaryLockoutDeadlines = new SparseLongArray();
+    private final SparseLongArray mBiometricSecondFactorLockoutDeadlines = new SparseLongArray();
     private Boolean mHasSecureLockScreen;
 
     private HashMap<UserHandle, UserManager> mUserManagerCache = new HashMap<>();
@@ -413,6 +414,16 @@ public class LockPatternUtils {
     }
 
     @UnsupportedAppUsage
+    public void reportFailedBiometricSecondFactorAttempt(int userId) {
+        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
+            return;
+        }
+        getDevicePolicyManager().reportFailedBiometricSecondFactorAttempt(userId);
+        // TODO:
+        //getTrustManager().reportUnlockAttempt(false /* authenticated */, userId);
+    }
+
+    @UnsupportedAppUsage
     public void reportSuccessfulPasswordAttempt(int userId) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
@@ -421,11 +432,29 @@ public class LockPatternUtils {
         getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
     }
 
+    @UnsupportedAppUsage
+    public void reportSuccessfulBiometricSecondFactorAttempt(int userId) {
+        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
+            return;
+        }
+        getDevicePolicyManager().reportSuccessfulBiometricSecondFactorAttempt(userId);
+        // TODO: Review this.
+        //getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
+    }
+
+    // TODO: Make secondary aware.
     public void reportPasswordLockout(int timeoutMs, int userId) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
         getTrustManager().reportUnlockLockout(timeoutMs, userId);
+    }
+
+    public int getCurrentFailedBiometricSecondFactorAttempts(int userId) {
+        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
+            return 0;
+        }
+        return getDevicePolicyManager().getCurrentFailedBiometricSecondFactorAttempts(userId);
     }
 
     public int getCurrentFailedPasswordAttempts(int userId) {
@@ -980,7 +1009,6 @@ public class LockPatternUtils {
     }
 
     private boolean isManagedProfile(int userHandle) {
-        // TODO: This and surrounding methods good for understanding profiles/users.
         final UserInfo info = getUserManager().getUserInfo(userHandle);
         return info != null && info.isManagedProfile();
     }
@@ -1208,17 +1236,56 @@ public class LockPatternUtils {
     /**
      * Set and store the lockout deadline, meaning the user can't attempt their unlock
      * pattern until the deadline has passed.
+     * @param userId the user whose lockout time to set.
+     * @param primary whether to set primary or biometric second factor lockout.
+     * @param timeoutMs the timeout to set.
      * @return the chosen deadline.
      */
     @UnsupportedAppUsage
-    public long setLockoutAttemptDeadline(int userId, int timeoutMs) {
+    public long setLockoutAttemptDeadline(int userId, boolean primary, int timeoutMs) {
         final long deadline = SystemClock.elapsedRealtime() + timeoutMs;
         if (userId == USER_FRP) {
             // For secure password storage (that is required for FRP), the underlying storage also
             // enforces the deadline. Since we cannot store settings for the FRP user, don't.
             return deadline;
         }
-        mLockoutDeadlines.put(userId, deadline);
+        SparseLongArray deadlines = primary ?
+                mPrimaryLockoutDeadlines : mBiometricSecondFactorLockoutDeadlines;
+        deadlines.put(userId, deadline);
+
+        return deadline;
+    }
+
+    /**
+     * Set and store the lockout deadline, meaning the user can't attempt their unlock
+     * pattern until the deadline has passed.
+     * @param userId the user whose lockout time to set.
+     * @param timeoutMs the timeout to set.
+     * @return the chosen deadline.
+     */
+    // TODO: Review all uses of this.
+    @UnsupportedAppUsage
+    public long setLockoutAttemptDeadline(int userId, int timeoutMs) {
+        return setLockoutAttemptDeadline(userId, true, timeoutMs);
+    }
+
+    /**
+     * @param userId the user whose lockout time to return.
+     * @param primary whether to return primary or biometric second factor lockout.
+     * @return The elapsed time in millis in the future when the user is allowed to.
+     *   attempt to enter their lock pattern, or 0 if the user is welcome to
+     *   enter a pattern.
+     */
+    public long getLockoutAttemptDeadline(int userId, boolean primary) {
+        SparseLongArray deadlines = primary ? mPrimaryLockoutDeadlines :
+                mBiometricSecondFactorLockoutDeadlines;
+        final long deadline = deadlines.get(userId, 0L);
+        final long now = SystemClock.elapsedRealtime();
+        if (deadline < now && deadline != 0) {
+            // timeout expired
+            deadlines.put(userId, 0);
+            return 0L;
+        }
         return deadline;
     }
 
@@ -1227,15 +1294,9 @@ public class LockPatternUtils {
      *   attempt to enter their lock pattern, or 0 if the user is welcome to
      *   enter a pattern.
      */
+    // TODO: Review all uses of this.
     public long getLockoutAttemptDeadline(int userId) {
-        final long deadline = mLockoutDeadlines.get(userId, 0L);
-        final long now = SystemClock.elapsedRealtime();
-        if (deadline < now && deadline != 0) {
-            // timeout expired
-            mLockoutDeadlines.put(userId, 0);
-            return 0L;
-        }
-        return deadline;
+        return getLockoutAttemptDeadline(userId, false);
     }
 
     private boolean getBoolean(String secureSettingKey, boolean defaultValue, int userId) {

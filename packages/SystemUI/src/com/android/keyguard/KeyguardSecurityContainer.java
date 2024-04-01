@@ -700,8 +700,8 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
         mAlertDialog.show();
     }
 
-    void showTimeoutDialog(int userId, int timeoutMs, LockPatternUtils lockPatternUtils,
-            SecurityMode securityMode) {
+    void showTimeoutDialog(int userId, boolean primary, int timeoutMs,
+            LockPatternUtils lockPatternUtils, SecurityMode securityMode) {
         int timeoutInSeconds = timeoutMs / 1000;
         int messageId = 0;
 
@@ -723,9 +723,17 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                 break;
         }
 
+        int failedAttempts;
+        if (primary) {
+            failedAttempts = lockPatternUtils.getCurrentFailedPasswordAttempts(userId);
+        } else {
+            failedAttempts = lockPatternUtils.getCurrentFailedBiometricSecondFactorAttempts(userId);
+        }
+
         if (messageId != 0) {
             final String message = mContext.getString(messageId,
-                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId),
+                    failedAttempts,
+                    //lockPatternUtils.getCurrentFailedPasswordAttempts(userId),
                     timeoutInSeconds);
             showDialog(null, message);
         }
