@@ -2357,6 +2357,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             response = authResult.gkResponse;
 
             if (!credential.getPrimaryCredential()) {
+                if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_RETRY &&
+                        response.getTimeout() > 0) {
+                    requireStrongAuth(STRONG_AUTH_REQUIRED_AFTER_LOCKOUT, userId);
+                }
                 return response;
             }
 
