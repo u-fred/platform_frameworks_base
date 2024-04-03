@@ -264,6 +264,14 @@ public abstract class KeyguardInputViewController<T extends KeyguardInputView>
                         mInputMethodManager, emergencyButtonController, mMainExecutor, mResources,
                         mFalsingCollector, mKeyguardViewController,
                         mDevicePostureController, mFeatureFlags, mSelectedUserInteractor);
+            } else if (keyguardInputView instanceof KeyguardBiometricSecondFactorPINView) {
+                return new KeyguardBiometricSecondFactorPinViewController(
+                        (KeyguardBiometricSecondFactorPINView) keyguardInputView,
+                        mKeyguardUpdateMonitor, securityMode, mLockPatternUtils,
+                        keyguardSecurityCallback, mMessageAreaControllerFactory, mLatencyTracker,
+                        mLiftToActivateListener, emergencyButtonController, mFalsingCollector,
+                        mDevicePostureController, mFeatureFlags, mSelectedUserInteractor,
+                        mUiEventLogger);
             } else if (keyguardInputView instanceof KeyguardPINView) {
                 return new KeyguardPinViewController((KeyguardPINView) keyguardInputView,
                         mKeyguardUpdateMonitor, securityMode, mLockPatternUtils,
