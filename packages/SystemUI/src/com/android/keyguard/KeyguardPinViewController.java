@@ -34,14 +34,14 @@ import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 
 public class KeyguardPinViewController
         extends KeyguardPinBasedInputViewController<KeyguardPINView> {
-    private final KeyguardUpdateMonitor mKeyguardUpdateMonitor;
+    protected final KeyguardUpdateMonitor mKeyguardUpdateMonitor;
     private final DevicePostureController mPostureController;
     private final DevicePostureController.Callback mPostureCallback = posture ->
             mView.onDevicePostureChanged(posture);
-    private LockPatternUtils mLockPatternUtils;
+    protected LockPatternUtils mLockPatternUtils;
     private final FeatureFlags mFeatureFlags;
     private static final int DEFAULT_PIN_LENGTH = 6;
-    private static final int MIN_FAILED_PIN_ATTEMPTS = 5;
+    protected static final int MIN_FAILED_PIN_ATTEMPTS = 5;
     private NumPadButton mBackspaceKey;
     private View mOkButton = mView.findViewById(R.id.key_enter);
 
@@ -130,11 +130,15 @@ public class KeyguardPinViewController
     }
 
     private void updateAutoConfirmationState() {
-        mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId()) >= MIN_FAILED_PIN_ATTEMPTS;
+        mDisabledAutoConfirmation = shouldDisableAutoConfirmation();
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
         updatePinHinting();
+    }
+
+    protected boolean shouldDisableAutoConfirmation() {
+        return mLockPatternUtils.getCurrentFailedPasswordAttempts(
+                mSelectedUserInteractor.getSelectedUserId()) >= MIN_FAILED_PIN_ATTEMPTS;
     }
 
     /**
