@@ -25,6 +25,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -53,6 +54,7 @@ public class NumPadKey extends ViewGroup implements NumPadAnimationListener {
     private int mTextViewResId;
     private PasswordTextView mTextView;
     private boolean mAnimationsEnabled = true;
+    private View mRoot;
 
     @Nullable
     private NumPadAnimator mAnimator;
@@ -62,7 +64,7 @@ public class NumPadKey extends ViewGroup implements NumPadAnimationListener {
         @Override
         public void onClick(View thisView) {
             if (mTextView == null && mTextViewResId > 0) {
-                final View v = NumPadKey.this.getRootView().findViewById(mTextViewResId);
+                final View v = mRoot.findViewById(mTextViewResId);
                 if (v != null && v instanceof PasswordTextView) {
                     mTextView = (PasswordTextView) v;
                 }
@@ -125,6 +127,10 @@ public class NumPadKey extends ViewGroup implements NumPadAnimationListener {
         } else {
             mAnimator = null;
         }
+    }
+
+    public void setRoot(View root) {
+        mRoot = root;
     }
 
     @Override
