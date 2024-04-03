@@ -896,9 +896,10 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             finish = true;
             eventSubtype = BOUNCER_DISMISS_EXTENDED_ACCESS;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_EXTENDED_ACCESS;
-            // TODO: for now should just be unlocked with fingerprint
-        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
-                mUpdateMonitor.getBiometricSecondFactorEnabled(targetUserId) && !authenticated) {
+            // TODO: Check for fingerprint only, not all biometrics.
+        } else if (SecurityMode.BiometricSecondFactorPin == getCurrentSecurityMode() &&
+                !authenticated) {
+            // TODO: Should we be using showPrimarySecurityScreen()?
             showSecurityScreen(mSecurityModel.getSecurityMode(targetUserId));
         } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
                 !mUpdateMonitor.getBiometricSecondFactorEnabled(targetUserId)) {
@@ -919,9 +920,13 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 case Pattern:
                 case Password:
                 case PIN:
-                    // TODO: This should not be primary auth in cases where it was biometric second
-                    //  factor. Also need to consider what we are doing with HAT from fingerprint.
                     authenticatedWithPrimaryAuth = true;
+                    finish = true;
+                    eventSubtype = BOUNCER_DISMISS_PASSWORD;
+                    uiEvent = BouncerUiEvent.BOUNCER_DISMISS_PASSWORD;
+                    break;
+
+                case BiometricSecondFactorPin:
                     finish = true;
                     eventSubtype = BOUNCER_DISMISS_PASSWORD;
                     uiEvent = BouncerUiEvent.BOUNCER_DISMISS_PASSWORD;
@@ -1136,7 +1141,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
      */
     private boolean canUseOneHandedBouncer() {
         return switch (mCurrentSecurityMode) {
-            case PIN, Pattern, SimPin, SimPuk -> getResources().getBoolean(
+            case PIN, Pattern, SimPin, SimPuk, BiometricSecondFactorPin -> getResources().getBoolean(
                     R.bool.can_use_one_handed_bouncer);
             default -> false;
         };

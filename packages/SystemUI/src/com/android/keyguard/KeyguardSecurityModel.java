@@ -43,7 +43,9 @@ public class KeyguardSecurityModel {
         Password, // Unlock by entering an alphanumeric password
         PIN, // Strictly numeric password
         SimPin, // Unlock by entering a sim pin.
-        SimPuk // Unlock by entering a sim puk
+        SimPuk, // Unlock by entering a sim puk
+        // TODO: Look at all places PIN is used and see if BiometricSecondFactorPin should be there.
+        BiometricSecondFactorPin // Unlock by entering a second factor PIN.
     }
 
     private final boolean mIsPukScreenAvailable;
@@ -73,8 +75,7 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
-        // TODO: Verify that contains is sufficient and don't need null check.
-        boolean primaryCredential = !mKeyguardUpdateMonitor.mUserFingerprintAuthenticated.contains(
+        boolean primaryCredential = !mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(
                 userId);
 
         final int security = whitelistIpcs(() ->
@@ -82,7 +83,12 @@ public class KeyguardSecurityModel {
         switch (security) {
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC:
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX:
-                return SecurityMode.PIN;
+                if (primaryCredential) {
+                    return SecurityMode.PIN;
+                } else {
+                    return SecurityMode.BiometricSecondFactorPin;
+                }
+
 
             case DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC:
             case DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC:

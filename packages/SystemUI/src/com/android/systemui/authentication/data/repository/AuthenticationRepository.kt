@@ -37,8 +37,6 @@ import com.android.systemui.util.kotlin.pairwise
 import com.android.systemui.util.time.SystemClock
 import dagger.Binds
 import dagger.Module
-import java.util.function.Function
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,6 +54,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.function.Function
+import javax.inject.Inject
 
 /** Defines interface for classes that can access authentication-related application state. */
 interface AuthenticationRepository {
@@ -348,6 +348,8 @@ constructor(
         userId: Int,
     ): AuthenticationMethodModel {
         return when (getSecurityMode.apply(userId)) {
+            // TODO: AuthenticationMethodModel.BiometricSecondFactorPin?
+            KeyguardSecurityModel.SecurityMode.BiometricSecondFactorPin,
             KeyguardSecurityModel.SecurityMode.PIN -> AuthenticationMethodModel.Pin
             KeyguardSecurityModel.SecurityMode.SimPin,
             KeyguardSecurityModel.SecurityMode.SimPuk -> AuthenticationMethodModel.Sim

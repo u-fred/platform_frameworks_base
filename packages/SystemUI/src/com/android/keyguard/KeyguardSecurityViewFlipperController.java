@@ -106,6 +106,7 @@ public class KeyguardSecurityViewFlipperController
             }
         }
 
+        // TODO: Race condition, could end up with multiple of same controller type.
         asynchronouslyInflateView(securityMode, keyguardSecurityCallback, onViewInflatedCallback);
     }
 
@@ -160,6 +161,8 @@ public class KeyguardSecurityViewFlipperController
             case Password: return R.layout.keyguard_password_motion_layout;
             case SimPin: return R.layout.keyguard_sim_pin_view;
             case SimPuk: return R.layout.keyguard_sim_puk_view;
+            case BiometricSecondFactorPin:
+                return R.layout.keyguard_biometric_second_factor_pin_motion_layout;
             default:
                 return 0;
         }
@@ -172,6 +175,8 @@ public class KeyguardSecurityViewFlipperController
             case Password: return R.layout.keyguard_password_view;
             case SimPin: return R.layout.keyguard_sim_pin_view;
             case SimPuk: return R.layout.keyguard_sim_puk_view;
+            case BiometricSecondFactorPin:
+                return R.layout.keyguard_biometric_second_factor_pin_view;
             default:
                 return 0;
         }
