@@ -59,14 +59,6 @@ public class KeyguardBiometricSecondFactorPinViewController extends KeyguardPinV
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                             userId, false, timeoutMs);
                     handleAttemptLockout(deadline);
-
-                    // Prevent getSecurityMode() from returning BiometricSecondFactorPin.
-                    mKeyguardUpdateMonitor.clearFingerprintRecognized(userId);
-                    // onDevicePolicyManagerStateChanged() calls showPrimarySecurityScreen.
-                    // TODO: Race condition if we also call here?
-                    //getKeyguardSecurityCallback().showCurrentSecurityScreen();
-                    // TODO: Review how it is done by SIM.
-                    // TODO: Should we go via showNextSecurityScreen?
                 }
             }
             if (timeoutMs == 0) {

@@ -35,6 +35,7 @@ import static com.android.systemui.flags.Flags.REVAMPED_BOUNCER_MESSAGES;
 
 import android.app.ActivityManager;
 import android.app.admin.DevicePolicyManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
@@ -1216,9 +1217,16 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         if (timeoutMs > 0) {
             // TODO: Secondary?
             //mLockPatternUtils.reportPasswordLockout(timeoutMs, userId);
-            ;
+            final DialogInterface.OnClickListener onClick =
+                    (dialog, which) -> {
+                        // So that SecurityMode will be primary.
+                        mUpdateMonitor.clearFingerprintRecognized(userId);
+                        showPrimarySecurityScreen(false);
+                    };
+            mView.showBiometricSecondFactorTimeoutDialog(userId, mLockPatternUtils, onClick);
         }
     }
+
 
     private void getCurrentSecurityController(
             KeyguardSecurityViewFlipperController.OnViewInflatedCallback onViewInflatedCallback) {

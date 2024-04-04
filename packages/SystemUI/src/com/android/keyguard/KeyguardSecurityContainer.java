@@ -46,6 +46,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -684,6 +685,10 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
     }
 
     private void showDialog(String title, String message) {
+        showDialog(title, message, null);
+    }
+
+    private void showDialog(String title, String message, DialogInterface.OnClickListener onClick) {
         if (mAlertDialog != null) {
             mAlertDialog.dismiss();
         }
@@ -692,7 +697,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                 .setTitle(title)
                 .setMessage(message)
                 .setCancelable(false)
-                .setNeutralButton(R.string.ok, null)
+                .setNeutralButton(R.string.ok, onClick)
                 .create();
         if (!(mContext instanceof Activity)) {
             mAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
@@ -729,6 +734,14 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                     timeoutInSeconds);
             showDialog(null, message);
         }
+    }
+
+    void showBiometricSecondFactorTimeoutDialog(int userId, LockPatternUtils lockPatternUtils,
+            DialogInterface.OnClickListener onClick) {
+        final String message = mContext.getString(
+                R.string.kg_too_many_failed_biometric_second_factor_pin_attempts_dialog_message,
+                lockPatternUtils.getCurrentFailedBiometricSecondFactorAttempts(userId));
+        showDialog(null, message, onClick);
     }
 
     @Override
