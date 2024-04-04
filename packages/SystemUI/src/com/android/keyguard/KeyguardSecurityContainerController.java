@@ -896,16 +896,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             finish = true;
             eventSubtype = BOUNCER_DISMISS_EXTENDED_ACCESS;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_EXTENDED_ACCESS;
-            // TODO: Check for fingerprint only, not all biometrics.
-        } else if (SecurityMode.BiometricSecondFactorPin == getCurrentSecurityMode() &&
-                !authenticated) {
-            // TODO: Should we be using showPrimarySecurityScreen()?
-            showSecurityScreen(mSecurityModel.getSecurityMode(targetUserId));
-        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
-                !mUpdateMonitor.getBiometricSecondFactorEnabled(targetUserId)) {
-            finish = true;
-            eventSubtype = BOUNCER_DISMISS_BIOMETRIC;
-            uiEvent = BouncerUiEvent.BOUNCER_DISMISS_BIOMETRIC;
         } else if (SecurityMode.None == getCurrentSecurityMode()) {
             SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId);
             if (SecurityMode.None == securityMode) {
