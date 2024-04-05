@@ -20,7 +20,7 @@
      Required for landscape lockscreen on small screens. -->
 <com.android.keyguard.KeyguardBiometricSecondFactorPINView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:androidprv="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/keyguard_pin_view"
+    android:id="@+id/keyguard_biometric_second_factor_pin_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center_horizontal|bottom"
