@@ -132,6 +132,11 @@ object KeyguardBouncerViewBinder {
                                     securityContainerController.showPrimarySecurityScreen(
                                         /* turningOff= */ false
                                     )
+                                    // TODO: Everything that follows here should be a callback
+                                    //  passed to showPrimarySecurityScreen. Otherwise, when the
+                                    //  security screen is changed, multiple views get created and
+                                    //  none of these calls affect the visible view. For now this
+                                    //  is fixed in the ViewFlipper to reduce base code changes.
                                     securityContainerController.setInitialMessage()
                                     securityContainerController.appear()
                                     securityContainerController.onResume(

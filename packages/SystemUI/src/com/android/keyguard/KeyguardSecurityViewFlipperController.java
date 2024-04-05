@@ -129,13 +129,21 @@ public class KeyguardSecurityViewFlipperController
             }
             mAsyncLayoutInflater.inflate(layoutId, mView,
                     (view, resId, parent) -> {
-                        mView.addView(view);
-                        KeyguardInputViewController<KeyguardInputView> childController =
-                                mKeyguardSecurityViewControllerFactory.create(
-                                        (KeyguardInputView) view,
-                                        securityMode, keyguardSecurityCallback);
-                        childController.init();
-                        mChildren.add(childController);
+                        KeyguardInputViewController<KeyguardInputView> childController = null;
+                        for (KeyguardInputViewController<KeyguardInputView> child : mChildren) {
+                            if (child.getSecurityMode() == securityMode) {
+                                childController = child;
+                                break;
+                            }
+                        }
+                        if (childController == null) {
+                            mView.addView(view);
+                            childController = mKeyguardSecurityViewControllerFactory.create(
+                                    (KeyguardInputView) view, securityMode,
+                                    keyguardSecurityCallback);
+                            childController.init();
+                            mChildren.add(childController);
+                        }
                         if (onViewInflatedListener != null) {
                             onViewInflatedListener.onViewInflated(childController);
 
