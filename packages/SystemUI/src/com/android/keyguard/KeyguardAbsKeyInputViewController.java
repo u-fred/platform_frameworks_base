@@ -105,7 +105,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mView.setKeyDownListener(mKeyDownListener);
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
-        long deadline = getDeadline();
+        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(
+                mSelectedUserInteractor.getSelectedUserId());
+        long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
+                mSelectedUserInteractor.getSelectedUserId(), primary);
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -212,13 +215,15 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         if (mDismissing) return; // already verified but haven't been dismissed; don't do it again.
         if (mLockedOut) return;
 
+        final int userId = mSelectedUserInteractor.getSelectedUserId();
+        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(userId);
         final LockscreenCredential password = mView.getEnteredCredential();
+        password.setPrimaryCredential(primary);
         mView.setPasswordEntryInputEnabled(false);
         if (mPendingLockCheck != null) {
             mPendingLockCheck.cancel(false);
         }
 
-        final int userId = mSelectedUserInteractor.getSelectedUserId();
         if (password.size() <= MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT) {
             // to avoid accidental lockout, only count attempts that are long enough to be a
             // real password. This may require some tweaking.
