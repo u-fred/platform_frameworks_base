@@ -225,7 +225,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         if (mLockedOut) return;
 
         final LockscreenCredential password = mView.getEnteredCredential();
-        password.setPrimaryCredential(primary);
         mView.setPasswordEntryInputEnabled(false);
         if (mPendingLockCheck != null) {
             mPendingLockCheck.cancel(false);
