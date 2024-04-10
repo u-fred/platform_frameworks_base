@@ -1110,7 +1110,7 @@ class SyntheticPasswordManager {
 
             GateKeeperResponse response;
             try {
-                response = gatekeeper.verifyChallenge(fakeUserId(persistentData.userId),
+                response = gatekeeper.verifyChallenge(fakeUserId(persistentData.userId, true),
                         0 /* challenge */, pwd.passwordHandle,
                         stretchedLskfToGkPassword(stretchedLskf));
             } catch (RemoteException e) {
@@ -1942,12 +1942,6 @@ class SyntheticPasswordManager {
     @VisibleForTesting
     static int fakeUserId(int userId, boolean primaryCredential) {
         return 100000 + (userId * 2) + (primaryCredential ? 0 : 1);
-    }
-
-    // TODO: Remove this.
-    @VisibleForTesting
-    static int fakeUserId(int userId) {
-        return fakeUserId(userId, true);
     }
 
     private String getProtectorKeyAlias(long protectorId) {

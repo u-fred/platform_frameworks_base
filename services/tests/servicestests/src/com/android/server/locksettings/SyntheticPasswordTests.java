@@ -126,7 +126,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     }
 
     private boolean lskfGatekeeperHandleExists(int userId) throws RemoteException {
-        return mGateKeeperService.getSecureUserId(SyntheticPasswordManager.fakeUserId(userId)) != 0;
+        return mGateKeeperService.getSecureUserId(SyntheticPasswordManager.fakeUserId(userId, true)) != 0;
     }
 
     private void initSpAndSetCredential(int userId, LockscreenCredential credential)
