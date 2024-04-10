@@ -1424,8 +1424,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         // Settings.Secure.getIntForUser(mContext.getContentResolver(), BIOMETRIC_KEYGUARD_ENABLED,
         // 1, mUserId) == 1
         // mFingerprintManager.hasEnrolledTemplates()
-        return mLockPatternUtils.getActivePasswordQuality(userId, false)
-                != PASSWORD_QUALITY_UNSPECIFIED;
+        return mLockPatternUtils.isBiometricSecondFactorEnabled(userId);
     }
 
     public boolean isDoingBiometricSecondFactorAuth(int userId) {

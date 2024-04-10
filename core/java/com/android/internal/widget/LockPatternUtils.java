@@ -685,6 +685,10 @@ public class LockPatternUtils {
         return getKeyguardStoredPasswordQuality(userId, primaryCredential);
     }
 
+    public boolean isBiometricSecondFactorEnabled(int userId) {
+        return getActivePasswordQuality(userId, false) != PASSWORD_QUALITY_UNSPECIFIED;
+    }
+
     /**
      * Use it to reset keystore without wiping work profile
      */
