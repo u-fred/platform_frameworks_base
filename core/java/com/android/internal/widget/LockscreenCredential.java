@@ -216,7 +216,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     public static LockscreenCredential createPinOrNone(@Nullable CharSequence pin,
             boolean primaryCredential) {
         if (TextUtils.isEmpty(pin)) {
-            return createNone();
+            return createNone(primaryCredential);
         } else {
             return createPin(pin, primaryCredential);
         }
