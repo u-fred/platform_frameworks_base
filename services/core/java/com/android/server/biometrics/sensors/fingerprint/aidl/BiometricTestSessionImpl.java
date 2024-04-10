@@ -76,7 +76,7 @@ class BiometricTestSessionImpl extends ITestSession.Stub {
 
         @Override
         public void onAuthenticationSucceeded(Fingerprint fp, int userId,
-                boolean isStrongBiometric, byte[] authToken) {
+                boolean isStrongBiometric) {
 
         }
 

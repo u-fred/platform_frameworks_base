@@ -91,7 +91,7 @@ public class LatencyTester implements CoreStartable {
                     true);
         } else if (type == BiometricSourceType.FINGERPRINT) {
             mKeyguardUpdateMonitor.onFingerprintAuthenticated(
-                    mSelectedUserInteractor.getSelectedUserId(), true, null);
+                    mSelectedUserInteractor.getSelectedUserId(), true);
         }
     }
 

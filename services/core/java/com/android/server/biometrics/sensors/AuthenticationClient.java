@@ -180,11 +180,6 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
     @Override
     public void onAuthenticated(BiometricAuthenticator.Identifier identifier,
             boolean authenticated, ArrayList<Byte> hardwareAuthToken) {
-        onAuthenticated(identifier, authenticated, hardwareAuthToken, false);
-    }
-    public void onAuthenticated(BiometricAuthenticator.Identifier identifier,
-            boolean authenticated, ArrayList<Byte> hardwareAuthToken,
-            boolean biometricSecondFactorEnabled) {
         getLogger().logOnAuthenticated(getContext(), getOperationContext(),
                 authenticated, mRequireConfirmation, getTargetUserId(), isBiometricPrompt());
 

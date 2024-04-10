@@ -349,19 +349,6 @@ public class FingerprintService extends SystemService {
                     restricted, statsClient, isKeyguard);
         }
 
-        // Binder call
-        @Override
-        public int addPendingBiometricSecondFactorAuthTokenToKeyStore(final IBinder token,
-                byte[] authToken) {
-            final int result = KeyStore.getInstance().addAuthToken(authToken);
-            if (result != 0 /* success */) {
-                Slog.d(TAG, "Error adding auth token : " + result);
-            } else {
-                Slog.d(TAG, "addAuthToken: " + result);
-            }
-            return result;
-        }
-
         private long authenticateWithPrompt(
                 final long operationId,
                 @NonNull final FingerprintSensorPropertiesInternal props,
@@ -415,7 +402,7 @@ public class FingerprintService extends SystemService {
                             final boolean isStrong = props.sensorStrength == STRENGTH_STRONG;
                             try {
                                 // TODO: Test null auth token.
-                                receiver.onAuthenticationSucceeded(fingerprint, userId, isStrong, null);
+                                receiver.onAuthenticationSucceeded(fingerprint, userId, isStrong);
                             } catch (RemoteException e) {
                                 Slog.e(TAG, "Remote exception in onAuthenticationSucceeded()", e);
                             }

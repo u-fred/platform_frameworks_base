@@ -1084,7 +1084,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
     @Test
     public void testGetUserCanSkipBouncer_whenFingerprint() {
         int user = mSelectedUserInteractor.getSelectedUserId();
-        mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, true /* isClass3Biometric */, null);
+        mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, true /* isClass3Biometric */);
         assertThat(mKeyguardUpdateMonitor.getUserCanSkipBouncer(user)).isTrue();
     }
 
@@ -1093,7 +1093,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         when(mStrongAuthTracker.isUnlockingWithBiometricAllowed(false /* isClass3Biometric */))
                 .thenReturn(false);
         int user = mSelectedUserInteractor.getSelectedUserId();
-        mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, false /* isClass3Biometric */, null);
+        mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, false /* isClass3Biometric */);
         assertThat(mKeyguardUpdateMonitor.getUserCanSkipBouncer(user)).isFalse();
     }
 
@@ -1494,7 +1494,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mHandler).postDelayed(mKeyguardUpdateMonitor.mFpCancelNotReceived,
                 DEFAULT_CANCEL_SIGNAL_TIMEOUT);
 
-        mKeyguardUpdateMonitor.onFingerprintAuthenticated(0, true, null);
+        mKeyguardUpdateMonitor.onFingerprintAuthenticated(0, true);
         mTestableLooper.processAllMessages();
 
         verify(mHandler, times(1)).removeCallbacks(mKeyguardUpdateMonitor.mFpCancelNotReceived);

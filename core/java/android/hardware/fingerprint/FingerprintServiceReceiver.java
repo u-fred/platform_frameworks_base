@@ -34,8 +34,7 @@ public class FingerprintServiceReceiver extends IFingerprintServiceReceiver.Stub
     }
 
     @Override
-    public void onAuthenticationSucceeded(Fingerprint fp, int userId, boolean isStrongBiometric,
-            byte[] authToken)
+    public void onAuthenticationSucceeded(Fingerprint fp, int userId, boolean isStrongBiometric)
             throws RemoteException {
 
     }

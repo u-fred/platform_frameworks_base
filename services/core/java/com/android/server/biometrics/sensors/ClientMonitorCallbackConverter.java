@@ -78,7 +78,7 @@ public class ClientMonitorCallbackConverter {
                     isStrongBiometric);
         } else if (mFingerprintServiceReceiver != null) {
             mFingerprintServiceReceiver.onAuthenticationSucceeded((Fingerprint) identifier, userId,
-                    isStrongBiometric, token);
+                    isStrongBiometric);
         }
     }
 

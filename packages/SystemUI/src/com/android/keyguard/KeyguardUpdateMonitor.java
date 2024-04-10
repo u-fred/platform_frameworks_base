@@ -460,7 +460,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     //  they weren't. clearBiometricRecognized appears to do it.
     @VisibleForTesting
     SparseArray<BiometricAuthenticated> mUserFingerprintAuthenticated = new SparseArray<>();
-    private final SparseArray<byte[]> mPendingBiometricSecondFactorAuthToken = new SparseArray<>();
 
     private static int sCurrentUser;
 
@@ -844,15 +843,11 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     }
 
     @VisibleForTesting
-    public void onFingerprintAuthenticated(int userId, boolean isStrongBiometric,
-            byte[] authToken) {
+    public void onFingerprintAuthenticated(int userId, boolean isStrongBiometric) {
         Assert.isMainThread();
         Trace.beginSection("KeyGuardUpdateMonitor#onFingerPrintAuthenticated");
         mUserFingerprintAuthenticated.put(userId,
                 new BiometricAuthenticated(true, isStrongBiometric));
-        if (getBiometricSecondFactorEnabled(userId)) {
-            mPendingBiometricSecondFactorAuthToken.put(userId, authToken);
-        }
         // Update/refresh trust state only if user can skip bouncer
         if (getUserCanSkipBouncer(userId)) {
             mTrustManager.unlockedByBiometricForUser(userId, FINGERPRINT);
@@ -879,17 +874,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
 
         Trace.endSection();
-    }
-
-    protected void addPendingBiometricSecondFactorAuthTokenToKeyStore(int userId) {
-        if (mPendingBiometricSecondFactorAuthToken.contains(userId)) {
-            byte[] authToken = mPendingBiometricSecondFactorAuthToken.get(userId);
-            // TODO: gc or zero? Review how auth tokens are handled elsewhere.
-            mPendingBiometricSecondFactorAuthToken.remove(userId);
-            if (mFpm != null) {
-                mFpm.addPendingBiometricSecondFactorAuthTokenToKeyStore(authToken);
-            }
-        }
     }
 
     private void reportSuccessfulBiometricUnlock(boolean isStrongBiometric, int userId) {
@@ -949,8 +933,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         Trace.endSection();
     }
 
-    private void handleFingerprintAuthenticated(int authUserId, boolean isStrongBiometric,
-            byte[] authToken) {
+    private void handleFingerprintAuthenticated(int authUserId, boolean isStrongBiometric) {
         Trace.beginSection("KeyGuardUpdateMonitor#handlerFingerPrintAuthenticated");
         if (mHandler.hasCallbacks(mFpCancelNotReceived)) {
             mLogger.d("handleFingerprintAuthenticated()"
@@ -967,7 +950,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 mLogger.logFingerprintDisabledForUser(userId);
                 return;
             }
-            onFingerprintAuthenticated(userId, isStrongBiometric, authToken);
+            onFingerprintAuthenticated(userId, isStrongBiometric);
         } finally {
             setFingerprintRunningState(BIOMETRIC_STATE_STOPPED);
         }
@@ -1799,8 +1782,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 @Override
                 public void onAuthenticationSucceeded(AuthenticationResult result) {
                     Trace.beginSection("KeyguardUpdateMonitor#onAuthenticationSucceeded");
-                    handleFingerprintAuthenticated(result.getUserId(), result.isStrongBiometric(),
-                            result.getAuthToken());
+                    handleFingerprintAuthenticated(result.getUserId(), result.isStrongBiometric());
                     Trace.endSection();
                 }
 
@@ -2925,8 +2907,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                         fingerprintAuthenticateOptions);
             } else {
                 mLogger.v("startListeningForFingerprint");
-                fingerprintAuthenticateOptions.setBiometricSecondFactorEnabled(
-                        getBiometricSecondFactorEnabled(userId));
+//                fingerprintAuthenticateOptions.setBiometricSecondFactorEnabled(
+//                        getBiometricSecondFactorEnabled(userId));
                 mFpm.authenticate(null /* crypto */, mFingerprintCancelSignal,
                         mFingerprintAuthenticationCallback,
                         null /* handler */,
@@ -3651,8 +3633,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         Log.d("LockoutDebug", "KeyguardUpdateMonitor clearFingerprintRecognized()");
         Assert.isMainThread();
         mUserFingerprintAuthenticated.clear();
-        // TODO: gc?
-        mPendingBiometricSecondFactorAuthToken.clear();
         mTrustManager.clearAllBiometricRecognized(FINGERPRINT, unlockedUser);
         mLogger.d("clearFingerprintRecognized");
 

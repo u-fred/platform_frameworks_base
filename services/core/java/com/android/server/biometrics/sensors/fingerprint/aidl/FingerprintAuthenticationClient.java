@@ -97,7 +97,6 @@ public class FingerprintAuthenticationClient
     private long mSideFpsLastAcquireStartTime;
     private Runnable mAuthSuccessRunnable;
     private final Clock mClock;
-    private boolean mBiometricSecondFactorEnabled;
 
     public FingerprintAuthenticationClient(
             @NonNull Context context,
@@ -184,8 +183,6 @@ public class FingerprintAuthenticationClient
                         UserHandle.USER_CURRENT);
             }
         }
-
-        mBiometricSecondFactorEnabled = options.isBiometricSecondFactorEnabled();
     }
 
     @Override
@@ -225,9 +222,8 @@ public class FingerprintAuthenticationClient
             BiometricAuthenticator.Identifier identifier,
             boolean authenticated,
             ArrayList<Byte> token) {
-        super.onAuthenticated(identifier, authenticated, token, mBiometricSecondFactorEnabled);
+        super.onAuthenticated(identifier, authenticated, token);
         handleLockout(authenticated);
-
         if (authenticated) {
             mState = STATE_STOPPED;
             mSensorOverlays.hide(getSensorId());
