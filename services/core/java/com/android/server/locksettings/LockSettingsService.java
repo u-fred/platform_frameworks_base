@@ -1794,7 +1794,8 @@ public class LockSettingsService extends ILockSettings.Stub {
                     return false;
                 }
                 // TODO: Review if these are primary only.
-                if (credential != null && credential.getPrimaryCredential()) {
+
+                if (credential.getPrimaryCredential()) {
                     setSeparateProfileChallengeEnabledLocked(userId, true, /* unused */ null);
                     notifyPasswordChanged(credential, userId);
                 }
@@ -1804,7 +1805,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 setDeviceUnlockedForUser(userId);
             }
             // TODO: Review if these are primary only.
-            if (credential != null && credential.getPrimaryCredential()) {
+            if (credential.getPrimaryCredential()) {
                 notifySeparateProfileChallengeChanged(userId);
                 onPostPasswordChanged(credential, userId);
             }
