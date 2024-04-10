@@ -65,8 +65,8 @@ public class NumPadKey extends ViewGroup implements NumPadAnimationListener {
         public void onClick(View thisView) {
             if (mTextView == null && mTextViewResId > 0) {
                 final View v = mRoot.findViewById(mTextViewResId);
-                if (v != null && v instanceof PasswordTextView) {
-                    mTextView = (PasswordTextView) v;
+                if (v instanceof PasswordTextView tv) {
+                    mTextView = tv;
                 }
             }
             if (mTextView != null && mTextView.isEnabled()) {
