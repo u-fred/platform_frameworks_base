@@ -758,11 +758,16 @@ class SyntheticPasswordManager {
         // Remove potential persistent state (in RPMB), to prevent them from accumulating and
         // causing problems.
         try {
-            // TODO: Verify can clear second even if does not exist.
             gatekeeper.clearSecureUserId(fakeUserId(userId, true));
+        } catch (RemoteException e) {
+            Slog.w(TAG, "Failed to clear primary SID from gatekeeper", e);
+        }
+
+        try {
+            // TODO: Verify can clear second even if does not exist.
             gatekeeper.clearSecureUserId(fakeUserId(userId, false));
-        } catch (RemoteException ignore) {
-            Slog.w(TAG, "Failed to clear SID from gatekeeper");
+        } catch (RemoteException e) {
+            Slog.w(TAG, "Failed to clear secondary SID from gatekeeper", e);
         }
     }
 
