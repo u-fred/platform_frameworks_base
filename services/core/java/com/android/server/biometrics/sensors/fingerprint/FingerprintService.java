@@ -344,11 +344,6 @@ public class FingerprintService extends SystemService {
             } finally {
                 Binder.restoreCallingIdentity(identity2);
             }
-
-            final boolean biometricSecondFactorEnabled =
-                    Utils.getBiometricSecondFactorEnabled(mLockPatternUtils, userId);
-            options.setBiometricSecondFactorEnabled(biometricSecondFactorEnabled);
-
             return provider.second.scheduleAuthenticate(token, operationId,
                     0 /* cookie */, new ClientMonitorCallbackConverter(receiver), options,
                     restricted, statsClient, isKeyguard);

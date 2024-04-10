@@ -420,14 +420,6 @@ public class Utils {
         return false;
     }
 
-    // TODO: Unrelated to this, but rename UI classes to BiometricSecondFactor.
-    // TODO: This is duplicated in KeyguardUpdateMonitor#getBiometricSecondFactorEnabled, see if
-    //  we can eliminate that.
-    public static boolean getBiometricSecondFactorEnabled(LockPatternUtils lpu, int userId) {
-        return lpu.getActivePasswordQuality(userId, false)
-                != PASSWORD_QUALITY_UNSPECIFIED;
-    }
-
     public static boolean isStrongBiometric(int sensorId) {
         IBiometricService service = IBiometricService.Stub.asInterface(
                 ServiceManager.getService(Context.BIOMETRIC_SERVICE));
