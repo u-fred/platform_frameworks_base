@@ -1384,21 +1384,13 @@ public class LockSettingsService extends ILockSettings.Stub {
      * must be called.
      */
     @Override
-    public int getCredentialType(int userId) {
-        return getCredentialType2(userId, true);
+    public int getCredentialType(boolean primary, int userId) {
+        checkPasswordHavePermission();
+        return getCredentialTypeInternal(userId, primary);
     }
 
-    /**
-     * This API is cached; whenever the result would change,
-     * {@link com.android.internal.widget.LockPatternUtils#invalidateCredentialTypeCache}
-     * must be called.
-     *
-     * The suffix 2 is because it is not possible to overload in AIDL, so we need a separate
-     * method.
-     */
-    public int getCredentialType2(int userId, boolean primaryCredential) {
-        checkPasswordHavePermission();
-        return getCredentialTypeInternal(userId, primaryCredential);
+    public int getCredentialType(int userId) {
+        return getCredentialType(true, userId);
     }
 
     /**

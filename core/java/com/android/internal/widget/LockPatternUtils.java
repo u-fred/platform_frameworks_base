@@ -1065,53 +1065,29 @@ public class LockPatternUtils {
     }
 
     /**
-     * Used as the query type when querying for credential type.
-     */
-    private static class CredentialQuery {
-        private final int mUserHandle;
-        private final boolean mPrimaryCredential;
-
-        private CredentialQuery(int userHandle, boolean primaryCredential) {
-            mUserHandle = userHandle;
-            mPrimaryCredential = primaryCredential;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(mUserHandle, mPrimaryCredential);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this) return true;
-            if (!(o instanceof CredentialQuery)) return false;
-            final CredentialQuery other = (CredentialQuery) o;
-            return mUserHandle == other.mUserHandle &&
-                    mPrimaryCredential == other.mPrimaryCredential;
-        }
-    }
-
-    /**
      * Retrieve the credential type of a user.
      */
-    private final PropertyInvalidatedCache.QueryHandler<CredentialQuery, Integer>
-            mCredentialTypeQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
-                @Override
-                public Integer apply(CredentialQuery q) {
-                    try {
-                        return getLockSettings().getCredentialType2(q.mUserHandle,
-                                q.mPrimaryCredential);
-                    } catch (RemoteException re) {
-                        Log.e(TAG, "failed to get credential type", re);
-                        return CREDENTIAL_TYPE_NONE;
-                    }
-                }
-                @Override
-                public boolean shouldBypassCache(CredentialQuery q) {
-                    return isSpecialUserId(q.mUserHandle);
-                }
-            };
+    class CredendialTypeQueryHandler extends PropertyInvalidatedCache.QueryHandler<Integer, Integer> {
+        private final boolean isPrimaryCredential;
+
+        CredendialTypeQueryHandler(boolean isPrimaryCredential) {
+            this.isPrimaryCredential = isPrimaryCredential;
+        }
+
+        @Override
+        public Integer apply(Integer userHandle) {
+            try {
+                return getLockSettings().getCredentialType(isPrimaryCredential, userHandle);
+            } catch (RemoteException re) {
+                Log.e(TAG, "failed to get credential type", re);
+                return CREDENTIAL_TYPE_NONE;
+            }
+        }
+        @Override
+        public boolean shouldBypassCache(Integer userHandle) {
+            return isSpecialUserId(userHandle);
+        }
+    };
 
     /**
      * The API that is cached.
@@ -1121,9 +1097,13 @@ public class LockPatternUtils {
     /**
      * Cache the credential type of a user.
      */
-    private final PropertyInvalidatedCache<CredentialQuery, Integer> mCredentialTypeCache =
+    private final PropertyInvalidatedCache<Integer, Integer> mPrimaryCredentialTypeCache =
             new PropertyInvalidatedCache<>(4, PropertyInvalidatedCache.MODULE_SYSTEM,
-                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API, mCredentialTypeQuery);
+                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API, new CredendialTypeQueryHandler(true));
+
+    private final PropertyInvalidatedCache<Integer, Integer> mSecondaryCredentialTypeCache =
+            new PropertyInvalidatedCache<>(4, PropertyInvalidatedCache.MODULE_SYSTEM,
+                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API, new CredendialTypeQueryHandler(false));
 
     /**
      * Invalidate the credential type cache
@@ -1148,9 +1128,9 @@ public class LockPatternUtils {
      * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
-    public @CredentialType int getCredentialTypeForUser(int userHandle, boolean primayCredential) {
-        CredentialQuery q = new CredentialQuery(userHandle, primayCredential);
-        return mCredentialTypeCache.query(q);
+    public @CredentialType int getCredentialTypeForUser(int userHandle, boolean primaryCredential) {
+        var cache = primaryCredential ? mPrimaryCredentialTypeCache : mSecondaryCredentialTypeCache;
+        return cache.query(userHandle);
     }
 
     /**
