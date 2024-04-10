@@ -34,14 +34,14 @@ import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 
 public class KeyguardPinViewController
         extends KeyguardPinBasedInputViewController<KeyguardPINView> {
-    protected final KeyguardUpdateMonitor mKeyguardUpdateMonitor;
+    private final KeyguardUpdateMonitor mKeyguardUpdateMonitor;
     private final DevicePostureController mPostureController;
     private final DevicePostureController.Callback mPostureCallback = posture ->
             mView.onDevicePostureChanged(posture);
-    protected LockPatternUtils mLockPatternUtils;
+    private LockPatternUtils mLockPatternUtils;
     private final FeatureFlags mFeatureFlags;
     private static final int DEFAULT_PIN_LENGTH = 6;
-    protected static final int MIN_FAILED_PIN_ATTEMPTS = 5;
+    private static final int MIN_FAILED_PIN_ATTEMPTS = 5;
     private NumPadButton mBackspaceKey;
     private View mOkButton = mView.findViewById(R.id.key_enter);
 
@@ -130,10 +130,8 @@ public class KeyguardPinViewController
     }
 
     private void updateAutoConfirmationState() {
-        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(
-                mSelectedUserInteractor.getSelectedUserId());
         mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId(), primary) >= MIN_FAILED_PIN_ATTEMPTS;
+                mSelectedUserInteractor.getSelectedUserId(), isForPrimaryCredential()) >= MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
         updatePinHinting();
@@ -207,6 +205,15 @@ public class KeyguardPinViewController
         @Override
         public int getId() {
             return mId;
+        }
+    }
+
+    @Override
+    protected int getInitialMessageResId() {
+        if (isForPrimaryCredential()) {
+            return super.getInitialMessageResId();
+        } else {
+            return R.string.keyguard_enter_your_biometric_second_factor_pin;
         }
     }
 }

@@ -48,11 +48,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         extends KeyguardInputViewController<T> {
     private final KeyguardUpdateMonitor mKeyguardUpdateMonitor;
     protected final LockPatternUtils mLockPatternUtils;
-    protected final LatencyTracker mLatencyTracker;
+    private final LatencyTracker mLatencyTracker;
     private final FalsingCollector mFalsingCollector;
     private final EmergencyButtonController mEmergencyButtonController;
     private CountDownTimer mCountdownTimer;
-    protected boolean mDismissing;
+    private boolean mDismissing;
     protected AsyncTask<?, ?, ?> mPendingLockCheck;
     protected boolean mResumed;
     protected boolean mLockedOut;
@@ -105,10 +105,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mView.setKeyDownListener(mKeyDownListener);
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
-        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(
-                mSelectedUserInteractor.getSelectedUserId());
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), primary);
+                mSelectedUserInteractor.getSelectedUserId(), isForPrimaryCredential());
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -138,6 +136,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
             mMessageAreaController.setNextMessageColor(colorState);
         }
         mMessageAreaController.setMessage(message, animated);
+    }
+
+    public boolean isForPrimaryCredential() {
+        return getSecurityMode() != SecurityMode.BiometricSecondFactorPin;
     }
 
     // Allow subclasses to override this behavior
@@ -183,7 +185,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         // TODO: Review this. I believe this is to prevent a situation where you begin an
         //  authentication as one userId but then switch to another before the password is verified
         //  and bypass the screen lock of the other.
-        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(userId);
+        // boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(userId);
+        boolean primary = isForPrimaryCredential();
         if (matched) {
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary,true, 0);
             if (dismissKeyguard) {
@@ -221,8 +224,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         if (mDismissing) return; // already verified but haven't been dismissed; don't do it again.
         if (mLockedOut) return;
 
-        final int userId = mSelectedUserInteractor.getSelectedUserId();
-        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(userId);
         final LockscreenCredential password = mView.getEnteredCredential();
         password.setPrimaryCredential(primary);
         mView.setPasswordEntryInputEnabled(false);
@@ -230,6 +231,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
             mPendingLockCheck.cancel(false);
         }
 
+        final int userId = mSelectedUserInteractor.getSelectedUserId();
         if (password.size() <= MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT) {
             // to avoid accidental lockout, only count attempts that are long enough to be a
             // real password. This may require some tweaking.

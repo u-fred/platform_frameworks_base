@@ -40,6 +40,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
 import com.android.app.animation.Interpolators;
+import com.android.internal.widget.LockscreenCredential;
 import com.android.settingslib.animation.DisappearAnimationUtils;
 import com.android.systemui.res.R;
 import com.android.systemui.statusbar.policy.DevicePostureController.DevicePostureInt;
@@ -271,7 +272,7 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
 
     @Override
     public int getWrongPasswordStringId() {
-        return R.string.kg_wrong_pin;
+        return isForPrimaryCredential() ? R.string.kg_wrong_pin : R.string.kg_wrong_biometric_second_factor_pin;
     }
 
     @Override
@@ -344,5 +345,20 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
                 }
             }
         }
+    }
+
+    private boolean mIsForPrimaryCredential = true;
+
+    public void setIsForPrimaryCredential(boolean value) {
+        mIsForPrimaryCredential = value;
+    }
+
+    public boolean isForPrimaryCredential() {
+        return mIsForPrimaryCredential;
+    }
+
+    @Override
+    protected LockscreenCredential getEnteredCredential() {
+        return LockscreenCredential.createPinOrNone(mPasswordEntry.getText(), isForPrimaryCredential());
     }
 }
