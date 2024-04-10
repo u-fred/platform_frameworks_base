@@ -1946,7 +1946,7 @@ class SyntheticPasswordManager {
 
     @VisibleForTesting
     static int fakeUserId(int userId, boolean primaryCredential) {
-        return 100000 + (userId * 2) + (primaryCredential ? 0 : 1);
+        return 100_000 + userId + (primaryCredential ? 0 : 10_000);
     }
 
     private String getProtectorKeyAlias(long protectorId) {
