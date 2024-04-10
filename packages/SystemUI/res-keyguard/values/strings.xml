@@ -136,6 +136,12 @@
     <!-- Message shown when user enters wrong PIN  [CHAR LIMIT=48] -->
     <string name="kg_wrong_pin_try_again">Wrong PIN. Try again.</string>
 
+    <!-- Message shown when user enters wrong PIN -->
+    <string name="kg_wrong_biometric_second_factor_pin">Wrong biometric second factor PIN</string>
+
+    <!-- Message shown when user enters wrong PIN  [CHAR LIMIT=48] -->
+    <string name="kg_wrong_biometric_second_factor_pin_try_again">Wrong biometric second factor PIN. Try again.</string>
+
     <!-- Message shown when user enters wrong PIN/password/pattern below the main message, for ex: "Wrong PIN. Try again" in line 1 and the following text in line 2.  [CHAR LIMIT=70] -->
     <string name="kg_wrong_input_try_fp_suggestion">Or unlock with fingerprint</string>
 
