@@ -189,6 +189,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         boolean primary = isForPrimaryCredential();
         if (matched) {
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary,true, 0);
+            if (!primary) {
+                // TODO: notify com.android.server.biometrics.sensors.AuthenticationClient that it
+                //  should add pending fingerprint auth token to KeyStore
+            }
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);

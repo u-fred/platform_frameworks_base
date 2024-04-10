@@ -34,11 +34,13 @@ import android.security.KeyStore;
 import android.util.EventLog;
 import android.util.Slog;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.server.biometrics.BiometricsProto;
 import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.Utils;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
+import com.android.server.biometrics.sensors.fingerprint.aidl.FingerprintAuthenticationClient;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
@@ -253,8 +255,24 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                         getSensorId(), getTargetUserId(), byteToken);
             }
 
+
+            boolean shouldAddAuthToken = false;
             // For BP, BiometricService will add the authToken to Keystore.
-            if (!isBiometricPrompt() && mIsStrongBiometric && !biometricSecondFactorEnabled) {
+            if (!isBiometricPrompt() && mIsStrongBiometric) {
+                boolean isSecondFactorEnabled = false;
+                if (this instanceof FingerprintAuthenticationClient) {
+                    isSecondFactorEnabled = new LockPatternUtils(getContext()).isBiometricSecondFactorEnabled(getTargetUserId());
+                }
+                shouldAddAuthToken = !isSecondFactorEnabled;
+                if (isSecondFactorEnabled) {
+                    // TODO: save auth token, add it to KeyStore after receving signal from SystemUI
+                    // TODO: make sure to always discard pending auth token after device unlock by
+                    //  listening to unlock event
+                }
+            }
+
+            // For BP, BiometricService will add the authToken to Keystore.
+            if (shouldAddAuthToken) {
                 final int result = KeyStore.getInstance().addAuthToken(byteToken);
                 if (result != 0 /* success */) {
                     Slog.d(TAG, "Error adding auth token : " + result);
