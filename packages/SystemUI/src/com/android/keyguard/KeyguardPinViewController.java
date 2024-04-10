@@ -130,15 +130,13 @@ public class KeyguardPinViewController
     }
 
     private void updateAutoConfirmationState() {
-        mDisabledAutoConfirmation = shouldDisableAutoConfirmation();
+        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(
+                mSelectedUserInteractor.getSelectedUserId());
+        mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
+                mSelectedUserInteractor.getSelectedUserId(), primary) >= MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
         updatePinHinting();
-    }
-
-    protected boolean shouldDisableAutoConfirmation() {
-        return mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId()) >= MIN_FAILED_PIN_ATTEMPTS;
     }
 
     /**

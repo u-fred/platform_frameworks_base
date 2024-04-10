@@ -105,8 +105,7 @@ interface IDevicePolicyManager {
     int getRequiredPasswordComplexity(String callerPackageName, boolean parent);
     int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly);
     boolean isUsingUnifiedPassword(in ComponentName admin);
-    int getCurrentFailedPasswordAttempts(String callerPackageName, int userHandle, boolean parent);
-    int getCurrentFailedBiometricSecondFactorAttempts(String callerPackageName, int userHandle);
+    int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary, int userHandle, boolean parent);
     int getProfileWithMinimumFailedPasswordsForWipe(int userHandle, boolean parent);
 
     void setMaximumFailedPasswordsForWipe(
@@ -172,10 +171,8 @@ interface IDevicePolicyManager {
 
     // TODO: reportBiometricSecondFactorChanged?
     void reportPasswordChanged(in PasswordMetrics metrics, int userId);
-    void reportFailedPasswordAttempt(int userHandle, boolean parent);
-    void reportFailedBiometricSecondFactorAttempt(int userHandle);
-    void reportSuccessfulPasswordAttempt(int userHandle);
-    void reportSuccessfulBiometricSecondFactorAttempt(int userHandle);
+    void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent);
+    void reportSuccessfulPasswordAttempt(int userHandle, boolean primary);
     void reportFailedBiometricAttempt(int userHandle);
     void reportSuccessfulBiometricAttempt(int userHandle);
     void reportKeyguardDismissed(int userHandle);

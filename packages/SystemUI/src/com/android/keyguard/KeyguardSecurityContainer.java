@@ -707,6 +707,12 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
 
     void showTimeoutDialog(int userId, int timeoutMs, LockPatternUtils lockPatternUtils,
             SecurityMode securityMode) {
+        showTimeoutDialog(userId, true, timeoutMs, lockPatternUtils, securityMode, null);
+    }
+
+    void showTimeoutDialog(int userId, boolean primary, int timeoutMs,
+            LockPatternUtils lockPatternUtils, SecurityMode securityMode,
+            DialogInterface.OnClickListener onClick) {
         int timeoutInSeconds = timeoutMs / 1000;
         int messageId = 0;
 
@@ -720,6 +726,8 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
             case Password:
                 messageId = R.string.kg_too_many_failed_password_attempts_dialog_message;
                 break;
+            case BiometricSecondFactorPin:
+                messageId = R.string.kg_too_many_failed_biometric_second_factor_pin_attempts_dialog_message;
             // These don't have timeout dialogs.
             case Invalid:
             case None:
@@ -730,18 +738,10 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
 
         if (messageId != 0) {
             final String message = mContext.getString(messageId,
-                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId),
+                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary),
                     timeoutInSeconds);
-            showDialog(null, message);
+            showDialog(null, message, onClick);
         }
-    }
-
-    void showBiometricSecondFactorTimeoutDialog(int userId, LockPatternUtils lockPatternUtils,
-            DialogInterface.OnClickListener onClick) {
-        final String message = mContext.getString(
-                R.string.kg_too_many_failed_biometric_second_factor_pin_attempts_dialog_message,
-                lockPatternUtils.getCurrentFailedBiometricSecondFactorAttempts(userId));
-        showDialog(null, message, onClick);
     }
 
     @Override

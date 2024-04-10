@@ -32,45 +32,4 @@ public class KeyguardBiometricSecondFactorPinViewController extends KeyguardPinV
     protected int getInitialMessageResId() {
         return R.string.keyguard_enter_your_biometric_second_factor_pin;
     }
-
-    @Override
-    protected long getDeadline() {
-        return mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), false);
-    }
-
-    @Override
-    protected boolean shouldDisableAutoConfirmation() {
-        return mLockPatternUtils.getCurrentFailedBiometricSecondFactorAttempts(
-                mSelectedUserInteractor.getSelectedUserId()) >= MIN_FAILED_PIN_ATTEMPTS;
-    }
-
-    void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
-        boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
-        if (matched) {
-            mKeyguardUpdateMonitor.addPendingBiometricSecondFactorAuthTokenToKeyStore(userId);
-            getKeyguardSecurityCallback().reportBiometricSecondFactorUnlockAttempt(userId, true,
-                    0);
-            if (dismissKeyguard) {
-                mDismissing = true;
-                mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
-                getKeyguardSecurityCallback().dismiss(true, userId, getSecurityMode());
-            }
-        } else {
-            mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
-            if (isValidPassword) {
-                getKeyguardSecurityCallback().reportBiometricSecondFactorUnlockAttempt(userId,
-                        false, timeoutMs);
-                if (timeoutMs > 0) {
-                    long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, false, timeoutMs);
-                    handleAttemptLockout(deadline);
-                }
-            }
-            if (timeoutMs == 0) {
-                mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
-            }
-            startErrorAnimation();
-        }
-    }
 }

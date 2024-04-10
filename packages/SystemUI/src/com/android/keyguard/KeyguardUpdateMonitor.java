@@ -1427,6 +1427,11 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 != PASSWORD_QUALITY_UNSPECIFIED;
     }
 
+    public boolean isDoingBiometricSecondFactorAuth(int userId) {
+        return getUserAuthenticatedWithFingerprint(userId) &&
+                getBiometricSecondFactorEnabled(userId);
+    }
+
     /**
      * Returns whether the user is unlocked with face.
      * @deprecated Use {@link KeyguardFaceAuthInteractor#isAuthenticated()} instead

@@ -140,11 +140,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mMessageAreaController.setMessage(message, animated);
     }
 
-    protected long getDeadline() {
-        return mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), true);
-    }
-
     // Allow subclasses to override this behavior
     protected boolean shouldLockout(long deadline) {
         return deadline != 0;
@@ -185,8 +180,12 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
 
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
+        // TODO: Review this. I believe this is to prevent a situation where you begin an
+        //  authentication as one userId but then switch to another before the password is verified
+        //  and bypass the screen lock of the other.
+        boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(userId);
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary,true, 0);
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
@@ -195,11 +194,18 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
             if (isValidPassword) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary, false,
+                        timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, true, timeoutMs);
-                    handleAttemptLockout(deadline);
+                            userId, primary, timeoutMs);
+                    // Secondary won't have a countdown here because after lockout we must use
+                    // primary auth.
+                    if (primary) {
+                        handleAttemptLockout(deadline);
+                    } else {
+                        mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
+                    }
                 }
             }
             if (timeoutMs == 0) {

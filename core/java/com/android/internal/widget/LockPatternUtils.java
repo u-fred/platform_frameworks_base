@@ -406,40 +406,32 @@ public class LockPatternUtils {
 
     @UnsupportedAppUsage
     public void reportFailedPasswordAttempt(int userId) {
+        reportFailedPasswordAttempt(userId, true);
+    }
+
+    @UnsupportedAppUsage
+    public void reportFailedPasswordAttempt(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
-        getDevicePolicyManager().reportFailedPasswordAttempt(userId);
+        getDevicePolicyManager().reportFailedPasswordAttempt(userId, primary);
+        // TODO: Secondary.
         getTrustManager().reportUnlockAttempt(false /* authenticated */, userId);
     }
 
     @UnsupportedAppUsage
-    public void reportFailedBiometricSecondFactorAttempt(int userId) {
-        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return;
-        }
-        getDevicePolicyManager().reportFailedBiometricSecondFactorAttempt(userId);
-        // TODO:
-        //getTrustManager().reportUnlockAttempt(false /* authenticated */, userId);
-    }
-
-    @UnsupportedAppUsage
     public void reportSuccessfulPasswordAttempt(int userId) {
-        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return;
-        }
-        getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId);
-        getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
+        reportSuccessfulPasswordAttempt(userId, true);
     }
 
     @UnsupportedAppUsage
-    public void reportSuccessfulBiometricSecondFactorAttempt(int userId) {
+    public void reportSuccessfulPasswordAttempt(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
-        getDevicePolicyManager().reportSuccessfulBiometricSecondFactorAttempt(userId);
-        // TODO: Review this.
-        //getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
+        getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, primary);
+        // TODO: Secondary.
+        getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
     }
 
     // TODO: Make secondary aware.
@@ -450,18 +442,15 @@ public class LockPatternUtils {
         getTrustManager().reportUnlockLockout(timeoutMs, userId);
     }
 
-    public int getCurrentFailedBiometricSecondFactorAttempts(int userId) {
-        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return 0;
-        }
-        return getDevicePolicyManager().getCurrentFailedBiometricSecondFactorAttempts(userId);
+    public int getCurrentFailedPasswordAttempts(int userId) {
+        return getCurrentFailedPasswordAttempts(userId, true);
     }
 
-    public int getCurrentFailedPasswordAttempts(int userId) {
+    public int getCurrentFailedPasswordAttempts(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return 0;
         }
-        return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId);
+        return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId, primary);
     }
 
     public int getMaximumFailedPasswordsForWipe(int userId) {
@@ -648,6 +637,7 @@ public class LockPatternUtils {
      *       A. the length of the pin set by user if it is currently available
      *       B. PIN_LENGTH_UNAVAILABLE if it is not available or if an exception occurs
      */
+    // TODO: Primary/secondary.
     public int getPinLength(int userId) {
         try {
             return getLockSettings().getPinLength(userId);

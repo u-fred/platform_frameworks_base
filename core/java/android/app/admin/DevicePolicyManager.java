@@ -5742,7 +5742,8 @@ public class DevicePolicyManager {
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     @RequiresPermission(value = MANAGE_DEVICE_POLICY_LOCK_CREDENTIALS, conditional = true)
     public int getCurrentFailedPasswordAttempts() {
-        return getCurrentFailedPasswordAttempts(myUserId());
+        // TODO: Secondary?
+        return getCurrentFailedPasswordAttempts(myUserId(), true);
     }
 
     /**
@@ -5757,22 +5758,12 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     public int getCurrentFailedPasswordAttempts(int userHandle) {
-        if (mService != null) {
-            try {
-                return mService.getCurrentFailedPasswordAttempts(
-                        mContext.getPackageName(), userHandle, mParentInstance);
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
-            }
-        }
-        return -1;
+        return getCurrentFailedPasswordAttempts(userHandle, true);
     }
 
-    // TODO: This comment and annotations were copied frm getCurrentFailedPassword attempts, but
-    //  I can't see how this permission is enforced. Review it.
     /**
-     * Retrieve the number of times the given user has failed at entering biometric second factor
-     * since their last successful entry.
+     * Retrieve the number of times the given user has failed at entering a
+     * password (primary or biometric second factor) since that last successful password entry.
      *
      * <p>The calling device admin must have requested
      * {@link DeviceAdminInfo#USES_POLICY_WATCH_LOGIN} to be able to call this method; if it has
@@ -5781,11 +5772,11 @@ public class DevicePolicyManager {
      * @hide
      */
     @UnsupportedAppUsage
-    public int getCurrentFailedBiometricSecondFactorAttempts(int userHandle) {
+    public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                return mService.getCurrentFailedBiometricSecondFactorAttempts(
-                        mContext.getPackageName(), userHandle);
+                return mService.getCurrentFailedPasswordAttempts(
+                        mContext.getPackageName(), primary, userHandle, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -8999,13 +8990,7 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportFailedPasswordAttempt(int userHandle) {
-        if (mService != null) {
-            try {
-                mService.reportFailedPasswordAttempt(userHandle, mParentInstance);
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
-            }
-        }
+        reportFailedPasswordAttempt(userHandle, true);
     }
 
     /**
@@ -9013,10 +8998,10 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportFailedBiometricSecondFactorAttempt(int userHandle) {
+    public void reportFailedPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportFailedBiometricSecondFactorAttempt(userHandle);
+                mService.reportFailedPasswordAttempt(userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9029,13 +9014,7 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle) {
-        if (mService != null) {
-            try {
-                mService.reportSuccessfulPasswordAttempt(userHandle);
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
-            }
-        }
+        reportSuccessfulPasswordAttempt(userHandle, true);
     }
 
     /**
@@ -9043,10 +9022,10 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportSuccessfulBiometricSecondFactorAttempt(int userHandle) {
+    public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulBiometricSecondFactorAttempt(userHandle);
+                mService.reportSuccessfulPasswordAttempt(userHandle, primary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9070,9 +9049,9 @@ public class DevicePolicyManager {
     /**
      * @hide
      */
-    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    // TODO: Is this called before second factor is verified? Should it be?
-    public void reportSuccessfulBiometricAttempt(int userHandle) {
+     // TODO: Is this called before second factor is verified? Should it be?
+     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+     public void reportSuccessfulBiometricAttempt(int userHandle) {
         if (mService != null) {
             try {
                 mService.reportSuccessfulBiometricAttempt(userHandle);
