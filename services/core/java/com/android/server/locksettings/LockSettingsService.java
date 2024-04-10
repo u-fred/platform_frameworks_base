@@ -3296,6 +3296,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     private boolean setLockCredentialWithToken(LockscreenCredential credential, long tokenHandle,
             byte[] token, int userId) {
         boolean result;
+        Preconditions.checkArgument(credential.getPrimaryCredential(), "not a primary credential");
         credential.validateBasicRequirements();
         synchronized (mSpManager) {
             if (!mSpManager.hasEscrowData(userId)) {
