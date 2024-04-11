@@ -60,6 +60,7 @@ import android.platform.test.flag.junit.CheckFlagsRule;
 import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.testing.TestableContext;
+import android.util.SparseArray;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -558,7 +559,9 @@ public class FingerprintAuthenticationClientTest {
                 allowBackgroundAuthentication,
                 mSensorProps,
                 new Handler(mLooper.getLooper()), 0 /* biometricStrength */, mClock,
-                lockoutTracker) {
+                lockoutTracker,
+                // TODO: pendingSecondFactorAuthTokens.
+                new SparseArray<>()) {
             @Override
             protected ActivityTaskManager getActivityTaskManager() {
                 return mActivityTaskManager;

@@ -70,10 +70,10 @@ import android.os.ShellCallback;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
-import android.security.KeyStore;
 import android.util.EventLog;
 import android.util.Pair;
 import android.util.Slog;
+import android.util.SparseArray;
 import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.R;
@@ -94,7 +94,6 @@ import com.android.server.biometrics.sensors.fingerprint.aidl.FingerprintProvide
 import com.android.server.biometrics.sensors.fingerprint.hidl.Fingerprint21;
 import com.android.server.biometrics.sensors.fingerprint.hidl.Fingerprint21UdfpsMock;
 import com.android.server.companion.virtual.VirtualDeviceManagerInternal;
-
 import com.google.android.collect.Lists;
 
 import java.io.FileDescriptor;
@@ -136,6 +135,8 @@ public class FingerprintService extends SystemService {
     private final Handler mHandler;
     @NonNull
     private final FingerprintServiceRegistry mRegistry;
+    @NonNull
+    private final SparseArray<byte[]> mPendingSecondFactorAuthTokens;
 
     /** Receives the incoming binder calls from FingerprintManager. */
     @VisibleForTesting
@@ -1041,6 +1042,7 @@ public class FingerprintService extends SystemService {
         mLockPatternUtils = new LockPatternUtils(context);
         mBiometricStateCallback = new BiometricStateCallback<>(UserManager.get(context));
         mAuthenticationStateListeners = new AuthenticationStateListeners();
+        mPendingSecondFactorAuthTokens = new SparseArray<>();
         mFingerprintProvider = fingerprintProvider != null ? fingerprintProvider :
                 (name) -> {
                     final String fqName = IFingerprint.DESCRIPTOR + "/" + name;
@@ -1051,7 +1053,8 @@ public class FingerprintService extends SystemService {
                             return new FingerprintProvider(getContext(),
                                     mBiometricStateCallback, mAuthenticationStateListeners,
                                     fp.getSensorProps(), name, mLockoutResetDispatcher,
-                                    mGestureAvailabilityDispatcher, mBiometricContext);
+                                    mGestureAvailabilityDispatcher, mBiometricContext,
+                                    mPendingSecondFactorAuthTokens);
                         } catch (RemoteException e) {
                             Slog.e(TAG, "Remote exception in getSensorProps: " + fqName);
                         }
@@ -1115,11 +1118,13 @@ public class FingerprintService extends SystemService {
                 fingerprint21 = Fingerprint21UdfpsMock.newInstance(getContext(),
                         mBiometricStateCallback, mAuthenticationStateListeners,
                         hidlSensor, mLockoutResetDispatcher, mGestureAvailabilityDispatcher,
-                        BiometricContext.getInstance(getContext()));
+                        BiometricContext.getInstance(getContext()),
+                        mPendingSecondFactorAuthTokens);
             } else {
                 fingerprint21 = Fingerprint21.newInstance(getContext(),
                         mBiometricStateCallback, mAuthenticationStateListeners, hidlSensor,
-                        mHandler, mLockoutResetDispatcher, mGestureAvailabilityDispatcher);
+                        mHandler, mLockoutResetDispatcher, mGestureAvailabilityDispatcher,
+                        mPendingSecondFactorAuthTokens);
             }
             providers.add(fingerprint21);
         }

@@ -41,6 +41,7 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Slog;
+import android.util.SparseArray;
 
 import com.android.internal.R;
 import com.android.server.biometrics.log.BiometricContext;
@@ -97,6 +98,7 @@ public class FingerprintAuthenticationClient
     private long mSideFpsLastAcquireStartTime;
     private Runnable mAuthSuccessRunnable;
     private final Clock mClock;
+    @NonNull private final SparseArray<byte[]> mPendingSecondFactorAuthTokens;
 
     public FingerprintAuthenticationClient(
             @NonNull Context context,
@@ -122,7 +124,8 @@ public class FingerprintAuthenticationClient
             @NonNull Handler handler,
             @Authenticators.Types int biometricStrength,
             @NonNull Clock clock,
-            @Nullable LockoutTracker lockoutTracker) {
+            @Nullable LockoutTracker lockoutTracker,
+            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
         super(
                 context,
                 lazyDaemon,
@@ -183,6 +186,8 @@ public class FingerprintAuthenticationClient
                         UserHandle.USER_CURRENT);
             }
         }
+
+       mPendingSecondFactorAuthTokens = pendingSecondFactorAuthTokens;
     }
 
     @Override
@@ -490,4 +495,8 @@ public class FingerprintAuthenticationClient
 
     @Override
     public void onPowerPressed() { }
+
+    public void storePendingSecondFactorAuthToken(int userId, byte[] token) {
+        mPendingSecondFactorAuthTokens.put(userId, token);
+    }
 }

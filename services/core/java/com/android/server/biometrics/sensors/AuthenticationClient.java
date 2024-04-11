@@ -265,6 +265,8 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                 }
                 shouldAddAuthToken = !isSecondFactorEnabled;
                 if (isSecondFactorEnabled) {
+                    ((FingerprintAuthenticationClient)this).storePendingSecondFactorAuthToken(
+                            getTargetUserId(), byteToken);
                     // TODO: save auth token, add it to KeyStore after receving signal from SystemUI
                     // TODO: make sure to always discard pending auth token after device unlock by
                     //  listening to unlock event

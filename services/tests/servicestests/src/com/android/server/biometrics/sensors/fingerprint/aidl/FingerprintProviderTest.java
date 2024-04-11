@@ -38,6 +38,7 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.platform.test.annotations.Presubmit;
+import android.util.SparseArray;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
@@ -112,10 +113,12 @@ public class FingerprintProviderTest {
 
         mLockoutResetDispatcher = new LockoutResetDispatcher(mContext);
 
+        // TODO: pendingSecondFactorAuthTokens.
         mFingerprintProvider = new FingerprintProvider(mContext,
                 mBiometricStateCallback, mAuthenticationStateListeners, mSensorProps, TAG,
                 mLockoutResetDispatcher, mGestureAvailabilityDispatcher, mBiometricContext,
-                mDaemon);
+                mDaemon, new SparseArray<>());
+
     }
 
     @Test

@@ -36,6 +36,7 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Slog;
+import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 
 import com.android.internal.R;
@@ -253,7 +254,8 @@ public class Fingerprint21UdfpsMock extends Fingerprint21 implements TrustManage
             @NonNull FingerprintSensorPropertiesInternal sensorProps,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull GestureAvailabilityDispatcher gestureAvailabilityDispatcher,
-            @NonNull BiometricContext biometricContext) {
+            @NonNull BiometricContext biometricContext,
+            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
         Slog.d(TAG, "Creating Fingerprint23Mock!");
 
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -263,7 +265,8 @@ public class Fingerprint21UdfpsMock extends Fingerprint21 implements TrustManage
                 new MockHalResultController(sensorProps.sensorId, context, handler, scheduler);
         return new Fingerprint21UdfpsMock(context, biometricStateCallback,
                 authenticationStateListeners, sensorProps, scheduler, handler,
-                lockoutResetDispatcher, controller, biometricContext);
+                lockoutResetDispatcher, controller, biometricContext,
+                pendingSecondFactorAuthTokens);
     }
 
     private static abstract class FakeFingerRunnable implements Runnable {
@@ -397,9 +400,11 @@ public class Fingerprint21UdfpsMock extends Fingerprint21 implements TrustManage
             @NonNull Handler handler,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull MockHalResultController controller,
-            @NonNull BiometricContext biometricContext) {
+            @NonNull BiometricContext biometricContext,
+            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
         super(context, biometricStateCallback, authenticationStateListeners, sensorProps, scheduler,
-                handler, lockoutResetDispatcher, controller, biometricContext);
+                handler, lockoutResetDispatcher, controller, biometricContext,
+                pendingSecondFactorAuthTokens);
         mScheduler = scheduler;
         mScheduler.init(this);
         mHandler = handler;
