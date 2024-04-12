@@ -20,11 +20,12 @@ import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
-import android.util.Log;
 import android.util.PluralsMessageFormatter;
 import android.view.KeyEvent;
 
@@ -190,8 +191,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         if (matched) {
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary,true, 0);
             if (!primary) {
-                // TODO: notify com.android.server.biometrics.sensors.AuthenticationClient that it
-                //  should add pending fingerprint auth token to KeyStore
+                // TODO: Review getSystemService implementation to see how inefficient it is. Might
+                //  prefer instance variable or getting from KeyguardUpdateMonitor.
+                FingerprintManager fm = (FingerprintManager) getContext().getSystemService(Context.FINGERPRINT_SERVICE);
+                fm.addPendingAuthTokenToKeyStore(userId);
             }
             if (dismissKeyguard) {
                 mDismissing = true;
