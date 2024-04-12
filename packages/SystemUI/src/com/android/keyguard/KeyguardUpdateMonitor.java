@@ -21,7 +21,6 @@ import static android.app.WindowConfiguration.ACTIVITY_TYPE_ASSISTANT;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.app.WindowConfiguration.WINDOWING_MODE_UNDEFINED;
-import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.content.Intent.ACTION_USER_REMOVED;
 import static android.content.Intent.ACTION_USER_STOPPED;
 import static android.content.Intent.ACTION_USER_UNLOCKED;
@@ -35,7 +34,6 @@ import static android.hardware.biometrics.BiometricSourceType.FACE;
 import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 import static android.os.BatteryManager.BATTERY_STATUS_UNKNOWN;
 import static android.os.BatteryManager.CHARGING_POLICY_DEFAULT;
-
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_BOOT;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_DPM_LOCK_NOW;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_LOCKOUT;
@@ -96,7 +94,6 @@ import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 
@@ -146,9 +143,6 @@ import com.android.systemui.statusbar.policy.DevicePostureController.DevicePostu
 import com.android.systemui.telephony.TelephonyListenerManager;
 import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 import com.android.systemui.util.Assert;
-
-import dalvik.annotation.optimization.NeverCompile;
-
 import com.google.android.collect.Lists;
 
 import java.io.PrintWriter;
@@ -170,6 +164,8 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+
+import dalvik.annotation.optimization.NeverCompile;
 
 /**
  * Watches for updates that may be interesting to the keyguard, and provides
@@ -456,8 +452,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     private final KeyguardActiveUnlockModel.Buffer mActiveUnlockTriggerBuffer =
             new KeyguardActiveUnlockModel.Buffer();
 
-    // TODO: Verify that values in here are cleared at appropriate times. Would be very bad if
-    //  they weren't. clearBiometricRecognized appears to do it.
     @VisibleForTesting
     SparseArray<BiometricAuthenticated> mUserFingerprintAuthenticated = new SparseArray<>();
 
@@ -2907,8 +2901,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                         fingerprintAuthenticateOptions);
             } else {
                 mLogger.v("startListeningForFingerprint");
-//                fingerprintAuthenticateOptions.setBiometricSecondFactorEnabled(
-//                        getBiometricSecondFactorEnabled(userId));
                 mFpm.authenticate(null /* crypto */, mFingerprintCancelSignal,
                         mFingerprintAuthenticationCallback,
                         null /* handler */,
@@ -3630,11 +3622,14 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     }
 
     protected void clearFingerprintRecognized(int unlockedUser) {
-        Log.d("LockoutDebug", "KeyguardUpdateMonitor clearFingerprintRecognized()");
         Assert.isMainThread();
         mUserFingerprintAuthenticated.clear();
         mTrustManager.clearAllBiometricRecognized(FINGERPRINT, unlockedUser);
         mLogger.d("clearFingerprintRecognized");
+
+        if (mFpm != null) {
+            mFpm.clearPendingAuthTokens();
+        }
 
         for (int i = 0; i < mCallbacks.size(); i++) {
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
