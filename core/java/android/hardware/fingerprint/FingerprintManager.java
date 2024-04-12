@@ -26,7 +26,6 @@ import static android.Manifest.permission.USE_FINGERPRINT;
 import static android.hardware.biometrics.BiometricConstants.BIOMETRIC_LOCKOUT_NONE;
 import static android.hardware.biometrics.Flags.FLAG_ADD_KEY_AGREEMENT_CRYPTO_OBJECT;
 import static android.hardware.fingerprint.FingerprintSensorProperties.TYPE_POWER_BUTTON;
-
 import static com.android.internal.util.FrameworkStatsLog.AUTH_DEPRECATED_APIUSED__DEPRECATED_API__API_FINGERPRINT_MANAGER_AUTHENTICATE;
 import static com.android.internal.util.FrameworkStatsLog.AUTH_DEPRECATED_APIUSED__DEPRECATED_API__API_FINGERPRINT_MANAGER_HAS_ENROLLED_FINGERPRINTS;
 import static com.android.internal.util.FrameworkStatsLog.AUTH_DEPRECATED_APIUSED__DEPRECATED_API__API_FINGERPRINT_MANAGER_IS_HARDWARE_DETECTED;
@@ -691,6 +690,37 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
                 callback.onAuthenticationError(FINGERPRINT_ERROR_HW_UNAVAILABLE,
                         getErrorString(mContext, FINGERPRINT_ERROR_HW_UNAVAILABLE,
                                 0 /* vendorCode */));
+            }
+        }
+    }
+
+    /**
+     * Add a pending hardware auth token to KeyStore. This should only be called after biometric
+     * second factor has succeeded.
+     * @hide
+     */
+    @RequiresPermission(USE_BIOMETRIC_INTERNAL)
+    public void addPendingAuthTokenToKeyStore(final int userId) {
+        if (mService != null) {
+            try {
+                mService.addPendingAuthTokenToKeyStore(mToken, userId);
+            } catch (RemoteException e) {
+                Slog.w(TAG, "Remote exception when adding auth token to KeyStore", e);
+            }
+        }
+    }
+
+    /**
+     * Clear all pending auth tokens.
+     * @hide
+     */
+    @RequiresPermission(USE_BIOMETRIC_INTERNAL)
+    public void clearPendingAuthTokens() {
+        if (mService != null) {
+            try {
+                mService.clearPendingAuthTokens(mToken);
+            } catch (RemoteException e) {
+                Slog.w(TAG, "Remote exception when adding auth token to KeyStore", e);
             }
         }
     }

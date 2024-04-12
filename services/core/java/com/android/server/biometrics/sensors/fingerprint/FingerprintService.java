@@ -70,6 +70,7 @@ import android.os.ShellCallback;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
+import android.security.KeyStore;
 import android.util.EventLog;
 import android.util.Pair;
 import android.util.Slog;
@@ -135,6 +136,8 @@ public class FingerprintService extends SystemService {
     private final Handler mHandler;
     @NonNull
     private final FingerprintServiceRegistry mRegistry;
+    // Technically this does not need to be an array because managed profiles will never have a
+    // pending auth token and the value will be cleared when switching between full user types.
     @NonNull
     private final SparseArray<byte[]> mPendingSecondFactorAuthTokens;
 
@@ -348,6 +351,34 @@ public class FingerprintService extends SystemService {
             return provider.second.scheduleAuthenticate(token, operationId,
                     0 /* cookie */, new ClientMonitorCallbackConverter(receiver), options,
                     restricted, statsClient, isKeyguard);
+        }
+
+        @android.annotation.EnforcePermission(android.Manifest.permission.USE_BIOMETRIC_INTERNAL)
+        @Override // Binder call
+        public void addPendingAuthTokenToKeyStore(final IBinder token, final int userId) {
+            super.addPendingAuthTokenToKeyStore_enforcePermission();
+            mHandler.post(() -> {
+                byte[] authToken = mPendingSecondFactorAuthTokens.get(userId);
+                if (authToken != null) {
+                    final int result = KeyStore.getInstance().addAuthToken(authToken);
+                    if (result != 0 /* success */) {
+                        Slog.d(TAG, "Error adding auth token : " + result);
+                    } else {
+                        Slog.d(TAG, "addAuthToken: " + result);
+                    }
+
+                    // TODO: zero/gc?
+                    mPendingSecondFactorAuthTokens.remove(userId);
+                }
+            });
+        }
+
+        @android.annotation.EnforcePermission(android.Manifest.permission.USE_BIOMETRIC_INTERNAL)
+        @Override // Binder call
+        public void clearPendingAuthTokens(final IBinder token) {
+            super.clearPendingAuthTokens_enforcePermission();
+            // TODO: zero/gc?
+            mHandler.post(mPendingSecondFactorAuthTokens::clear);
         }
 
         private long authenticateWithPrompt(

@@ -255,7 +255,6 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                         getSensorId(), getTargetUserId(), byteToken);
             }
 
-
             boolean shouldAddAuthToken = false;
             // For BP, BiometricService will add the authToken to Keystore.
             if (!isBiometricPrompt() && mIsStrongBiometric) {
@@ -265,11 +264,11 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                 }
                 shouldAddAuthToken = !isSecondFactorEnabled;
                 if (isSecondFactorEnabled) {
+                    // TODO: Double check that this is all happening in main thread.
+                    //  AidlResponseHandler#handleResponse posts to main thread so I think it's
+                    //  all good. Can test using Assert.isMainThread();
                     ((FingerprintAuthenticationClient)this).storePendingSecondFactorAuthToken(
                             getTargetUserId(), byteToken);
-                    // TODO: save auth token, add it to KeyStore after receving signal from SystemUI
-                    // TODO: make sure to always discard pending auth token after device unlock by
-                    //  listening to unlock event
                 }
             }
 
