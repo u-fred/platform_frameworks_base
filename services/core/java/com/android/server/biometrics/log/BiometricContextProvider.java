@@ -39,6 +39,7 @@ import com.android.internal.logging.InstanceId;
 import com.android.internal.statusbar.ISessionListener;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
+import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,7 +67,7 @@ public final class BiometricContextProvider implements BiometricContext {
                             (WindowManager) context.getSystemService(Context.WINDOW_SERVICE),
                             IStatusBarService.Stub.asInterface(ServiceManager.getServiceOrThrow(
                                     Context.STATUS_BAR_SERVICE)), null /* handler */,
-                            new AuthSessionCoordinator());
+                            new AuthSessionCoordinator(), new BiometricAuthTokenStore());
                 } catch (ServiceNotFoundException e) {
                     throw new IllegalStateException("Failed to find required service", e);
                 }
@@ -86,8 +87,10 @@ public final class BiometricContextProvider implements BiometricContext {
     @Nullable private final Handler mHandler;
     private int mDockState = Intent.EXTRA_DOCK_STATE_UNDOCKED;
     private int mFoldState = IBiometricContextListener.FoldState.UNKNOWN;
-
     private int mDisplayState = AuthenticateOptions.DISPLAY_STATE_UNKNOWN;
+    @NonNull
+    private BiometricAuthTokenStore mAuthTokenStore;
+
     @VisibleForTesting
     final BroadcastReceiver mDockStateReceiver = new BroadcastReceiver() {
         @Override
@@ -102,10 +105,12 @@ public final class BiometricContextProvider implements BiometricContext {
     public BiometricContextProvider(@NonNull Context context,
             @NonNull WindowManager windowManager,
             @NonNull IStatusBarService service, @Nullable Handler handler,
-            @NonNull AuthSessionCoordinator authSessionCoordinator) {
+            @NonNull AuthSessionCoordinator authSessionCoordinator,
+            @NonNull BiometricAuthTokenStore authTokenStore) {
         mWindowManager = windowManager;
         mAuthSessionCoordinator = authSessionCoordinator;
         mHandler = handler;
+        mAuthTokenStore = authTokenStore;
 
         subscribeBiometricContextListener(service);
         subscribeDockState(context);
@@ -247,6 +252,9 @@ public final class BiometricContextProvider implements BiometricContext {
             consumer.accept(context.update(this, context.isCrypto()).toAidlContext());
         });
     }
+
+    @Override
+    public BiometricAuthTokenStore getAuthTokenStore() { return mAuthTokenStore; }
 
     @Override
     public String toString() {

@@ -25,6 +25,7 @@ import android.hardware.biometrics.common.OperationContext;
 import android.view.Surface;
 
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
+import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 
 import java.util.function.Consumer;
 
@@ -93,4 +94,7 @@ public interface BiometricContext {
 
     /** Obtains an AuthSessionCoordinator. */
     AuthSessionCoordinator getAuthSessionCoordinator();
+
+    /** Obtains a BiometricAuthTokenStore. */
+    BiometricAuthTokenStore getAuthTokenStore();
 }
