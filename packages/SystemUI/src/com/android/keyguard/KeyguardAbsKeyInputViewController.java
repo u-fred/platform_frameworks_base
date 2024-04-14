@@ -193,7 +193,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
             if (!primary) {
                 // TODO: Review getSystemService implementation to see how inefficient it is. Might
                 //  prefer instance variable or getting from KeyguardUpdateMonitor.
-                FingerprintManager fm = (FingerprintManager) getContext().getSystemService(Context.FINGERPRINT_SERVICE);
+                FingerprintManager fm = (FingerprintManager) getContext().getSystemService(
+                        Context.FINGERPRINT_SERVICE);
                 fm.addPendingAuthTokenToKeyStore(userId);
             }
             if (dismissKeyguard) {
