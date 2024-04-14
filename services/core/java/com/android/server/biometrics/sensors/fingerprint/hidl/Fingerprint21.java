@@ -48,7 +48,6 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Slog;
-import android.util.SparseArray;
 import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.annotations.VisibleForTesting;
@@ -143,7 +142,6 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
     private final int mSensorId;
     private final boolean mIsPowerbuttonFps;
     private AidlSession mSession;
-    @NonNull private final SparseArray<byte[]> mPendingSecondFactorAuthTokens;
 
     private final class BiometricTaskStackListener extends TaskStackListener {
         @Override
@@ -342,8 +340,7 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
             @NonNull Handler handler,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull HalResultController controller,
-            @NonNull BiometricContext biometricContext,
-            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
+            @NonNull BiometricContext biometricContext) {
         mContext = context;
         mBiometricStateCallback = biometricStateCallback;
         mAuthenticationStateListeners = authenticationStateListeners;
@@ -383,8 +380,6 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
         } catch (RemoteException e) {
             Slog.e(TAG, "Unable to register user switch observer");
         }
-
-        mPendingSecondFactorAuthTokens = pendingSecondFactorAuthTokens;
     }
 
     public static Fingerprint21 newInstance(@NonNull Context context,
@@ -393,8 +388,7 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
             @NonNull FingerprintSensorPropertiesInternal sensorProps,
             @NonNull Handler handler,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
-            @NonNull GestureAvailabilityDispatcher gestureAvailabilityDispatcher,
-            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
+            @NonNull GestureAvailabilityDispatcher gestureAvailabilityDispatcher) {
         final BiometricScheduler scheduler =
                 new BiometricScheduler(TAG,
                         BiometricScheduler.sensorTypeFromFingerprintProperties(sensorProps),
@@ -403,7 +397,7 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
                 context, handler, scheduler);
         return new Fingerprint21(context, biometricStateCallback, authenticationStateListeners,
                 sensorProps, scheduler, handler, lockoutResetDispatcher, controller,
-                BiometricContext.getInstance(context), pendingSecondFactorAuthTokens);
+                BiometricContext.getInstance(context));
     }
 
     @Override
@@ -903,8 +897,7 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
                         mUdfpsOverlayController, mSidefpsController,
                         mAuthenticationStateListeners,
                         allowBackgroundAuthentication, mSensorProperties, mHandler,
-                        Utils.getCurrentStrength(mSensorId), null /* clock */, mLockoutTracker,
-                        mPendingSecondFactorAuthTokens);
+                        Utils.getCurrentStrength(mSensorId), null /* clock */, mLockoutTracker);
         mScheduler.scheduleClientMonitor(client, mBiometricStateCallback);
     }
 
@@ -913,7 +906,6 @@ public class Fingerprint21 implements IHwBinder.DeathRecipient, ServiceProvider 
             @NonNull FingerprintAuthenticateOptions options,
             long requestId, boolean restricted, int statsClient,
             boolean allowBackgroundAuthentication, boolean isStrongBiometric) {
-        // TODO: Add mPendingSecondFactorAuthTokens?
         final FingerprintAuthenticationClient client = new FingerprintAuthenticationClient(
                 mContext, mLazyDaemon, token, requestId, listener, operationId,
                 restricted, options, cookie, false /* requireConfirmation */,

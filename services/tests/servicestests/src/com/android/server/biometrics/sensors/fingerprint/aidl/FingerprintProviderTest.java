@@ -113,11 +113,10 @@ public class FingerprintProviderTest {
 
         mLockoutResetDispatcher = new LockoutResetDispatcher(mContext);
 
-        // TODO: pendingSecondFactorAuthTokens.
         mFingerprintProvider = new FingerprintProvider(mContext,
                 mBiometricStateCallback, mAuthenticationStateListeners, mSensorProps, TAG,
                 mLockoutResetDispatcher, mGestureAvailabilityDispatcher, mBiometricContext,
-                mDaemon, new SparseArray<>());
+                mDaemon;
 
     }
 

@@ -136,10 +136,6 @@ public class FingerprintService extends SystemService {
     private final Handler mHandler;
     @NonNull
     private final FingerprintServiceRegistry mRegistry;
-    // Technically this does not need to be an array because managed profiles will never have a
-    // pending auth token and the value will be cleared when switching between full user types.
-    @NonNull
-    private final SparseArray<byte[]> mPendingSecondFactorAuthTokens;
 
     /** Receives the incoming binder calls from FingerprintManager. */
     @VisibleForTesting
@@ -357,28 +353,14 @@ public class FingerprintService extends SystemService {
         @Override // Binder call
         public void addPendingAuthTokenToKeyStore(final IBinder token, final int userId) {
             super.addPendingAuthTokenToKeyStore_enforcePermission();
-            mHandler.post(() -> {
-                byte[] authToken = mPendingSecondFactorAuthTokens.get(userId);
-                if (authToken != null) {
-                    final int result = KeyStore.getInstance().addAuthToken(authToken);
-                    if (result != 0 /* success */) {
-                        Slog.d(TAG, "Error adding auth token : " + result);
-                    } else {
-                        Slog.d(TAG, "addAuthToken: " + result);
-                    }
-
-                    // TODO: zero/gc?
-                    mPendingSecondFactorAuthTokens.remove(userId);
-                }
-            });
+            mBiometricContext.getAuthTokenStore().addPendingAuthTokenToKeyStore(userId);
         }
 
         @android.annotation.EnforcePermission(android.Manifest.permission.USE_BIOMETRIC_INTERNAL)
         @Override // Binder call
         public void clearPendingAuthTokens(final IBinder token) {
             super.clearPendingAuthTokens_enforcePermission();
-            // TODO: zero/gc?
-            mHandler.post(mPendingSecondFactorAuthTokens::clear);
+            mBiometricContext.getAuthTokenStore().clearPendingAuthTokens();
         }
 
         private long authenticateWithPrompt(
@@ -1073,7 +1055,6 @@ public class FingerprintService extends SystemService {
         mLockPatternUtils = new LockPatternUtils(context);
         mBiometricStateCallback = new BiometricStateCallback<>(UserManager.get(context));
         mAuthenticationStateListeners = new AuthenticationStateListeners();
-        mPendingSecondFactorAuthTokens = new SparseArray<>();
         mFingerprintProvider = fingerprintProvider != null ? fingerprintProvider :
                 (name) -> {
                     final String fqName = IFingerprint.DESCRIPTOR + "/" + name;
@@ -1084,8 +1065,7 @@ public class FingerprintService extends SystemService {
                             return new FingerprintProvider(getContext(),
                                     mBiometricStateCallback, mAuthenticationStateListeners,
                                     fp.getSensorProps(), name, mLockoutResetDispatcher,
-                                    mGestureAvailabilityDispatcher, mBiometricContext,
-                                    mPendingSecondFactorAuthTokens);
+                                    mGestureAvailabilityDispatcher, mBiometricContext);
                         } catch (RemoteException e) {
                             Slog.e(TAG, "Remote exception in getSensorProps: " + fqName);
                         }
@@ -1149,13 +1129,11 @@ public class FingerprintService extends SystemService {
                 fingerprint21 = Fingerprint21UdfpsMock.newInstance(getContext(),
                         mBiometricStateCallback, mAuthenticationStateListeners,
                         hidlSensor, mLockoutResetDispatcher, mGestureAvailabilityDispatcher,
-                        BiometricContext.getInstance(getContext()),
-                        mPendingSecondFactorAuthTokens);
+                        BiometricContext.getInstance(getContext()));
             } else {
                 fingerprint21 = Fingerprint21.newInstance(getContext(),
                         mBiometricStateCallback, mAuthenticationStateListeners, hidlSensor,
-                        mHandler, mLockoutResetDispatcher, mGestureAvailabilityDispatcher,
-                        mPendingSecondFactorAuthTokens);
+                        mHandler, mLockoutResetDispatcher, mGestureAvailabilityDispatcher);
             }
             providers.add(fingerprint21);
         }

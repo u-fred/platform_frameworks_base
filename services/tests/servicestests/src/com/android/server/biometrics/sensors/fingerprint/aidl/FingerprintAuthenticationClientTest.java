@@ -559,9 +559,7 @@ public class FingerprintAuthenticationClientTest {
                 allowBackgroundAuthentication,
                 mSensorProps,
                 new Handler(mLooper.getLooper()), 0 /* biometricStrength */, mClock,
-                lockoutTracker,
-                // TODO: pendingSecondFactorAuthTokens.
-                new SparseArray<>()) {
+                lockoutTracker) {
             @Override
             protected ActivityTaskManager getActivityTaskManager() {
                 return mActivityTaskManager;

@@ -54,7 +54,6 @@ import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Slog;
-import android.util.SparseArray;
 import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.annotations.VisibleForTesting;
@@ -130,7 +129,6 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
     @Nullable private ISidefpsController mSidefpsController;
     private AuthSessionCoordinator mAuthSessionCoordinator;
     @Nullable private AuthenticationStatsCollector mAuthenticationStatsCollector;
-    @NonNull private final SparseArray<byte[]> mPendingSecondFactorAuthTokens;
 
     private final class BiometricTaskStackListener extends TaskStackListener {
         @Override
@@ -167,11 +165,10 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
             @NonNull SensorProps[] props, @NonNull String halInstanceName,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull GestureAvailabilityDispatcher gestureAvailabilityDispatcher,
-            @NonNull BiometricContext biometricContext,
-            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
+            @NonNull BiometricContext biometricContext) {
         this(context, biometricStateCallback, authenticationStateListeners, props, halInstanceName,
                 lockoutResetDispatcher, gestureAvailabilityDispatcher, biometricContext,
-                null /* daemon */, pendingSecondFactorAuthTokens);
+                null /* daemon */);
     }
 
     @VisibleForTesting FingerprintProvider(@NonNull Context context,
@@ -181,8 +178,7 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull GestureAvailabilityDispatcher gestureAvailabilityDispatcher,
             @NonNull BiometricContext biometricContext,
-            IFingerprint daemon,
-            @NonNull SparseArray<byte[]> pendingSecondFactorAuthTokens) {
+            IFingerprint daemon) {
         mContext = context;
         mBiometricStateCallback = biometricStateCallback;
         mAuthenticationStateListeners = authenticationStateListeners;
@@ -195,7 +191,6 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
         mBiometricContext = biometricContext;
         mAuthSessionCoordinator = mBiometricContext.getAuthSessionCoordinator();
         mDaemon = daemon;
-        mPendingSecondFactorAuthTokens = pendingSecondFactorAuthTokens;
 
         AuthenticationStatsBroadcastReceiver mBroadcastReceiver =
                 new AuthenticationStatsBroadcastReceiver(
@@ -515,8 +510,7 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
                     mFingerprintSensors.get(sensorId).getSensorProperties(), mHandler,
                     Utils.getCurrentStrength(sensorId),
                     SystemClock.elapsedRealtimeClock(),
-                    null /* lockoutTracker */,
-                    mPendingSecondFactorAuthTokens);
+                    null /* lockoutTracker */);
             scheduleForSensor(sensorId, client, new ClientMonitorCallback() {
 
                 @Override

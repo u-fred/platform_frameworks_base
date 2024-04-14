@@ -267,7 +267,7 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                     // TODO: Double check that this is all happening in main thread.
                     //  AidlResponseHandler#handleResponse posts to main thread so I think it's
                     //  all good. Can test using Assert.isMainThread();
-                    ((FingerprintAuthenticationClient)this).storePendingSecondFactorAuthToken(
+                    getBiometricContext().getAuthTokenStore().storePendingSecondFactorAuthToken(
                             getTargetUserId(), byteToken);
                 }
             }
