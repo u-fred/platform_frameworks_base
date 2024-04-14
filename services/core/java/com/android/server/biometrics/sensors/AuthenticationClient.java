@@ -259,7 +259,7 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
             // For BP, BiometricService will add the authToken to Keystore.
             if (!isBiometricPrompt() && mIsStrongBiometric) {
                 boolean isSecondFactorEnabled = false;
-                if (this instanceof FingerprintAuthenticationClient) {
+                if (this instanceof com.android.server.biometrics.sensors.fingerprint.hidl.FingerprintAuthenticationClient || this instanceof FingerprintAuthenticationClient) {
                     isSecondFactorEnabled = new LockPatternUtils(getContext()).isBiometricSecondFactorEnabled(getTargetUserId());
                 }
                 shouldAddAuthToken = !isSecondFactorEnabled;
