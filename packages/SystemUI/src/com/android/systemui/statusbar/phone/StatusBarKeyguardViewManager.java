@@ -1175,8 +1175,6 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
             return;
         }
 
-        mKeyguardUpdateManager.clearFingerprintRecognized();
-
         mCentralSurfaces.endAffordanceLaunch();
         // The second condition is for SIM card locked bouncer
         if (primaryBouncerIsScrimmed() && !needsFullscreenBouncer()) {

@@ -220,6 +220,8 @@ constructor(
         repository.setPrimaryShow(false)
         repository.setPanelExpansion(EXPANSION_HIDDEN)
         primaryBouncerCallbackInteractor.dispatchVisibilityChanged(View.INVISIBLE)
+        // TODO: Review where hide() is called for back pressed and swipe down.
+        keyguardUpdateMonitor.clearFingerprintRecognized()
         Trace.endSection()
     }
 
