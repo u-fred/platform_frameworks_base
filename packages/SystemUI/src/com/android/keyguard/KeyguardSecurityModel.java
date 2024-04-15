@@ -63,6 +63,11 @@ public class KeyguardSecurityModel {
     }
 
     public SecurityMode getSecurityMode(int userId) {
+        boolean primary = !mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId);
+        return getSecurityMode(userId, primary);
+    }
+
+    public SecurityMode getSecurityMode(int userId, boolean primary) {
         if (mIsPukScreenAvailable && SubscriptionManager.isValidSubscriptionId(
                 mKeyguardUpdateMonitor.getNextSubIdForState(
                         TelephonyManager.SIM_STATE_PUK_REQUIRED))) {
@@ -75,20 +80,16 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
-        boolean primaryCredential = !mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(
-                userId);
-
         final int security = whitelistIpcs(() ->
-                mLockPatternUtils.getActivePasswordQuality(userId, primaryCredential));
+                mLockPatternUtils.getActivePasswordQuality(userId, primary));
         switch (security) {
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC:
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX:
-                if (primaryCredential) {
+                if (primary) {
                     return SecurityMode.PIN;
                 } else {
                     return SecurityMode.BiometricSecondFactorPin;
                 }
-
 
             case DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC:
             case DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC:
