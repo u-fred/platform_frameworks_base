@@ -18,8 +18,6 @@ package com.android.keyguard;
 
 import static android.app.StatusBarManager.SESSION_KEYGUARD;
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
-
-import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_BIOMETRIC;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_EXTENDED_ACCESS;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_NONE_SECURITY;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_PASSWORD;
@@ -100,8 +98,6 @@ import com.android.systemui.util.ViewController;
 import com.android.systemui.util.kotlin.JavaAdapter;
 import com.android.systemui.util.settings.GlobalSettings;
 
-import dagger.Lazy;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
@@ -109,6 +105,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import dagger.Lazy;
 import kotlinx.coroutines.Job;
 
 /** Controller for {@link KeyguardSecurityContainer} */
@@ -777,6 +774,17 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
 
             getCurrentSecurityController(controller -> controller.onResume(reason));
         }
+
+        if (mCurrentSecurityMode != mSecurityModel.getSecurityMode(
+                mSelectedUserInteractor.getSelectedUserId())) {
+            // Do this here so that the call to showPrimarySecurityScreen in the callback passed to
+            // reinflateViewFlipper by KeyguardBouncerViewBinder will be a no-op. This call here
+            // plus the preloading of the view for SecurityMode.BiometricSecondFactorPin results in
+            // fingerprint -> biometric PIN behaving the same as 3 failed fingerprints -> primary
+            // PIN.
+            showPrimarySecurityScreen(false);
+        }
+
         mView.onResume(
                 mSecurityModel.getSecurityMode(mSelectedUserInteractor.getSelectedUserId()),
                 mKeyguardStateController.isFaceEnrolledAndEnabled());
@@ -1276,6 +1284,28 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         mSecurityViewFlipperController.clearViews();
         mSecurityViewFlipperController.asynchronouslyInflateView(mCurrentSecurityMode,
                 mKeyguardSecurityCallback, onViewInflatedListener);
+
+        // TODO: Better place to put all this?
+        // TODO: Refine this.
+        int selectedUserId = mSelectedUserInteractor.getSelectedUserId();
+        boolean isSecondFactorEnabled = new LockPatternUtils(getContext()).isBiometricSecondFactorEnabled(selectedUserId);
+
+        if (mCurrentSecurityMode == SecurityMode.Invalid) {
+            return;
+        }
+        if (mCurrentSecurityMode != SecurityMode.BiometricSecondFactorPin) {
+            if (isSecondFactorEnabled) {
+                mSecurityViewFlipperController.asynchronouslyInflateView(
+                        SecurityMode.BiometricSecondFactorPin, mKeyguardSecurityCallback,
+                        // TODO: Empty callback?
+                        (c) -> {});
+            }
+        } else {
+            mSecurityViewFlipperController.asynchronouslyInflateView(
+                    mSecurityModel.getSecurityMode(selectedUserId, true), mKeyguardSecurityCallback,
+                    // TODO: Empty callback?
+                    (c) -> {});
+        }
     }
 
     /**

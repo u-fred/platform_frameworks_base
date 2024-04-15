@@ -143,6 +143,8 @@ object KeyguardBouncerViewBinder {
                                         KeyguardSecurityView.SCREEN_ON
                                     )
                                     bouncerLogger.bindingBouncerMessageView()
+                                    // TODO: This (and the entire callback) won't be called for the
+                                    //  secondary view. Does this matter?
                                     it.bindMessageView(
                                         bouncerMessageInteractor,
                                         messageAreaControllerFactory,
