@@ -703,7 +703,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
     public void addPendingAuthTokenToKeyStore(final int userId) {
         if (mService != null) {
             try {
-                mService.addPendingAuthTokenToKeyStore(mToken, userId);
+                mService.addPendingAuthTokenToKeyStore(userId);
             } catch (RemoteException e) {
                 Slog.w(TAG, "Remote exception when adding auth token to KeyStore", e);
             }
@@ -718,7 +718,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
     public void clearPendingAuthTokens() {
         if (mService != null) {
             try {
-                mService.clearPendingAuthTokens(mToken);
+                mService.clearPendingAuthTokens();
             } catch (RemoteException e) {
                 Slog.w(TAG, "Remote exception when adding auth token to KeyStore", e);
             }
