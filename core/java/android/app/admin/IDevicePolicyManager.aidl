@@ -169,8 +169,7 @@ interface IDevicePolicyManager {
     void forceRemoveActiveAdmin(in ComponentName policyReceiver, int userHandle);
     boolean hasGrantedPolicy(in ComponentName policyReceiver, int usesPolicy, int userHandle);
 
-    // TODO: reportBiometricSecondFactorChanged?
-    void reportPasswordChanged(in PasswordMetrics metrics, int userId);
+    void reportPasswordChanged(in PasswordMetrics metrics, int userId, boolean primary);
     void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent);
     void reportSuccessfulPasswordAttempt(int userHandle, boolean primary);
     void reportFailedBiometricAttempt(int userHandle);

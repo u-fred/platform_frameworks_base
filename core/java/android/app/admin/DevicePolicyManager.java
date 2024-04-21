@@ -8974,10 +8974,11 @@ public class DevicePolicyManager {
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
+    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
+            boolean primary) {
         if (mService != null) {
             try {
-                mService.reportPasswordChanged(metrics, userId);
+                mService.reportPasswordChanged(metrics, userId, primary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

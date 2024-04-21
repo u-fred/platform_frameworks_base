@@ -8030,7 +8030,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
+    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
+            boolean primary) {
         if (!mHasFeature || !mLockPatternUtils.hasSecureLockScreen()) {
             return;
         }
@@ -8042,24 +8043,36 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             Preconditions.checkCallAuthorization(!isManagedProfile(userId), "You can "
                     + "not set the active password for a managed profile, userId = %d", userId);
         }
+        if (!primary) {
+            Preconditions.checkCallAuthorization(!isManagedProfile(userId),
+                    "Managed profiles do not have a biometric second factor");
+        }
 
         DevicePolicyData policy = getUserData(userId);
         final ArraySet<Integer> affectedUserIds = new ArraySet<>();
 
         synchronized (getLockObject()) {
-            policy.mFailedPasswordAttempts = 0;
-            affectedUserIds.add(userId);
-            affectedUserIds.addAll(updatePasswordValidityCheckpointLocked(
-                    userId, /* parent */ false));
-            affectedUserIds.addAll(updatePasswordExpirationsLocked(userId));
-            setExpirationAlarmCheckLocked(mContext, userId, /* parent */ false);
+            if (primary) {
+                policy.mFailedPasswordAttempts = 0;
+                affectedUserIds.add(userId);
+                affectedUserIds.addAll(updatePasswordValidityCheckpointLocked(
+                        userId, /* parent */ false));
+                affectedUserIds.addAll(updatePasswordExpirationsLocked(userId));
+                setExpirationAlarmCheckLocked(mContext, userId, /* parent */ false);
 
-            // Send a broadcast to each profile using this password as its primary unlock.
-            sendAdminCommandForLockscreenPoliciesLocked(
-                    DeviceAdminReceiver.ACTION_PASSWORD_CHANGED,
-                    DeviceAdminInfo.USES_POLICY_LIMIT_PASSWORD, userId);
+                // Send a broadcast to each profile using this password as its primary unlock.
+                sendAdminCommandForLockscreenPoliciesLocked(
+                        DeviceAdminReceiver.ACTION_PASSWORD_CHANGED,
+                        DeviceAdminInfo.USES_POLICY_LIMIT_PASSWORD, userId);
 
-            affectedUserIds.addAll(removeCaApprovalsIfNeeded(userId));
+                affectedUserIds.addAll(removeCaApprovalsIfNeeded(userId));
+            } else {
+                // TODO: This might need to change to include some of the above, not sure yet.
+                policy.mFailedBiometricSecondFactorAttempts = 0;
+                // This could probably be moved to after the if, but keep it in both conditional
+                // paths just in case.
+                affectedUserIds.add(userId);
+            }
             saveSettingsForUsersLocked(affectedUserIds);
         }
         if (mInjector.securityLogIsLoggingEnabled()) {
