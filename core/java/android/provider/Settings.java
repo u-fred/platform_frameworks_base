@@ -10813,14 +10813,6 @@ public final class Settings {
         public static final String BIOMETRIC_APP_ENABLED = "biometric_app_enabled";
 
         /**
-         * Whether or not biometric pin is required after fingerprint auth during unlock.
-         * @hide
-         */
-        @Readable
-        public static final String BIOMETRIC_SECOND_FACTOR_SCREEN_LOCK_FINGERPRINT_ENABLED =
-                "biometric_second_factor_screen_lock_fingerprint_enabled";
-
-        /**
          * Whether or not active unlock triggers on wake.
          * @hide
          */
