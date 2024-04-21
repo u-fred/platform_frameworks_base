@@ -449,6 +449,7 @@ import android.util.AtomicFile;
 import android.util.DebugUtils;
 import android.util.IndentingPrintWriter;
 import android.util.IntArray;
+import android.util.Log;
 import android.util.Pair;
 import android.util.Slog;
 import android.util.SparseArray;
@@ -5450,7 +5451,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary, int userHandle, boolean parent) {
+    public int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary,
+            int userHandle, boolean parent) {
         if (!mLockPatternUtils.hasSecureLockScreen()) {
             return 0;
         }
@@ -5460,8 +5462,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
 
         if (!primary) {
-            // TODO: Is this needed?
-            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle));
+            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
+                    "Managed profiles do not have a biometric second factor");
         }
 
         synchronized (getLockObject()) {
@@ -8109,11 +8111,14 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
-        // TODO: Secondary?
         if (!isSeparateProfileChallengeEnabled(userHandle)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
                     "You can not report failed password attempt if separate profile challenge is "
                             + "not in place for a managed profile, userId = %d", userHandle);
+        }
+        if (!primary) {
+            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
+                    "Managed profiles do not have a biometric second factor");
         }
 
         boolean wipeData = false;
@@ -8129,7 +8134,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
                 }
                 saveSettingsLocked(userHandle);
                 if (!primary) {
-                    // TODO: Log?
                     return;
                 }
                 if (mHasFeature) {
@@ -8210,6 +8214,10 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
+        if (!primary) {
+            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
+                    "Managed profiles do not have a biometric second factor");
+        }
 
         synchronized (getLockObject()) {
             DevicePolicyData policy = getUserData(userHandle);
@@ -8226,9 +8234,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             if (savePolicy) {
                 mInjector.binderWithCleanCallingIdentity(() -> {
                     saveSettingsLocked(userHandle);
-                    if (mHasFeature) {
+                    if (mHasFeature && primary) {
                         sendAdminCommandForLockscreenPoliciesLocked(
-                                // TODO: Secondary?
                                 DeviceAdminReceiver.ACTION_PASSWORD_SUCCEEDED,
                                 DeviceAdminInfo.USES_POLICY_WATCH_LOGIN, userHandle);
                     }
@@ -8236,7 +8243,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             }
         }
 
-        // TODO: Secondary?
         if (mInjector.securityLogIsLoggingEnabled()) {
             SecurityLog.writeEvent(SecurityLog.TAG_KEYGUARD_DISMISS_AUTH_ATTEMPT, /*result*/ 1,
                     /*method strength*/ 1);
