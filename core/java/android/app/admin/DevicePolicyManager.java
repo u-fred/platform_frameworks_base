@@ -5742,8 +5742,7 @@ public class DevicePolicyManager {
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     @RequiresPermission(value = MANAGE_DEVICE_POLICY_LOCK_CREDENTIALS, conditional = true)
     public int getCurrentFailedPasswordAttempts() {
-        // TODO: Secondary?
-        return getCurrentFailedPasswordAttempts(myUserId(), true);
+        return getCurrentFailedPasswordAttempts(myUserId());
     }
 
     /**
@@ -5771,7 +5770,6 @@ public class DevicePolicyManager {
      *
      * @hide
      */
-    @UnsupportedAppUsage
     public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
         if (mService != null) {
             try {
@@ -8997,7 +8995,6 @@ public class DevicePolicyManager {
     /**
      * @hide
      */
-    @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportFailedPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
@@ -9021,7 +9018,6 @@ public class DevicePolicyManager {
     /**
      * @hide
      */
-    @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
@@ -9047,10 +9043,9 @@ public class DevicePolicyManager {
         }
     }
 
-    /**
-     * @hide
-     */
-     // TODO: Is this called before second factor is verified? Should it be?
+     /**
+      * @hide
+      */
      @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
      public void reportSuccessfulBiometricAttempt(int userHandle) {
         if (mService != null) {
