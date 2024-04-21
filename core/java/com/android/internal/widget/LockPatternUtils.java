@@ -1255,7 +1255,12 @@ public class LockPatternUtils {
                 mBiometricSecondFactorLockoutDeadlines;
         final long deadline = deadlines.get(userId, 0L);
         final long now = SystemClock.elapsedRealtime();
-        if (deadline < now && deadline != 0) {
+        // It's possible that biometric (secondary) PIN was changed while it was locked out.
+        // TODO: Eventually we would like to store the secondary PIN encrypted by (or auth bound to)
+        //  the primary password so that we can reset secondary lockout when primary succeeds.
+        final boolean resetLockout = getDevicePolicyManager().getCurrentFailedPasswordAttempts(
+                userId, false) == 0 && !primary;
+        if ((deadline < now || resetLockout) && deadline != 0) {
             // timeout expired
             deadlines.put(userId, 0);
             return 0L;
