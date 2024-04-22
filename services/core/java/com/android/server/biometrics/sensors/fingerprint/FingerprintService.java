@@ -415,7 +415,6 @@ public class FingerprintService extends SystemService {
                             final Fingerprint fingerprint = new Fingerprint("", 0, 0L);
                             final boolean isStrong = props.sensorStrength == STRENGTH_STRONG;
                             try {
-                                // TODO: Test null auth token.
                                 receiver.onAuthenticationSucceeded(fingerprint, userId, isStrong);
                             } catch (RemoteException e) {
                                 Slog.e(TAG, "Remote exception in onAuthenticationSucceeded()", e);
