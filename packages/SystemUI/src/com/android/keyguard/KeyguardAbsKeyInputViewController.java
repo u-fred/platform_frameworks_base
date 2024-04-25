@@ -57,6 +57,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     protected AsyncTask<?, ?, ?> mPendingLockCheck;
     protected boolean mResumed;
     protected boolean mLockedOut;
+    protected boolean mIsForPrimaryCredential;
 
     private final KeyDownListener mKeyDownListener = (keyCode, keyEvent) -> {
         // Fingerprint sensor sends a KeyEvent.KEYCODE_UNKNOWN.
@@ -91,6 +92,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLatencyTracker = latencyTracker;
         mFalsingCollector = falsingCollector;
         mEmergencyButtonController = emergencyButtonController;
+        mIsForPrimaryCredential = securityMode != SecurityMode.BiometricSecondFactorPin;
     }
 
     abstract void resetState();
@@ -107,7 +109,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), isForPrimaryCredential());
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential);
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -137,10 +139,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
             mMessageAreaController.setNextMessageColor(colorState);
         }
         mMessageAreaController.setMessage(message, animated);
-    }
-
-    public boolean isForPrimaryCredential() {
-        return getSecurityMode() != SecurityMode.BiometricSecondFactorPin;
     }
 
     // Allow subclasses to override this behavior
@@ -186,11 +184,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         // TODO: Review this. I believe this is to prevent a situation where you begin an
         //  authentication as one userId but then switch to another before the password is verified
         //  and bypass the screen lock of the other.
-        // boolean primary = !mKeyguardUpdateMonitor.isDoingBiometricSecondFactorAuth(userId);
-        boolean primary = isForPrimaryCredential();
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary,true, 0);
-            if (!primary) {
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,true,
+                    0);
+            if (!mIsForPrimaryCredential) {
                 // TODO: Review getSystemService implementation to see how inefficient it is. Might
                 //  prefer instance variable or getting from KeyguardUpdateMonitor.
                 FingerprintManager fm = (FingerprintManager) getContext().getSystemService(
@@ -205,14 +202,14 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
             if (isValidPassword) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, primary, false,
-                        timeoutMs);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
+                        false, timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, primary, timeoutMs);
+                            userId, mIsForPrimaryCredential, timeoutMs);
                     // Secondary won't have a countdown here because after lockout we must use
                     // primary auth.
-                    if (primary) {
+                    if (mIsForPrimaryCredential) {
                         handleAttemptLockout(deadline);
                     } else {
                         mMessageAreaController.setMessage(mView.getWrongPasswordStringId());

@@ -131,7 +131,8 @@ public class KeyguardPinViewController
 
     private void updateAutoConfirmationState() {
         mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId(), isForPrimaryCredential()) >= MIN_FAILED_PIN_ATTEMPTS;
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential) >=
+                MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
         updatePinHinting();
@@ -210,7 +211,7 @@ public class KeyguardPinViewController
 
     @Override
     protected int getInitialMessageResId() {
-        if (isForPrimaryCredential()) {
+        if (mIsForPrimaryCredential) {
             return super.getInitialMessageResId();
         } else {
             return R.string.keyguard_enter_your_biometric_second_factor_pin;
