@@ -307,6 +307,9 @@ public class LockSettingsService extends ILockSettings.Stub {
     // device or changes password. Removed when user is stopped.
     @GuardedBy("this")
     private final SparseArray<PasswordMetrics> mUserPasswordMetrics = new SparseArray<>();
+    @GuardedBy("this")
+    private final SparseArray<PasswordMetrics> mUserBiometricSecondFactorMetrics =
+            new SparseArray<>();
     @VisibleForTesting
     protected boolean mHasSecureLockScreen;
 
@@ -805,6 +808,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         requireStrongAuth(strongAuthRequired, userId);
         synchronized (this) {
             mUserPasswordMetrics.remove(userId);
+            mUserBiometricSecondFactorMetrics.remove(userId);
         }
     }
 
@@ -1342,14 +1346,14 @@ public class LockSettingsService extends ILockSettings.Stub {
      *      B. PIN_LENGTH_UNAVAILABLE if pin length is not stored/available
      */
     @Override
-    public int getPinLength(int userId) {
+    public int getPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
-        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId);
+        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
         if (passwordMetrics != null && passwordMetrics.credType == CREDENTIAL_TYPE_PIN) {
             return passwordMetrics.length;
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return PIN_LENGTH_UNAVAILABLE;
@@ -1421,7 +1425,11 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     private boolean isUserSecure(int userId) {
-        return getCredentialTypeInternal(userId) != CREDENTIAL_TYPE_NONE;
+        return isUserSecure(userId, true);
+    }
+
+    private boolean isUserSecure(int userId, boolean primary) {
+        return getCredentialTypeInternal(userId, primary) != CREDENTIAL_TYPE_NONE;
     }
 
     @VisibleForTesting /** Note: this method is overridden in unit tests */
@@ -2430,10 +2438,23 @@ public class LockSettingsService extends ILockSettings.Stub {
      * when the user is authenticating or when a new password is being set. In comparison,
      * {@link #notifyPasswordChanged} only needs to be called when the user changes the password.
      */
-    private void setUserPasswordMetrics(LockscreenCredential password, @UserIdInt int userHandle) {
+    private void setUserPasswordMetrics(LockscreenCredential password, @UserIdInt int userHandle,
+            boolean primary) {
         synchronized (this) {
-            mUserPasswordMetrics.put(userHandle, PasswordMetrics.computeForCredential(password));
+            if (primary) {
+                mUserPasswordMetrics.put(userHandle,
+                        PasswordMetrics.computeForCredential(password));
+            } else {
+                mUserBiometricSecondFactorMetrics.put(userHandle,
+                        PasswordMetrics.computeForCredential(password));
+            }
         }
+    }
+
+
+    @VisibleForTesting
+    PasswordMetrics getUserPasswordMetrics(int userHandle) {
+        return getUserPasswordMetrics(userHandle, true);
     }
 
     /**
@@ -2442,8 +2463,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * @return passwordmetrics for the user or null if not available
      */
     @VisibleForTesting
-    PasswordMetrics getUserPasswordMetrics(int userHandle) {
-        if (!isUserSecure(userHandle)) {
+    PasswordMetrics getUserPasswordMetrics(int userHandle, boolean primary) {
+        if (!isUserSecure(userHandle, primary)) {
             // for users without password, mUserPasswordMetrics might not be initialized
             // since the user never unlock the device manually. In this case, always
             // return a default metrics object. This is to distinguish this case from
@@ -2451,7 +2472,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
         }
         synchronized (this) {
-            return mUserPasswordMetrics.get(userHandle);
+            if (primary) {
+                return mUserPasswordMetrics.get(userHandle);
+            }
+            return mUserBiometricSecondFactorMetrics.get(userHandle);
         }
     }
 
@@ -3097,8 +3121,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             //  but maybe we want to synchronize secondary credentials too.
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
 
-            // TODO: Probably don't want secondary password metrics sharing with primary.
-            setUserPasswordMetrics(credential, userId);
+            setUserPasswordMetrics(credential, userId, credential.getPrimaryCredential());
             mUnifiedProfilePasswordCache.removePassword(userId);
             if (savedCredentialType != CREDENTIAL_TYPE_NONE) {
                 mSpManager.destroyAllWeakTokenBasedProtectors(userId);
@@ -3701,6 +3724,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         @Override
         public PasswordMetrics getUserPasswordMetrics(int userHandle) {
+            // TODO: Review whether it is worth implementing this for secondary.
             final long identity = Binder.clearCallingIdentity();
             try {
                 if (isProfileWithUnifiedLock(userHandle)) {

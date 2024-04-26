@@ -70,7 +70,8 @@ public class KeyguardPinViewController
         mFeatureFlags = featureFlags;
         view.setIsLockScreenLandscapeEnabled(mFeatureFlags.isEnabled(LOCKSCREEN_ENABLE_LANDSCAPE));
         mBackspaceKey = view.findViewById(R.id.delete_button);
-        mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId());
+        mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId(),
+                mIsForPrimaryCredential);
         mUiEventLogger = uiEventLogger;
     }
 

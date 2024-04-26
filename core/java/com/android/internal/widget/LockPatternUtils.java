@@ -630,17 +630,21 @@ public class LockPatternUtils {
         return false;
     }
 
+    public int getPinLength(int userId) {
+        return getPinLength(userId, true);
+    }
+
     /**
      * Returns the length of the PIN set by a particular user.
      * @param userId user id of the user whose pin length we have to return
+     * @param primary whether to return primary or biometric second factor PIN length
      * @return
      *       A. the length of the pin set by user if it is currently available
      *       B. PIN_LENGTH_UNAVAILABLE if it is not available or if an exception occurs
      */
-    // TODO: Primary/secondary.
-    public int getPinLength(int userId) {
+    public int getPinLength(int userId, boolean primary) {
         try {
-            return getLockSettings().getPinLength(userId);
+            return getLockSettings().getPinLength(userId, primary);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not fetch PIN length " + e);
             return PIN_LENGTH_UNAVAILABLE;
