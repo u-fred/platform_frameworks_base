@@ -1384,13 +1384,13 @@ public class LockSettingsService extends ILockSettings.Stub {
      * must be called.
      */
     @Override
-    public int getCredentialType(boolean primary, int userId) {
+    public int getCredentialType(int userId, boolean primary) {
         checkPasswordHavePermission();
         return getCredentialTypeInternal(userId, primary);
     }
 
     public int getCredentialType(int userId) {
-        return getCredentialType(true, userId);
+        return getCredentialType(userId, true);
     }
 
     /**
