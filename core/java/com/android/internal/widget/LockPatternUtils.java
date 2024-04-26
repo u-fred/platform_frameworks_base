@@ -1219,7 +1219,6 @@ public class LockPatternUtils {
      * @param timeoutMs the timeout to set.
      * @return the chosen deadline.
      */
-    @UnsupportedAppUsage
     public long setLockoutAttemptDeadline(int userId, boolean primary, int timeoutMs) {
         final long deadline = SystemClock.elapsedRealtime() + timeoutMs;
         if (userId == USER_FRP) {
@@ -1263,7 +1262,7 @@ public class LockPatternUtils {
         // TODO: Eventually we would like to store the secondary PIN encrypted by (or auth bound to)
         //  the primary password so that we can reset secondary lockout when primary succeeds.
         final boolean resetLockout = getDevicePolicyManager().getCurrentFailedPasswordAttempts(
-                userId, false) == 0 && !primary;
+                userId, primary) == 0;
         if ((deadline < now || resetLockout) && deadline != 0) {
             // timeout expired
             deadlines.put(userId, 0);
@@ -1279,7 +1278,7 @@ public class LockPatternUtils {
      */
     // TODO: Review all uses of this.
     public long getLockoutAttemptDeadline(int userId) {
-        return getLockoutAttemptDeadline(userId, false);
+        return getLockoutAttemptDeadline(userId, true);
     }
 
     private boolean getBoolean(String secureSettingKey, boolean defaultValue, int userId) {
