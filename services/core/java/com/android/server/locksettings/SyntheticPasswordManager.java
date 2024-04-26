@@ -1520,22 +1520,20 @@ class SyntheticPasswordManager {
                 Slog.w(TAG, "progressCallback throws exception", e);
             }
         }
-        if (!credential.getPrimaryCredential()) {
-            result.gkResponse = VerifyCredentialResponse.OK;
-            return result;
-        }
         result.syntheticPassword = unwrapSyntheticPasswordBlob(protectorId,
                 PROTECTOR_TYPE_LSKF_BASED, protectorSecret, sid, userId);
-
-        // Perform verifyChallenge to refresh auth tokens for GK if user password exists.
-        result.gkResponse = verifyChallenge(gatekeeper, result.syntheticPassword, 0L, userId);
-
         // Upgrade case: store the metrics if the device did not have stored metrics before, should
         // only happen once on old protectors.
         if (result.syntheticPassword != null && !credential.isNone()
                 && !hasPasswordMetrics(protectorId, userId)) {
             savePasswordMetrics(credential, result.syntheticPassword, protectorId, userId);
             syncState(userId); // Not strictly needed as the upgrade can be re-done, but be safe.
+        }
+        if (!credential.getPrimaryCredential()) {
+            result.gkResponse = VerifyCredentialResponse.OK;
+        } else {
+            // Perform verifyChallenge to refresh auth tokens for GK if user password exists.
+            result.gkResponse = verifyChallenge(gatekeeper, result.syntheticPassword, 0L, userId);
         }
         return result;
     }
