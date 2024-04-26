@@ -81,7 +81,7 @@ import java.util.Set;
  * A class that manages a user's synthetic password (SP) ({@link #SyntheticPassword}), along with a
  * set of SP protectors that are independent ways that the SP is protected.
  *
- * Invariants for SPs:
+ * Invariants for primary (not secondary) SPs:
  *
  *  - A user's SP never changes, but SP protectors can be added and removed.  There is always a
  *    protector that protects the SP with the user's Lock Screen Knowledge Factor (LSKF), a.k.a.
@@ -101,7 +101,7 @@ import java.util.Set;
  *    be provided to KeyMint to authorize the use of the user's authentication-bound Keystore keys.
  *
  * Files stored on disk for each user:
- *   For the SP itself, stored under NULL_PROTECTOR_ID:
+ *   For the primary (not secondary) SP itself, stored under NULL_PROTECTOR_ID:
  *     SP_HANDLE_NAME: GateKeeper password handle of a password derived from the SP.  Only exists
  *                     while the LSKF is nonempty.
  *     SP_E0_NAME, SP_P1_NAME: Information needed to create and use escrow token-based protectors.
@@ -111,9 +111,7 @@ import java.util.Set;
  *                              PERSONALIZATION_AUTHSECRET_ENCRYPTION_KEY.
  *
  *     For each protector, stored under the corresponding protector ID:
- *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value). Always exists for
- *                     primary credential protector. Never exists for biometric second factor
- *                     credential protector.
+ *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value).  Always exists.
  *       PASSWORD_DATA_NAME: Data used for LSKF verification, such as the scrypt salt and
  *                           parameters.  Only exists for LSKF-based protectors.  Doesn't exist when
  *                           the LSKF is empty, except in old protectors.
@@ -826,10 +824,16 @@ class SyntheticPasswordManager {
      * handles this.  This makes it so that all the user's initial SP state files, including the
      * initial LSKF-based protector, are efficiently created with only a single {@link syncState()}.
      */
-    SyntheticPassword newSyntheticPassword(int userId) {
-        clearSidForUser(userId);
+    SyntheticPassword newSyntheticPassword(int userId, boolean primary) {
+        if (primary) {
+            clearSidForUser(userId);
+        }
+        // We could call SyntheticPassword.create() directly instead of modifying this method, but
+        // could potentially miss upstream changes.
         SyntheticPassword result = SyntheticPassword.create();
-        saveEscrowData(result, userId);
+        if (primary) {
+            saveEscrowData(result, userId);
+        }
         return result;
     }
 

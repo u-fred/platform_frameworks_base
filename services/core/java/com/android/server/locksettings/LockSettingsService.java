@@ -2906,12 +2906,12 @@ public class LockSettingsService extends ILockSettings.Stub {
     @VisibleForTesting
     SyntheticPassword initializeSyntheticPassword(int userId) {
         synchronized (mSpManager) {
-            Slogf.i(TAG, "Initializing synthetic password for user %d", userId);
+            Slogf.i(TAG, "Initializing synthetic passwords for user %d", userId);
             Preconditions.checkState(getCurrentLskfBasedProtectorId(userId) ==
                     SyntheticPasswordManager.NULL_PROTECTOR_ID,
                     "Cannot reinitialize SP");
 
-            SyntheticPassword sp = mSpManager.newSyntheticPassword(userId);
+            SyntheticPassword sp = mSpManager.newSyntheticPassword(userId, true);
             long protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
                     LockscreenCredential.createNone(), sp, userId);
             setCurrentLskfBasedProtectorId(protectorId, userId, true);
@@ -2920,13 +2920,18 @@ public class LockSettingsService extends ILockSettings.Stub {
                 initKeystoreSuperKeys(userId, sp, /* allowExisting= */ false);
             }
             onSyntheticPasswordCreated(userId, sp);
-            Slogf.i(TAG, "Successfully initialized synthetic password for user %d", userId);
+            Slogf.i(TAG, "Successfully initialized primary synthetic password for user %d",
+                    userId);
 
-            // Create a default secondary protector. Secondary protectors are used only for LSKF
-            // verification, they never store an SP.
+            // Ideally we would only create secondary if !isCredentialSharableWithParent() but it's
+            // too early to call that and there's no major harm in doing it this way.
+            SyntheticPassword spSecondary = mSpManager.newSyntheticPassword(userId, false);
             protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
-                    LockscreenCredential.createNone(false), null, userId);
+                    LockscreenCredential.createNone(false), spSecondary, userId);
             setCurrentLskfBasedProtectorId(protectorId, userId, false);
+            Slogf.i(TAG,
+                    "Successfully initialized secondary synthetic password for user %d",
+                    userId);
 
             return sp;
         }
