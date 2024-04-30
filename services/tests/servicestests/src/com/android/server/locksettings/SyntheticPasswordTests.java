@@ -620,7 +620,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
                 userId);
         PasswordMetrics passwordMetrics =
                 PasswordMetrics.computeForCredential(lockscreenCredentialPin);
-        boolean result = manager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId);
+        boolean result = manager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId, true);
 
         assertEquals(manager.getPinLength(protectorId, userId), lockscreenCredentialPin.size());
         assertTrue(result);

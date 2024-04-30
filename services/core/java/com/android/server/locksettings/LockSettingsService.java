@@ -1368,13 +1368,14 @@ public class LockSettingsService extends ILockSettings.Stub {
      * @return true/false depending on whether PIN length has been saved or not
      */
     @Override
-    public boolean refreshStoredPinLength(int userId) {
+    public boolean refreshStoredPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
         synchronized (mSpManager) {
-            PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId);
+            PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
             if (passwordMetrics != null) {
-                final long protectorId = getCurrentLskfBasedProtectorId(userId);
-                return mSpManager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId);
+                final long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
+                return mSpManager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId,
+                        primary);
             } else {
                 Log.w(TAG, "PasswordMetrics is not available");
                 return false;
@@ -2379,7 +2380,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
             Slogf.i(TAG, "Successfully verified lockscreen credential for user %d", userId);
             onCredentialVerified(authResult.syntheticPassword,
-                    PasswordMetrics.computeForCredential(credential), userId);
+                    PasswordMetrics.computeForCredential(credential), userId, credential.getPrimaryCredential());
             if ((flags & VERIFY_FLAG_REQUEST_GK_PW_HANDLE) != 0) {
                 final long gkHandle = storeGatekeeperPasswordTemporarily(
                         authResult.syntheticPassword.deriveGkPassword());
@@ -3023,11 +3024,16 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     private void onCredentialVerified(SyntheticPassword sp, @Nullable PasswordMetrics metrics,
-            int userId) {
+            int userId, boolean primary) {
 
         if (metrics != null) {
             synchronized (this) {
-                mUserPasswordMetrics.put(userId,  metrics);
+                if (primary) {
+                    mUserPasswordMetrics.put(userId, metrics);
+                } else {
+                    mUserBiometricSecondFactorMetrics.put(userId, metrics);
+                    return;
+                }
             }
         }
 
@@ -3113,15 +3119,13 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
         setCurrentLskfBasedProtectorId(newProtectorId, userId, credential.getPrimaryCredential());
         LockPatternUtils.invalidateCredentialTypeCache();
-
+        setUserPasswordMetrics(credential, userId, credential.getPrimaryCredential());
         // TODO: Review everything in here to see how we should handle for secondary.
         if (credential.getPrimaryCredential()) {
             // TODO: I'm ignoring code paths involving other users/profiles as I don't have a way to
             //  test them. Review this when that changes. This method will only be called for primary
             //  but maybe we want to synchronize secondary credentials too.
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
-
-            setUserPasswordMetrics(credential, userId, credential.getPrimaryCredential());
             mUnifiedProfilePasswordCache.removePassword(userId);
             if (savedCredentialType != CREDENTIAL_TYPE_NONE) {
                 mSpManager.destroyAllWeakTokenBasedProtectors(userId);
@@ -3388,7 +3392,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         Slogf.i(TAG, "Unlocked synthetic password for user %d using escrow token", userId);
         onCredentialVerified(authResult.syntheticPassword,
-                loadPasswordMetrics(authResult.syntheticPassword, userId), userId);
+                loadPasswordMetrics(authResult.syntheticPassword, userId), userId, true);
         return true;
     }
 
@@ -3792,7 +3796,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 mSpManager.verifyChallenge(getGateKeeperService(), sp, 0L, userId);
             }
             Slogf.i(TAG, "Restored synthetic password for user %d using reboot escrow", userId);
-            onCredentialVerified(sp, loadPasswordMetrics(sp, userId), userId);
+            onCredentialVerified(sp, loadPasswordMetrics(sp, userId), userId, true);
         }
     }
 

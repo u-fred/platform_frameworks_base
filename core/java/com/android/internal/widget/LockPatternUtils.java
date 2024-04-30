@@ -660,9 +660,9 @@ public class LockPatternUtils {
      * @param userId user id of the user whose pin length we want to save
      * @return true/false depending on whether PIN length has been saved or not
      */
-    public boolean refreshStoredPinLength(int userId) {
+    public boolean refreshStoredPinLength(int userId, boolean primary) {
         try {
-            return getLockSettings().refreshStoredPinLength(userId);
+            return getLockSettings().refreshStoredPinLength(userId, primary);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not store PIN length on disk " + e);
             return false;
