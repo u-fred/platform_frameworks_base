@@ -1092,11 +1092,8 @@ class SyntheticPasswordManager {
             saveState(PASSWORD_DATA_NAME, pwd.toBytes(), protectorId, userId);
             savePasswordMetrics(credential, sp, protectorId, userId);
         }
-        // Secondary protectors are only used for LSKF verification, no need for SP.
-        if (credential.getPrimaryCredential()) {
-            createSyntheticPasswordBlob(protectorId, PROTECTOR_TYPE_LSKF_BASED, sp, protectorSecret,
-                    sid, userId);
-        }
+        createSyntheticPasswordBlob(protectorId, PROTECTOR_TYPE_LSKF_BASED, sp, protectorSecret,
+                sid, userId);
         syncState(userId); // ensure the new files are really saved to disk
         return protectorId;
     }
