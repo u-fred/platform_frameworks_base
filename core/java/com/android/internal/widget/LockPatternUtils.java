@@ -203,6 +203,8 @@ public class LockPatternUtils {
             Settings.Secure.LOCK_SCREEN_OWNER_INFO_ENABLED;
 
     private static final String LOCK_PIN_ENHANCED_PRIVACY = "pin_enhanced_privacy";
+    private static final String LOCK_PIN_ENHANCED_PRIVACY_SECONDARY =
+            "pin_enhanced_privacy_secondary";
 
     private static final String LOCK_SCREEN_DEVICE_OWNER_INFO = "lockscreen.device_owner_info";
 
@@ -1194,21 +1196,36 @@ public class LockPatternUtils {
      * @return Whether enhanced pin privacy is enabled.
      */
     public boolean isPinEnhancedPrivacyEnabled(int userId) {
-        return getBoolean(LOCK_PIN_ENHANCED_PRIVACY, true, userId);
+        return isPinEnhancedPrivacyEnabled(userId, true);
+    }
+
+    public boolean isPinEnhancedPrivacyEnabled(int userId, boolean primary) {
+        String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
+        return getBoolean(key, true, userId);
     }
 
     /**
      * Set whether enhanced pin privacy is enabled.
      */
     public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId) {
-        setBoolean(LOCK_PIN_ENHANCED_PRIVACY, enabled, userId);
+        setPinEnhancedPrivacyEnabled(enabled, userId, true);
+    }
+
+    public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId, boolean primary) {
+        String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
+        setBoolean(key, enabled, userId);
     }
 
     /**
      * @return Whether enhanced pin privacy was ever chosen.
      */
     public boolean isPinEnhancedPrivacyEverChosen(int userId) {
-        return getString(LOCK_PIN_ENHANCED_PRIVACY, userId) != null;
+        return isPinEnhancedPrivacyEverChosen(userId, true);
+    }
+
+    public boolean isPinEnhancedPrivacyEverChosen(int userId, boolean primary) {
+        String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
+        return getString(key, userId) != null;
     }
 
     /**
