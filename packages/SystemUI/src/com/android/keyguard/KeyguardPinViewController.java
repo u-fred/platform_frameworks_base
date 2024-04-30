@@ -189,7 +189,7 @@ public class KeyguardPinViewController
     private boolean isAutoPinConfirmEnabledInSettings() {
         //Checks if user has enabled the auto confirm in Settings
         return mLockPatternUtils.isAutoPinConfirmEnabled(
-                mSelectedUserInteractor.getSelectedUserId())
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential)
                 && mPinLength != LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
     }
 

@@ -124,8 +124,10 @@ class LockSettingsStorage {
     }
 
     @VisibleForTesting
-    public boolean isAutoPinConfirmSettingEnabled(int userId) {
-        return getBoolean(LockPatternUtils.AUTO_PIN_CONFIRM, false, userId);
+    public boolean isAutoPinConfirmSettingEnabled(int userId, boolean primary) {
+        String key = primary ? LockPatternUtils.AUTO_PIN_CONFIRM :
+                LockPatternUtils.AUTO_PIN_CONFIRM_SECONDARY;
+        return getBoolean(key, false, userId);
     }
 
     @VisibleForTesting

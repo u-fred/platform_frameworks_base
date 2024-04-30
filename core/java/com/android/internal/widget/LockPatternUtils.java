@@ -213,6 +213,7 @@ public class LockPatternUtils {
     private static final String IS_TRUST_USUALLY_MANAGED = "lockscreen.istrustusuallymanaged";
 
     public static final String AUTO_PIN_CONFIRM = "lockscreen.auto_pin_confirm";
+    public static final String AUTO_PIN_CONFIRM_SECONDARY = "lockscreen.auto_pin_confirm_secondary";
 
     public static final String CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE = "sp-handle";
     public static final String PASSWORD_HISTORY_DELIMITER = ",";
@@ -765,8 +766,9 @@ public class LockPatternUtils {
      * @param enabled enables pin auto confirm capability when true
      * @param userId user ID of the user this has effect on
      */
-    public void setAutoPinConfirm(boolean enabled, int userId) {
-        setBoolean(AUTO_PIN_CONFIRM, enabled, userId);
+    public void setAutoPinConfirm(boolean enabled, int userId, boolean primary) {
+        String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
+        setBoolean(key, enabled, userId);
     }
 
     /**
@@ -777,7 +779,12 @@ public class LockPatternUtils {
      * @return true, if the entered pin should be auto confirmed
      */
     public boolean isAutoPinConfirmEnabled(int userId) {
-        return getBoolean(AUTO_PIN_CONFIRM, /* defaultValue= */ false, userId);
+        return isAutoPinConfirmEnabled(userId, true);
+    }
+
+    public boolean isAutoPinConfirmEnabled(int userId, boolean primary) {
+        String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
+        return getBoolean(key, /* defaultValue= */ false, userId);
     }
 
     /**
@@ -786,8 +793,8 @@ public class LockPatternUtils {
      * properly (b/282246482). Ideally, this should check if deviceConfig flag is set to true
      * and then return the appropriate value.
      */
-    public static boolean isAutoPinConfirmFeatureAvailable() {
-        return true;
+    public static boolean isAutoPinConfirmFeatureAvailable(boolean primary) {
+        return primary;
     }
 
     /** Returns if the given quality maps to an alphabetic password */

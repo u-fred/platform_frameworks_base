@@ -63,8 +63,6 @@ import com.android.internal.widget.VerifyCredentialResponse;
 import com.android.server.locksettings.LockSettingsStorage.PersistentData;
 import com.android.server.utils.Slogf;
 
-import libcore.util.HexEncoding;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.nio.ByteBuffer;
@@ -76,6 +74,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+
+import libcore.util.HexEncoding;
 
 /**
  * A class that manages a user's synthetic password (SP) ({@link #SyntheticPassword}), along with a
@@ -615,8 +615,8 @@ class SyntheticPasswordManager {
     }
 
     @VisibleForTesting
-    public boolean isAutoPinConfirmationFeatureAvailable() {
-        return LockPatternUtils.isAutoPinConfirmFeatureAvailable();
+    public boolean isAutoPinConfirmationFeatureAvailable(boolean primary) {
+        return LockPatternUtils.isAutoPinConfirmFeatureAvailable(primary);
     }
 
     /**
@@ -1013,8 +1013,9 @@ class SyntheticPasswordManager {
         long protectorId = generateProtectorId();
 
         int pinLength = PIN_LENGTH_UNAVAILABLE;
-        if (isAutoPinConfirmationFeatureAvailable()) {
-            pinLength = derivePinLength(credential.size(), credential.isPin(), userId);
+        if (isAutoPinConfirmationFeatureAvailable(credential.getPrimaryCredential())) {
+            pinLength = derivePinLength(credential.size(), credential.isPin(), userId,
+                    credential.getPrimaryCredential());
         }
         // There's no need to store password data about an empty LSKF.
         PasswordData pwd = credential.isNone() ? null :
@@ -1100,9 +1101,10 @@ class SyntheticPasswordManager {
         return protectorId;
     }
 
-    private int derivePinLength(int sizeOfCredential, boolean isPinCredential, int userId) {
+    private int derivePinLength(int sizeOfCredential, boolean isPinCredential, int userId,
+            boolean primary) {
         if (!isPinCredential
-                || !mStorage.isAutoPinConfirmSettingEnabled(userId)
+                || !mStorage.isAutoPinConfirmSettingEnabled(userId, primary)
                 || sizeOfCredential < LockPatternUtils.MIN_AUTO_PIN_REQUIREMENT_LENGTH) {
             return PIN_LENGTH_UNAVAILABLE;
         }
@@ -1546,8 +1548,8 @@ class SyntheticPasswordManager {
      * @return true/false depending on whether PIN length has been saved on disk
      */
     public boolean refreshPinLengthOnDisk(PasswordMetrics passwordMetrics,
-            long protectorId, int userId) {
-        if (!isAutoPinConfirmationFeatureAvailable()) {
+            long protectorId, int userId, boolean primary) {
+        if (!isAutoPinConfirmationFeatureAvailable(primary)) {
             return false;
         }
 
@@ -1558,7 +1560,7 @@ class SyntheticPasswordManager {
 
         PasswordData pwd = PasswordData.fromBytes(pwdDataBytes);
         int pinLength = derivePinLength(passwordMetrics.length,
-                passwordMetrics.credType == CREDENTIAL_TYPE_PIN, userId);
+                passwordMetrics.credType == CREDENTIAL_TYPE_PIN, userId, primary);
         if (pwd.pinLength != pinLength) {
             pwd.pinLength = pinLength;
             saveState(PASSWORD_DATA_NAME, pwd.toBytes(), protectorId, userId);
