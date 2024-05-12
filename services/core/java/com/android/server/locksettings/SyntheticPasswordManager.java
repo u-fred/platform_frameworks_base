@@ -616,7 +616,7 @@ class SyntheticPasswordManager {
 
     @VisibleForTesting
     public boolean isAutoPinConfirmationFeatureAvailable(boolean primary) {
-        return LockPatternUtils.isAutoPinConfirmFeatureAvailable(primary);
+        return LockPatternUtils.isAutoPinConfirmFeatureAvailable();
     }
 
     /**

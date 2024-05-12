@@ -793,8 +793,8 @@ public class LockPatternUtils {
      * properly (b/282246482). Ideally, this should check if deviceConfig flag is set to true
      * and then return the appropriate value.
      */
-    public static boolean isAutoPinConfirmFeatureAvailable(boolean primary) {
-        return primary;
+    public static boolean isAutoPinConfirmFeatureAvailable() {
+        return true;
     }
 
     /** Returns if the given quality maps to an alphabetic password */
