@@ -615,7 +615,7 @@ class SyntheticPasswordManager {
     }
 
     @VisibleForTesting
-    public boolean isAutoPinConfirmationFeatureAvailable(boolean primary) {
+    public boolean isAutoPinConfirmationFeatureAvailable() {
         return LockPatternUtils.isAutoPinConfirmFeatureAvailable();
     }
 
@@ -1013,7 +1013,7 @@ class SyntheticPasswordManager {
         long protectorId = generateProtectorId();
 
         int pinLength = PIN_LENGTH_UNAVAILABLE;
-        if (isAutoPinConfirmationFeatureAvailable(credential.getPrimaryCredential())) {
+        if (isAutoPinConfirmationFeatureAvailable()) {
             pinLength = derivePinLength(credential.size(), credential.isPin(), userId,
                     credential.getPrimaryCredential());
         }
@@ -1546,7 +1546,7 @@ class SyntheticPasswordManager {
      */
     public boolean refreshPinLengthOnDisk(PasswordMetrics passwordMetrics,
             long protectorId, int userId, boolean primary) {
-        if (!isAutoPinConfirmationFeatureAvailable(primary)) {
+        if (!isAutoPinConfirmationFeatureAvailable()) {
             return false;
         }
 
