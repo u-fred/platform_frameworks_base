@@ -1827,15 +1827,15 @@ public class LockSettingsService extends ILockSettings.Stub {
      *     credentials are being tied to its parent's credentials.
      */
     private boolean setLockCredentialInternal(LockscreenCredential credential,
-            LockscreenCredential savedPrimaryCredential, int userId, boolean isLockTiedToParent) {
+            LockscreenCredential savedCredential, int userId, boolean isLockTiedToParent) {
         Objects.requireNonNull(credential);
-        Objects.requireNonNull(savedPrimaryCredential);
+        Objects.requireNonNull(savedCredential);
         synchronized (mSpManager) {
-            if (savedPrimaryCredential.isNone() && isProfileWithUnifiedLock(userId)) {
+            if (savedCredential.isNone() && isProfileWithUnifiedLock(userId)) {
                 // get credential from keystore when profile has unified lock
                 try {
                     //TODO: remove as part of b/80170828
-                    savedPrimaryCredential = getDecryptedPasswordForTiedProfile(userId);
+                    savedCredential = getDecryptedPasswordForTiedProfile(userId);
                 } catch (FileNotFoundException e) {
                     Slog.i(TAG, "Child profile key not found");
                 } catch (UnrecoverableKeyException | InvalidKeyException | KeyStoreException
@@ -1849,7 +1849,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId);
             AuthenticationResult authResult = mSpManager.unlockLskfBasedProtector(
                     getGateKeeperService(), currentPrimaryProtectorId,
-                    savedPrimaryCredential, userId, null);
+                    savedCredential, userId, null);
             VerifyCredentialResponse response = authResult.gkResponse;
             SyntheticPassword sp = authResult.syntheticPassword;
 
