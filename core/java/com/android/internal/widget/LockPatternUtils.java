@@ -197,6 +197,8 @@ public class LockPatternUtils {
     public final static String LOCKSCREEN_WIDGETS_ENABLED = "lockscreen.widgets_enabled";
 
     public final static String PASSWORD_HISTORY_KEY = "lockscreen.passwordhistory";
+    public final static String SECONDARY_PASSWORD_HISTORY_KEY =
+            "lockscreen.secondarypasswordhistory";
 
     private static final String LOCK_SCREEN_OWNER_INFO = Settings.Secure.LOCK_SCREEN_OWNER_INFO;
     private static final String LOCK_SCREEN_OWNER_INFO_ENABLED =
@@ -606,12 +608,19 @@ public class LockPatternUtils {
      *        {@link ILockSettings#getHashFactor}
      * @return Whether the password matches any in the history.
      */
-    public boolean checkPasswordHistory(byte[] passwordToCheck, byte[] hashFactor, int userId) {
+    public boolean checkPasswordHistory(byte[] passwordToCheck, byte[] hashFactor, int userId,
+            boolean primary) {
+        if (!primary) {
+            // Doesn't make sense to check secondary until admin supports setting a history length
+            // for it. Reusing the primary length value isn't ideal.
+            return false;
+        }
         if (passwordToCheck == null || passwordToCheck.length == 0) {
             Log.e(TAG, "checkPasswordHistory: empty password");
             return false;
         }
-        String passwordHistory = getString(PASSWORD_HISTORY_KEY, userId);
+        String key = primary ? PASSWORD_HISTORY_KEY : SECONDARY_PASSWORD_HISTORY_KEY;
+        String passwordHistory = getString(key, userId);
         if (TextUtils.isEmpty(passwordHistory)) {
             return false;
         }

@@ -1807,7 +1807,9 @@ public class LockSettingsService extends ILockSettings.Stub {
             // TODO: Review if these are primary only.
             if (credential.getPrimaryCredential()) {
                 notifySeparateProfileChallengeChanged(userId);
-                onPostPasswordChanged(credential, userId);
+                onPostPasswordChanged(credential, credential, userId);
+            } else {
+                onPostPasswordChanged(credential, savedCredential, userId);
             }
             scheduleGc();
             return true;
@@ -1874,8 +1876,10 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private void onPostPasswordChanged(LockscreenCredential newCredential, int userHandle) {
-        updatePasswordHistory(newCredential, userHandle);
+    private void onPostPasswordChanged(LockscreenCredential newCredential,
+            LockscreenCredential currentPrimaryCredential, int userHandle) {
+        updatePasswordHistory(newCredential, userHandle, newCredential.getPrimaryCredential(),
+                currentPrimaryCredential);
         mContext.getSystemService(TrustManager.class).reportEnabledTrustAgentsChanged(userHandle);
     }
 
@@ -1885,8 +1889,15 @@ public class LockSettingsService extends ILockSettings.Stub {
      *
      * This must not be called while the mSpManager lock is held, as this calls into
      * DevicePolicyManagerService to get the requested password history length.
+     *
+     * @param password the new password being set (primary or secondary).
+     * @param userHandle the user that password belongs to
+     * @param primary whether password is primary or secondary
+     * @param currentPrimaryPassword the current primary password (will be same as password when
+     *                               password is primary).
      */
-    private void updatePasswordHistory(LockscreenCredential password, int userHandle) {
+    private void updatePasswordHistory(LockscreenCredential password, int userHandle,
+            boolean primary, LockscreenCredential currentPrimaryPassword) {
         if (password.isNone()) {
             return;
         }
@@ -1895,8 +1906,9 @@ public class LockSettingsService extends ILockSettings.Stub {
             return;
         }
         // Add the password to the password history.
-        String passwordHistory = getString(
-                LockPatternUtils.PASSWORD_HISTORY_KEY, /* defaultValue= */ null, userHandle);
+        String key = primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
+                LockPatternUtils.SECONDARY_PASSWORD_HISTORY_KEY;
+        String passwordHistory = getString(key, /* defaultValue= */ null, userHandle);
         if (passwordHistory == null) {
             passwordHistory = "";
         }
@@ -1905,7 +1917,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             passwordHistory = "";
         } else {
             Slogf.d(TAG, "Adding new password to password history for user %d", userHandle);
-            final byte[] hashFactor = getHashFactor(password, userHandle);
+            final byte[] hashFactor = getHashFactor(currentPrimaryPassword, userHandle);
+            // TODO: Separate salt for primary and secondary?
             final byte[] salt = getSalt(userHandle).getBytes();
             String hash = password.passwordToHistoryHash(salt, hashFactor);
             if (hash == null) {
@@ -1928,7 +1941,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 passwordHistory = joiner.toString();
             }
         }
-        setString(LockPatternUtils.PASSWORD_HISTORY_KEY, passwordHistory, userHandle);
+        setString(key, passwordHistory, userHandle);
     }
 
     private String getSalt(int userId) {
@@ -3717,7 +3730,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     credential, tokenHandle, token, userId)) {
                 return false;
             }
-            onPostPasswordChanged(credential, userId);
+            onPostPasswordChanged(credential, credential, userId);
             return true;
         }
 
