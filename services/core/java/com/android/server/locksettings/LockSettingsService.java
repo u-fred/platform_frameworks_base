@@ -3246,7 +3246,8 @@ public class LockSettingsService extends ILockSettings.Stub {
                 }
             }
             synchronized (mSpManager) {
-                long protectorId = getCurrentLskfBasedProtectorId(userId);
+                long protectorId = getCurrentLskfBasedProtectorId(userId,
+                        currentCredential.getPrimaryCredential());
                 AuthenticationResult auth = mSpManager.unlockLskfBasedProtector(
                         getGateKeeperService(), protectorId, currentCredential, userId, null);
                 if (auth.syntheticPassword == null) {
