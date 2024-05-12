@@ -69,6 +69,7 @@ constructor(
         val response =
             lockPatternUtils.verifyCredential(
                 credential,
+                true,
                 effectiveUserId,
                 LockPatternUtils.VERIFY_FLAG_REQUEST_GK_PW_HANDLE
             )

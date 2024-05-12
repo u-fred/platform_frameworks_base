@@ -47,11 +47,11 @@ interface ILockSettings {
     long getLong(in String key, in long defaultValue, in int userId);
     @UnsupportedAppUsage
     String getString(in String key, in String defaultValue, in int userId);
-    boolean setLockCredential(in LockscreenCredential credential, in LockscreenCredential savedCredential, int userId);
+    boolean setLockCredential(in LockscreenCredential credential, in LockscreenCredential savedCredential, boolean primary, int userId);
     void resetKeyStore(int userId);
-    VerifyCredentialResponse checkCredential(in LockscreenCredential credential, int userId,
+    VerifyCredentialResponse checkCredential(in LockscreenCredential credential, boolean primary, int userId,
             in ICheckCredentialProgressCallback progressCallback);
-    VerifyCredentialResponse verifyCredential(in LockscreenCredential credential, int userId, int flags);
+    VerifyCredentialResponse verifyCredential(in LockscreenCredential credential, boolean primary, int userId, int flags);
     VerifyCredentialResponse verifyTiedProfileChallenge(in LockscreenCredential credential, int userId, int flags);
     VerifyCredentialResponse verifyGatekeeperPasswordHandle(long gatekeeperPasswordHandle, long challenge, int userId);
     void removeGatekeeperPasswordHandle(long gatekeeperPasswordHandle);

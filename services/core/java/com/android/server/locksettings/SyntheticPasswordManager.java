@@ -1009,13 +1009,12 @@ class SyntheticPasswordManager {
      * @throws IllegalStateException on failure
      */
     public long createLskfBasedProtector(IGateKeeperService gatekeeper,
-            LockscreenCredential credential, SyntheticPassword sp, int userId) {
+            LockscreenCredential credential, boolean primary, SyntheticPassword sp, int userId) {
         long protectorId = generateProtectorId();
 
         int pinLength = PIN_LENGTH_UNAVAILABLE;
         if (isAutoPinConfirmationFeatureAvailable()) {
-            pinLength = derivePinLength(credential.size(), credential.isPin(), userId,
-                    credential.getPrimaryCredential());
+            pinLength = derivePinLength(credential.size(), credential.isPin(), userId, primary);
         }
         // There's no need to store password data about an empty LSKF.
         PasswordData pwd = credential.isNone() ? null :
@@ -1025,7 +1024,7 @@ class SyntheticPasswordManager {
         final byte[] protectorSecret;
 
         Slogf.i(TAG, "Creating LSKF-based protector %016x for user %d; primaryCredential %b",
-                protectorId, userId, credential.getPrimaryCredential());
+                protectorId, userId, primary);
 
         final IWeaver weaver = getWeaverService();
         if (weaver != null) {
@@ -1041,7 +1040,7 @@ class SyntheticPasswordManager {
             }
             saveWeaverSlot(weaverSlot, protectorId, userId);
             mPasswordSlotManager.markSlotInUse(weaverSlot);
-            if (credential.getPrimaryCredential()) {
+            if (primary) {
                 // No need to pass in quality since the credential type already encodes sufficient
                 // info
                 synchronizeWeaverFrpPassword(pwd, 0, userId, weaverSlot);
@@ -1061,16 +1060,14 @@ class SyntheticPasswordManager {
                 // In case GK enrollment leaves persistent state around (in RPMB), this will nuke
                 // them to prevent them from accumulating and causing problems.
                 try {
-                    gatekeeper.clearSecureUserId(fakeUserId(userId,
-                            credential.getPrimaryCredential()));
+                    gatekeeper.clearSecureUserId(fakeUserId(userId, primary));
                 } catch (RemoteException ignore) {
                     Slog.w(TAG, "Failed to clear SID from gatekeeper");
                 }
                 Slogf.i(TAG, "Enrolling LSKF for user %d into Gatekeeper", userId);
                 GateKeeperResponse response;
                 try {
-                    response = gatekeeper.enroll(fakeUserId(userId,
-                                    credential.getPrimaryCredential()), null, null,
+                    response = gatekeeper.enroll(fakeUserId(userId, primary), null, null,
                             stretchedLskfToGkPassword(stretchedLskf));
                 } catch (RemoteException e) {
                     throw new IllegalStateException("Failed to enroll LSKF for new SP protector"
@@ -1389,7 +1386,7 @@ class SyntheticPasswordManager {
      * verification to refresh the SID and HardwareAuthToken maintained by the system.
      */
     public AuthenticationResult unlockLskfBasedProtector(IGateKeeperService gatekeeper,
-            long protectorId, @NonNull LockscreenCredential credential, int userId,
+            long protectorId, @NonNull LockscreenCredential credential, boolean primary, int userId,
             ICheckCredentialProgressCallback progressCallback) {
         // TODO: Verify that throttling of primary and secondary credentials is separate. I think
         //  it is broken at the moment, it might be because we are using same fake user id for both.
@@ -1459,7 +1456,7 @@ class SyntheticPasswordManager {
                 GateKeeperResponse response;
                 try {
                     response = gatekeeper.verifyChallenge(fakeUserId(userId,
-                                    credential.getPrimaryCredential()), 0L,
+                                    primary), 0L,
                             pwd.passwordHandle, gkPassword);
                 } catch (RemoteException e) {
                     Slog.e(TAG, "gatekeeper verify failed", e);
@@ -1473,7 +1470,7 @@ class SyntheticPasswordManager {
                         GateKeeperResponse reenrollResponse;
                         try {
                             reenrollResponse = gatekeeper.enroll(fakeUserId(userId,
-                                            credential.getPrimaryCredential()),
+                                            primary),
                                     pwd.passwordHandle, gkPassword, gkPassword);
                         } catch (RemoteException e) {
                             Slog.w(TAG, "Fail to invoke gatekeeper.enroll", e);
@@ -1528,7 +1525,7 @@ class SyntheticPasswordManager {
             savePasswordMetrics(credential, result.syntheticPassword, protectorId, userId);
             syncState(userId); // Not strictly needed as the upgrade can be re-done, but be safe.
         }
-        if (!credential.getPrimaryCredential()) {
+        if (!primary) {
             result.gkResponse = VerifyCredentialResponse.OK;
         } else {
             // Perform verifyChallenge to refresh auth tokens for GK if user password exists.

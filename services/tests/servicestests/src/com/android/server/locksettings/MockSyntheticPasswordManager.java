@@ -113,7 +113,7 @@ public class MockSyntheticPasswordManager extends SyntheticPasswordManager {
     }
 
     @Override
-    public boolean isAutoPinConfirmationFeatureAvailable(boolean primary) {
+    public boolean isAutoPinConfirmationFeatureAvailable() {
         return true;
     }
 

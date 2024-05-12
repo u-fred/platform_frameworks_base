@@ -1084,7 +1084,7 @@ public class RecoverableKeyStoreManager {
                     createLockscreenCredential(keyguardCredentialsType, decryptedCredentials)) {
                 // TODO(b/254335492): remove decryptedCredentials
                 VerifyCredentialResponse verifyResponse =
-                        lockSettingsService.verifyCredential(credential, userId, 0);
+                        lockSettingsService.verifyCredential(credential, true, userId, 0);
                 return handleVerifyCredentialResponse(verifyResponse, userId);
             }
         } finally {

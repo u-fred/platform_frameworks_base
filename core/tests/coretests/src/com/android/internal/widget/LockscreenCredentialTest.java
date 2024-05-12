@@ -48,10 +48,6 @@ public class LockscreenCredentialTest {
         assertFalse(none.isPattern());
         assertFalse(none.hasInvalidChars());
         none.validateBasicRequirements();
-
-        assertTrue(none.getPrimaryCredential());
-        none = LockscreenCredential.createNone(false);
-        assertFalse(none.getPrimaryCredential());
     }
 
     @Test
@@ -60,7 +56,6 @@ public class LockscreenCredentialTest {
 
         assertTrue(pin.isPin());
         assertEquals(4, pin.size());
-
         assertArrayEquals("3456".getBytes(), pin.getCredential());
 
         assertFalse(pin.isNone());
@@ -68,10 +63,6 @@ public class LockscreenCredentialTest {
         assertFalse(pin.isPattern());
         assertFalse(pin.hasInvalidChars());
         pin.validateBasicRequirements();
-
-        assertTrue(pin.getPrimaryCredential());
-        pin = LockscreenCredential.createPin("3456", false);
-        assertFalse(pin.getPrimaryCredential());
     }
 
     @Test
@@ -80,7 +71,6 @@ public class LockscreenCredentialTest {
 
         assertTrue(password.isPassword());
         assertEquals(8, password.size());
-
         assertArrayEquals("password".getBytes(), password.getCredential());
 
         assertFalse(password.isNone());
@@ -88,8 +78,6 @@ public class LockscreenCredentialTest {
         assertFalse(password.isPattern());
         assertFalse(password.hasInvalidChars());
         password.validateBasicRequirements();
-
-        assertTrue(password.getPrimaryCredential());
     }
 
     @Test
@@ -104,7 +92,6 @@ public class LockscreenCredentialTest {
 
         assertTrue(pattern.isPattern());
         assertEquals(5, pattern.size());
-
         assertArrayEquals("12369".getBytes(), pattern.getCredential());
 
         assertFalse(pattern.isNone());
@@ -112,8 +99,6 @@ public class LockscreenCredentialTest {
         assertFalse(pattern.isPassword());
         assertFalse(pattern.hasInvalidChars());
         pattern.validateBasicRequirements();
-
-        assertTrue(pattern.getPrimaryCredential());
     }
 
     // Constructing a LockscreenCredential with a too-short length, even 0, should not throw an
@@ -228,10 +213,6 @@ public class LockscreenCredentialTest {
 
         assertNotEquals(LockscreenCredential.createPassword("1234"),
                 LockscreenCredential.createNone());
-
-        assertNotEquals(LockscreenCredential.createNone(true),
-                LockscreenCredential.createNone(false));
-
         assertNotEquals(LockscreenCredential.createPassword("1234"),
                 LockscreenCredential.createPassword("4321"));
         assertNotEquals(LockscreenCredential.createPassword("1234"),
@@ -243,12 +224,8 @@ public class LockscreenCredentialTest {
                 LockscreenCredential.createNone());
         assertNotEquals(LockscreenCredential.createPin("1111"),
                 LockscreenCredential.createPin("2222"));
-
-        assertNotEquals(LockscreenCredential.createPin("1111"), createPattern("1111"));
-
-        assertNotEquals(LockscreenCredential.createPin("1111", true),
-                LockscreenCredential.createPin("1111", false));
-
+        assertNotEquals(LockscreenCredential.createPin("1111"),
+                createPattern("1111"));
         assertNotEquals(LockscreenCredential.createPin("1111"),
                 LockscreenCredential.createPassword("1111"));
 

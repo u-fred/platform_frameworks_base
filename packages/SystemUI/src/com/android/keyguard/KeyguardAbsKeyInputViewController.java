@@ -253,6 +253,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mPendingLockCheck = LockPatternChecker.checkCredential(
                 mLockPatternUtils,
                 password,
+                mIsForPrimaryCredential,
                 userId,
                 new LockPatternChecker.OnCheckCallback() {
 

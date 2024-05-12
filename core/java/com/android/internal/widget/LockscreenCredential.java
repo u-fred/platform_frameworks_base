@@ -63,9 +63,6 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     // Stores raw credential bytes, or null if credential has been zeroized. A none credential
     // is represented as a byte array of length 0.
     private byte[] mCredential;
-    // True if this credential is for the primary lock screen knowledge factor. False if it is for
-    // biometric second factor.
-    private boolean mPrimaryCredential;
 
     // This indicates that the credential used characters outside ASCII 32–127.
     //
@@ -88,8 +85,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
      * LockscreenCredential will only store the reference internally without copying. This is to
      * minimize the number of extra copies introduced.
      */
-    private LockscreenCredential(int type, byte[] credential, boolean hasInvalidChars,
-            boolean primaryCredential) {
+    private LockscreenCredential(int type, byte[] credential, boolean hasInvalidChars) {
         Objects.requireNonNull(credential);
         if (type == CREDENTIAL_TYPE_NONE) {
             Preconditions.checkArgument(credential.length == 0);
@@ -106,46 +102,20 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
             // LockscreenCredential object to be constructed so that the validation logic can run,
             // even though the validation logic will ultimately reject the credential as too short.
         }
-
-        // Only None and PIN can be used as a secondary credential.
-        if (type != CREDENTIAL_TYPE_NONE && type != CREDENTIAL_TYPE_PIN) {
-            Preconditions.checkArgument(primaryCredential);
-        }
-
         mType = type;
         mCredential = credential;
         mHasInvalidChars = hasInvalidChars;
-        mPrimaryCredential = primaryCredential;
-    }
-
-    private LockscreenCredential(int type, byte[] credential, boolean hasInvalidChars) {
-        this(type, credential, hasInvalidChars, true);
-    }
-
-    private LockscreenCredential(int type, CharSequence credential, boolean primaryCredential) {
-        this(type, charsToBytesTruncating(credential), hasInvalidChars(credential),
-                primaryCredential);
     }
 
     private LockscreenCredential(int type, CharSequence credential) {
-        this(type, charsToBytesTruncating(credential), hasInvalidChars(credential), true);
+        this(type, charsToBytesTruncating(credential), hasInvalidChars(credential));
     }
-
-
 
     /**
      * Creates a LockscreenCredential object representing a none credential.
      */
     public static LockscreenCredential createNone() {
-        return createNone(true);
-    }
-
-    /**
-     * Creates a LockscreenCredential object representing empty password.
-     */
-    public static LockscreenCredential createNone(boolean primaryCredential) {
-        return new LockscreenCredential(CREDENTIAL_TYPE_NONE, new byte[0], false,
-                primaryCredential);
+        return new LockscreenCredential(CREDENTIAL_TYPE_NONE, new byte[0], false);
     }
 
     /**
@@ -178,15 +148,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
      * Creates a LockscreenCredential object representing the given numeric PIN.
      */
     public static LockscreenCredential createPin(@NonNull CharSequence pin) {
-        return createPin(pin, true);
-    }
-
-    /**
-     * Creates a LockscreenCredential object representing the given numeric PIN.
-     */
-    public static LockscreenCredential createPin(@NonNull CharSequence pin,
-            boolean mPrimaryCredential) {
-        return new LockscreenCredential(CREDENTIAL_TYPE_PIN, pin, mPrimaryCredential);
+        return new LockscreenCredential(CREDENTIAL_TYPE_PIN, pin);
     }
 
     /**
@@ -206,19 +168,10 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
      * If the supplied password is empty, create a none credential object.
      */
     public static LockscreenCredential createPinOrNone(@Nullable CharSequence pin) {
-        return createPinOrNone(pin, true);
-    }
-
-    /**
-     * Creates a LockscreenCredential object representing the given numeric PIN.
-     * If the supplied password is empty, create an empty credential object.
-     */
-    public static LockscreenCredential createPinOrNone(@Nullable CharSequence pin,
-            boolean primaryCredential) {
         if (TextUtils.isEmpty(pin)) {
-            return createNone(primaryCredential);
+            return createNone();
         } else {
-            return createPin(pin, primaryCredential);
+            return createPin(pin);
         }
     }
 
@@ -243,12 +196,6 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     public byte[] getCredential() {
         ensureNotZeroized();
         return mCredential;
-    }
-
-
-    /** Returns whether this is a primary credential */
-    public boolean getPrimaryCredential() {
-        return mPrimaryCredential;
     }
 
     /** Returns whether this is a none credential */
@@ -291,7 +238,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     public LockscreenCredential duplicate() {
         return new LockscreenCredential(mType,
                 mCredential != null ? Arrays.copyOf(mCredential, mCredential.length) : null,
-                mHasInvalidChars, mPrimaryCredential);
+                mHasInvalidChars);
     }
 
     /**
@@ -411,7 +358,6 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
         dest.writeInt(mType);
         dest.writeByteArray(mCredential);
         dest.writeBoolean(mHasInvalidChars);
-        dest.writeBoolean(mPrimaryCredential);
     }
 
     public static final Parcelable.Creator<LockscreenCredential> CREATOR =
@@ -420,7 +366,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
         @Override
         public LockscreenCredential createFromParcel(Parcel source) {
             return new LockscreenCredential(source.readInt(), source.createByteArray(),
-                    source.readBoolean(), source.readBoolean());
+                    source.readBoolean());
         }
 
         @Override
@@ -442,8 +388,7 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
     @Override
     public int hashCode() {
         // Effective Java — Always override hashCode when you override equals
-        return Objects.hash(mType, Arrays.hashCode(mCredential), mHasInvalidChars,
-                mPrimaryCredential);
+        return Objects.hash(mType, Arrays.hashCode(mCredential), mHasInvalidChars);
     }
 
     @Override
@@ -451,9 +396,8 @@ public class LockscreenCredential implements Parcelable, AutoCloseable {
         if (o == this) return true;
         if (!(o instanceof LockscreenCredential)) return false;
         final LockscreenCredential other = (LockscreenCredential) o;
-        return mType == other.mType && Arrays.equals(mCredential, other.mCredential) &&
-                mPrimaryCredential == other.mPrimaryCredential &&
-                mHasInvalidChars == other.mHasInvalidChars;
+        return mType == other.mType && Arrays.equals(mCredential, other.mCredential)
+            && mHasInvalidChars == other.mHasInvalidChars;
     }
 
     private static boolean hasInvalidChars(CharSequence chars) {

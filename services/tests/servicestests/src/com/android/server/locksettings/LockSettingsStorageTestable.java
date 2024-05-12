@@ -93,7 +93,7 @@ public class LockSettingsStorageTestable extends LockSettingsStorage {
         return mPersistentDataBlockManager;
     }
     @Override
-    public boolean isAutoPinConfirmSettingEnabled(int userId) {
+    public boolean isAutoPinConfirmSettingEnabled(int userId, boolean primary) {
         return true;
     }
     private File remapToStorageDir(File origPath) {

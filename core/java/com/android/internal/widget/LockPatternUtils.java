@@ -477,11 +477,11 @@ public class LockPatternUtils {
      */
     @NonNull
     public VerifyCredentialResponse verifyCredential(@NonNull LockscreenCredential credential,
-            int userId, @VerifyFlag int flags) {
+            boolean primary, int userId, @VerifyFlag int flags) {
         throwIfCalledOnMainThread();
         try {
             final VerifyCredentialResponse response = getLockSettings().verifyCredential(
-                    credential, userId, flags);
+                    credential, primary, userId, flags);
             if (response == null) {
                 return VerifyCredentialResponse.ERROR;
             } else {
@@ -533,13 +533,13 @@ public class LockPatternUtils {
      *         to many incorrect attempts.
      * @throws IllegalStateException if called on the main thread.
      */
-    public boolean checkCredential(@NonNull LockscreenCredential credential, int userId,
-            @Nullable CheckCredentialProgressCallback progressCallback)
+    public boolean checkCredential(@NonNull LockscreenCredential credential, boolean primary,
+            int userId, @Nullable CheckCredentialProgressCallback progressCallback)
             throws RequestThrottledException {
         throwIfCalledOnMainThread();
         try {
             VerifyCredentialResponse response = getLockSettings().checkCredential(
-                    credential, userId, wrapCallback(progressCallback));
+                    credential, primary, userId, wrapCallback(progressCallback));
             if (response == null) {
                 return false;
             } else if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
@@ -859,14 +859,15 @@ public class LockPatternUtils {
      * @throws UnsupportedOperationException secure lockscreen is not supported on this device.
      */
     public boolean setLockCredential(@NonNull LockscreenCredential newCredential,
-            @NonNull LockscreenCredential savedCredential, int userHandle) {
+            @NonNull LockscreenCredential savedCredential, boolean primary, int userHandle) {
         if (!hasSecureLockScreen() && newCredential.getType() != CREDENTIAL_TYPE_NONE) {
             throw new UnsupportedOperationException(
                     "This operation requires the lock screen feature.");
         }
 
         try {
-            if (!getLockSettings().setLockCredential(newCredential, savedCredential, userHandle)) {
+            if (!getLockSettings().setLockCredential(newCredential, savedCredential, primary,
+                    userHandle)) {
                 return false;
             }
         } catch (RemoteException e) {

@@ -356,9 +356,4 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
     public boolean isForPrimaryCredential() {
         return mIsForPrimaryCredential;
     }
-
-    @Override
-    protected LockscreenCredential getEnteredCredential() {
-        return LockscreenCredential.createPinOrNone(mPasswordEntry.getText(), isForPrimaryCredential());
-    }
 }

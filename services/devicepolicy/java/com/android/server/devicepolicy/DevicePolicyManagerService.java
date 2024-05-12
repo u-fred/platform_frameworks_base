@@ -5718,7 +5718,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         try {
             if (tokenHandle == 0 || token == null) {
                 if (!mLockPatternUtils.setLockCredential(newCredential,
-                        LockscreenCredential.createNone(), userHandle)) {
+                        LockscreenCredential.createNone(), true, userHandle)) {
                     return false;
                 }
             } else {

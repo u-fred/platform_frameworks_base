@@ -128,6 +128,7 @@ public class KeyguardPatternViewController
             mPendingLockCheck = LockPatternChecker.checkCredential(
                     mLockPatternUtils,
                     LockscreenCredential.createPattern(pattern),
+                    true,
                     userId,
                     new LockPatternChecker.OnCheckCallback() {
 

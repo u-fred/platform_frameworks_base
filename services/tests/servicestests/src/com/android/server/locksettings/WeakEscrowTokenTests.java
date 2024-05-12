@@ -76,14 +76,14 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
         IWeakEscrowTokenActivatedListener mockListener =
                 mock(IWeakEscrowTokenActivatedListener.Stub.class);
         LockscreenCredential password = newPassword("password");
-        mService.setLockCredential(password, nonePassword(), PRIMARY_USER_ID);
+        mService.setLockCredential(password, nonePassword(), true, PRIMARY_USER_ID);
 
         long handle = mService.addWeakEscrowToken(token, PRIMARY_USER_ID, mockListener);
         // Token not activated immediately since user password exists
         assertFalse(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
         // Activate token (password gets migrated to SP at the same time)
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                password, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+                password, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         // Verify token is activated and valid
         assertTrue(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
         assertTrue(mService.isWeakEscrowTokenValid(handle, token, PRIMARY_USER_ID));
@@ -99,14 +99,14 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
                 mock(IWeakEscrowTokenActivatedListener.Stub.class);
         LockscreenCredential password = newPassword("password");
         LockscreenCredential pattern = newPattern("123654");
-        mService.setLockCredential(password, nonePassword(), PRIMARY_USER_ID);
+        mService.setLockCredential(password, nonePassword(), true, PRIMARY_USER_ID);
         mService.registerWeakEscrowTokenRemovedListener(mockRemoveListener);
 
         long handle = mService.addWeakEscrowToken(token, PRIMARY_USER_ID, mockActivateListener);
 
         // Activate token
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                password, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+                password, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
 
         // Verify token removed
         assertTrue(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
@@ -158,14 +158,14 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
                 mock(IWeakEscrowTokenActivatedListener.Stub.class);
         LockscreenCredential password = newPassword("password");
         byte[] token = "some-high-entropy-secure-token".getBytes();
-        mService.setLockCredential(password, nonePassword(), PRIMARY_USER_ID);
+        mService.setLockCredential(password, nonePassword(), true, PRIMARY_USER_ID);
         // Disregard any reportPasswordChanged() invocations as part of credential setup.
         flushHandlerTasks();
         reset(mDevicePolicyManager);
 
         long handle = mService.addWeakEscrowToken(token, PRIMARY_USER_ID, mockActivateListener);
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                password, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+                password, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         assertTrue(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
         assertTrue(mService.isWeakEscrowTokenValid(handle, token, PRIMARY_USER_ID));
 

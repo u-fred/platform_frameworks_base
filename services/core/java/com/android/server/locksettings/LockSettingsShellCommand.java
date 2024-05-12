@@ -266,7 +266,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(pattern)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(pattern, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(pattern, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Pattern set to '" + mNew + "'");
         return true;
     }
@@ -276,7 +276,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(password)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(password, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(password, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Password set to '" + mNew + "'");
         return true;
     }
@@ -286,7 +286,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(pin)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(pin, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(pin, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Pin set to '" + mNew + "'");
         return true;
     }
@@ -325,7 +325,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(none)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(none, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(none, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Lock credential cleared");
         return true;
     }
@@ -364,7 +364,7 @@ class LockSettingsShellCommand extends ShellCommand {
             }
 
             try {
-                final boolean result = mLockPatternUtils.checkCredential(getOldCredential(),
+                final boolean result = mLockPatternUtils.checkCredential(getOldCredential(), true,
                         mCurrentUserId, null);
                 if (!result) {
                     if (!mLockPatternUtils.isManagedProfileWithUnifiedChallenge(mCurrentUserId)) {
