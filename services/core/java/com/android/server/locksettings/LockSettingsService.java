@@ -1924,6 +1924,11 @@ public class LockSettingsService extends ILockSettings.Stub {
      */
     private void updatePasswordHistory(LockscreenCredential password, int userHandle,
             boolean primary, LockscreenCredential currentPrimaryPassword) {
+        if (!primary) {
+            // Doesn't make sense to update secondary until admin supports setting a history length
+            // for it. Reusing the primary length value isn't ideal.
+            return;
+        }
         if (password.isNone()) {
             return;
         }
