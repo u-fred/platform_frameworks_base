@@ -1406,12 +1406,17 @@ public class LockSettingsService extends ILockSettings.Stub {
         return getCredentialTypeInternal(userId, true);
     }
 
-    private int getCredentialTypeInternal(int userId, boolean primaryCredential) {
+    private int getCredentialTypeInternal(int userId, boolean primary) {
+        if (!primary && isCredentialSharableWithParent(userId)) {
+            throw new IllegalArgumentException(
+                    "Profiles do not have a biometric second factor");
+        }
+
         if (isSpecialUserId(userId)) {
             return mSpManager.getSpecialUserCredentialType(userId);
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId, primaryCredential);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return CREDENTIAL_TYPE_NONE;
