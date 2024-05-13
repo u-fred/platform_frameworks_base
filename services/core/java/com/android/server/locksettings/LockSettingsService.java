@@ -1837,6 +1837,11 @@ public class LockSettingsService extends ILockSettings.Stub {
             boolean isLockTiedToParent) {
         Objects.requireNonNull(credential);
         Objects.requireNonNull(savedCredential);
+        if (!primary && isCredentialSharableWithParent(userId)) {
+            throw new IllegalArgumentException(
+                    "Can not set biometric second factor for a profile");
+        }
+
         synchronized (mSpManager) {
             if (savedCredential.isNone() && isProfileWithUnifiedLock(userId)) {
                 // get credential from keystore when profile has unified lock
