@@ -3301,7 +3301,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             synchronized (mSpManager) {
                 long protectorId = getCurrentLskfBasedProtectorId(userId, true);
                 AuthenticationResult auth = mSpManager.unlockLskfBasedProtector(
-                        getGateKeeperService(), protectorId, currentCredential, true, userId, null);
+                        getGateKeeperService(), protectorId, currentCredential, true, userId,
+                        null);
                 if (auth.syntheticPassword == null) {
                     Slog.w(TAG, "Current credential is incorrect");
                     return null;
