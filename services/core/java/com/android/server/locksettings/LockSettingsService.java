@@ -2558,7 +2558,9 @@ public class LockSettingsService extends ILockSettings.Stub {
                     PasswordMetrics.computeForCredential(newCredential),
                     userId,
                     primary);
-            LocalServices.getService(WindowManagerInternal.class).reportPasswordChanged(userId);
+            if (primary) {
+                LocalServices.getService(WindowManagerInternal.class).reportPasswordChanged(userId);
+            }
         });
     }
 
