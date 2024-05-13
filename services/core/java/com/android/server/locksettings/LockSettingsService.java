@@ -3282,6 +3282,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * bruteforcing, since rederiving this value requires a successful authentication.
      * If user is a profile with {@link UserManager#isCredentialSharableWithParent()} true and with
      * unified challenge, currentCredential is ignored.
+     *
+     * @param currentCredential current primary credential
      */
     @Override
     public byte[] getHashFactor(LockscreenCredential currentCredential, int userId) {
