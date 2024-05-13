@@ -1870,7 +1870,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
 
             onSyntheticPasswordUnlocked(userId, sp);
-            setLockCredentialWithSpLocked(credential, primary, sp, userId);
+            setLockCredentialWithSpLocked(credential, savedCredential, primary, sp, userId);
             if (primary) {
                 sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent);
             }
@@ -3106,8 +3106,9 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Keystore to delete the user's auth-bound keys when the LSKF is cleared.
      */
     @GuardedBy("mSpManager")
-    private long setLockCredentialWithSpLocked(LockscreenCredential credential, boolean primary,
-            SyntheticPassword sp, int userId) {
+    private long setLockCredentialWithSpLocked(LockscreenCredential credential,
+            @Nullable LockscreenCredential savedCredential, boolean primary, SyntheticPassword sp,
+            int userId) {
         Slogf.i(TAG, "Changing lockscreen credential of user %d; newCredentialType=%s;" +
                         " primaryCrdential=%b\n", userId,
                 LockPatternUtils.credentialTypeToString(credential.getType()), primary);
@@ -3128,6 +3129,13 @@ public class LockSettingsService extends ILockSettings.Stub {
                 }
             }
         } else if (primary) {
+            // Maintain the invariant that secondary should not be set if primary is not.
+            if (!isCredentialSharableWithParent(userId) && isUserSecure(userId, false) &&
+                    savedCredential != null) {
+                setLockCredentialInternal(LockscreenCredential.createNone(), savedCredential,
+                        false, userId, false);
+            }
+
             // Cache all profile password if they use unified work challenge. This will later be
             // used to clear the profile's password in synchronizeUnifiedWorkChallengeForProfiles()
             profilePasswords = getDecryptedPasswordsForAllTiedProfiles(userId);
@@ -3395,7 +3403,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             return false;
         }
         onSyntheticPasswordUnlocked(userId, result.syntheticPassword);
-        setLockCredentialWithSpLocked(credential, true, result.syntheticPassword, userId);
+        setLockCredentialWithSpLocked(credential, null, true,
+                result.syntheticPassword, userId);
         return true;
     }
 
