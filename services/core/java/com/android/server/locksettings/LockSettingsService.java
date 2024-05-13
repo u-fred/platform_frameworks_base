@@ -3147,7 +3147,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         final long newProtectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
                 credential, primary, sp, userId);
         Map<Integer, LockscreenCredential> profilePasswords = null;
-        if (!credential.isNone()) {
+        if (!credential.isNone() && primary) {
             // not needed by synchronizeUnifiedChallengeForProfiles()
             profilePasswords = null;
 
