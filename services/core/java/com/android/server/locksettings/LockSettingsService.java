@@ -1843,6 +1843,13 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
 
         synchronized (mSpManager) {
+            if (!primary && !isUserSecure(userId, true)) {
+                // It's conceivable we could get here even if the caller first checked that a
+                // primary password existed, so don't throw illegal argument.
+                Slog.e(TAG, "Can not set biometric second factor without a primary credential");
+                return false;
+            }
+
             if (savedCredential.isNone() && isProfileWithUnifiedLock(userId)) {
                 // get credential from keystore when profile has unified lock
                 try {
