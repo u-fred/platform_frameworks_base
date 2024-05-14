@@ -2509,12 +2509,6 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-
-    @VisibleForTesting
-    PasswordMetrics getUserPasswordMetrics(int userHandle) {
-        return getUserPasswordMetrics(userHandle, true);
-    }
-
     /**
      * Returns the PasswordMetrics for the current user
      * @param userHandle The id of the user for which we return the password metrics object
@@ -3532,7 +3526,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     getCredentialTypeInternal(userId)));
             pw.println("SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(userId));
             pw.println(TextUtils.formatSimple("Metrics: %s",
-                    getUserPasswordMetrics(userId) != null ? "known" : "unknown"));
+                    getUserPasswordMetrics(userId, true) != null ? "known" : "unknown"));
             pw.decreaseIndent();
         }
         pw.println();
@@ -3807,7 +3801,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     Slog.w(TAG, "Querying password metrics for unified challenge profile: "
                             + userHandle);
                 }
-                return LockSettingsService.this.getUserPasswordMetrics(userHandle);
+                return LockSettingsService.this.getUserPasswordMetrics(userHandle, true);
             } finally {
                 Binder.restoreCallingIdentity(identity);
             }
