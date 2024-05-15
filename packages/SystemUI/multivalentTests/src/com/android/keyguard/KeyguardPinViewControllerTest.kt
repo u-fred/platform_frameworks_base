@@ -116,7 +116,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(mockKeyguardPinView.findViewById<View>(R.id.key_enter)).thenReturn(enterButton)
         // For posture tests:
         `when`(mockKeyguardPinView.buttons).thenReturn(arrayOf())
-        `when`(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
         `when`(featureFlags.isEnabled(Flags.LOCKSCREEN_ENABLE_LANDSCAPE)).thenReturn(false)
 
         objectKeyguardPINView =
@@ -218,7 +218,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     fun testOnViewAttached_withAutoPinConfirmationFailedPasswordAttemptsLessThan5() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        `when`(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt())).thenReturn(3)
         `when`(passwordTextView.text).thenReturn("")
@@ -235,7 +235,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     fun testOnViewAttached_withAutoPinConfirmationFailedPasswordAttemptsMoreThan5() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        `when`(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt())).thenReturn(6)
         `when`(passwordTextView.text).thenReturn("")
@@ -261,7 +261,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     fun onUserInput_autoConfirmation_attemptsUnlock() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         whenever(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        whenever(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
+        whenever(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
         whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
         whenever(passwordTextView.text).thenReturn("000000")
         whenever(enterButton.visibility).thenReturn(View.INVISIBLE)

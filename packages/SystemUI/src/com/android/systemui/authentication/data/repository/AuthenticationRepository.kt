@@ -241,7 +241,8 @@ constructor(
     }
 
     override suspend fun getPinLength(): Int {
-        return withContext(backgroundDispatcher) { lockPatternUtils.getPinLength(selectedUserId) }
+        return withContext(backgroundDispatcher) { lockPatternUtils.getPinLength(
+                selectedUserId, true) }
     }
 
     override suspend fun reportAuthenticationAttempt(isSuccessful: Boolean) {

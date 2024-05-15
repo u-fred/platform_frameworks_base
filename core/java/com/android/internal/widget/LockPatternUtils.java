@@ -642,10 +642,6 @@ public class LockPatternUtils {
         return false;
     }
 
-    public int getPinLength(int userId) {
-        return getPinLength(userId, true);
-    }
-
     /**
      * Returns the length of the PIN set by a particular user.
      * @param userId user id of the user whose pin length we have to return
