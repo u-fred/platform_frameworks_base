@@ -762,7 +762,6 @@ class SyntheticPasswordManager {
         }
 
         try {
-            // TODO: Verify can clear second even if does not exist.
             gatekeeper.clearSecureUserId(fakeUserId(userId, false));
         } catch (RemoteException e) {
             Slog.w(TAG, "Failed to clear secondary SID from gatekeeper", e);
@@ -1388,11 +1387,6 @@ class SyntheticPasswordManager {
     public AuthenticationResult unlockLskfBasedProtector(IGateKeeperService gatekeeper,
             long protectorId, @NonNull LockscreenCredential credential, boolean primary, int userId,
             ICheckCredentialProgressCallback progressCallback) {
-        // TODO: Verify that throttling of primary and secondary credentials is separate. I think
-        //  it is broken at the moment, it might be because we are using same fake user id for both.
-        //  More importantly need to see how it behaves with Weaver, would assume that each slot
-        //  is throttled separately.
-
         AuthenticationResult result = new AuthenticationResult();
 
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
