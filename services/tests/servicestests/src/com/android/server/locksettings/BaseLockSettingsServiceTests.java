@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import android.app.IActivityManager;
 import android.app.KeyguardManager;
 import android.app.NotificationManager;
+import android.app.PropertyInvalidatedCache;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.DevicePolicyManagerInternal;
 import android.app.admin.DeviceStateCache;
@@ -239,6 +240,8 @@ public abstract class BaseLockSettingsServiceTests {
 
         setDeviceProvisioned(true);
         mLocalService = LocalServices.getService(LockSettingsInternal.class);
+
+        PropertyInvalidatedCache.disableForTestMode();
     }
 
     private Resources createMockResources() {
