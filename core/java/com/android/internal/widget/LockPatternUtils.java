@@ -667,6 +667,8 @@ public class LockPatternUtils {
      * value, the pin length value is set to PIN_LENGTH_UNAVAILABLE. Otherwise, if the
      * flag is enabled, the pin length value is set to the actual length of the user's PIN.
      * @param userId user id of the user whose pin length we want to save
+     * @param primary Whether to refresh primary or biometric second factor PIN length.
+     * @throws IllegalArgumentException If userId is for managed profile and primary is false.
      * @return true/false depending on whether PIN length has been saved or not
      */
     public boolean refreshStoredPinLength(int userId, boolean primary) {

@@ -1373,6 +1373,10 @@ public class LockSettingsService extends ILockSettings.Stub {
     @Override
     public boolean refreshStoredPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
+        if (!primary && isCredentialSharableWithParent(userId)) {
+            throw new IllegalArgumentException("Profiles do not have a biometric second factor");
+        }
+
         synchronized (mSpManager) {
             PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
             if (passwordMetrics != null) {
