@@ -1874,7 +1874,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 }
             }
             // Always unlock current primary, even if setting secondary.
-            final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId);
+            final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId, true);
             AuthenticationResult authResult = mSpManager.unlockLskfBasedProtector(
                     getGateKeeperService(), currentPrimaryProtectorId,
                     savedCredential, true, userId, null);
