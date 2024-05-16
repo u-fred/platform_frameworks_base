@@ -1767,7 +1767,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     "This operation requires secure lock screen feature");
         }
         if (!hasPermission(PERMISSION) && !hasPermission(SET_AND_VERIFY_LOCKSCREEN_CREDENTIALS)) {
-            if (hasPermission(SET_INITIAL_LOCK) && savedCredential.isNone()) {
+            if (hasPermission(SET_INITIAL_LOCK) && savedCredential.isNone() && primary) {
                 // SET_INITIAL_LOCK can only be used if credential is not set.
             } else {
                 throw new SecurityException(
@@ -1788,12 +1788,11 @@ public class LockSettingsService extends ILockSettings.Stub {
             // accept only the parent user credential on its public API interfaces, swap it
             // with the profile's random credential at that API boundary (i.e. here) and make
             // sure LSS internally does not special case profile with unififed challenge: b/80170828
-            if (!savedCredential.isNone() && isProfileWithUnifiedLock(userId)) {
+            if (!savedCredential.isNone() && isProfileWithUnifiedLock(userId) && primary) {
                 // Verify the parent credential again, to make sure we have a fresh enough
                 // auth token such that getDecryptedPasswordForTiedProfile() inside
                 // setLockCredentialInternal() can function correctly.
-                // TODO: I think primary should always be true, verify this.
-                verifyCredential(savedCredential, primary, mUserManager.getProfileParent(userId).id,
+                verifyCredential(savedCredential, true, mUserManager.getProfileParent(userId).id,
                         0 /* flags */);
                 savedCredential.zeroize();
                 savedCredential = LockscreenCredential.createNone();
