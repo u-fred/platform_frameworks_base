@@ -1410,10 +1410,6 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
-    private int getCredentialTypeInternal(int userId) {
-        return getCredentialTypeInternal(userId, true);
-    }
-
     private int getCredentialTypeInternal(int userId, boolean primary) {
         if (!primary && isCredentialSharableWithParent(userId)) {
             throw new IllegalArgumentException(
@@ -3531,7 +3527,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // observe it from the keyguard directly.
             pw.println("Quality: " + getKeyguardStoredQuality(userId));
             pw.println("CredentialType: " + LockPatternUtils.credentialTypeToString(
-                    getCredentialTypeInternal(userId)));
+                    getCredentialTypeInternal(userId, true)));
             pw.println("SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(userId));
             pw.println(TextUtils.formatSimple("Metrics: %s",
                     getUserPasswordMetrics(userId, true) != null ? "known" : "unknown"));
