@@ -848,12 +848,15 @@ public class LockPatternUtils {
      * <p> This method will fail (returning {@code false}) if the previously saved credential
      * provided is incorrect, or if the lockscreen verification is still being throttled.
      *
-     * @param newCredential The new credential to save
-     * @param savedCredential The current credential
+     * @param newCredential the new credential to save
+     * @param savedCredential the current credential (must be primary, even if setting secondary)
+     * @param primary whether we are setting a primary or secondary credential (must be true
+     *                if userHandle is a profile user)
      * @param userHandle the user whose lockscreen credential is to be changed
      *
      * @return whether this method saved the new password successfully or not. This flow will fail
      * and return false if the given credential is wrong.
+     * @throws IllegalArgumentException if userId is for managed profile and primary is false.
      * @throws RuntimeException if password change encountered an unrecoverable error.
      * @throws UnsupportedOperationException secure lockscreen is not supported on this device.
      */
