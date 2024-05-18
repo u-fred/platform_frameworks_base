@@ -2392,9 +2392,14 @@ public class LockSettingsService extends ILockSettings.Stub {
     private VerifyCredentialResponse doVerifyCredentialInner(LockscreenCredential credential,
             boolean primary, int userId, ICheckCredentialProgressCallback progressCallback,
             @LockPatternUtils.VerifyFlag int flags) {
-        if (!primary && isCredentialSharableWithParent(userId)) {
-            throw new IllegalArgumentException(
-                    "Profiles do not have a biometric second factor");
+        if (!primary) {
+            if (isCredentialSharableWithParent(userId)) {
+                throw new IllegalArgumentException(
+                        "Profiles do not have a biometric second factor");
+            } else if (flags != 0) {
+                throw new IllegalArgumentException(
+                        "Invalid flag for biometric second factor");
+            }
         }
         if (credential == null || credential.isNone()) {
             throw new IllegalArgumentException("Credential can't be null or empty");
