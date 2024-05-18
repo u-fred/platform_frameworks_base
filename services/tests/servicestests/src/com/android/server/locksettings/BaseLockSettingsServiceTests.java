@@ -16,6 +16,9 @@
 
 package com.android.server.locksettings;
 
+import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM;
+import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM_SECONDARY;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -275,6 +278,13 @@ public abstract class BaseLockSettingsServiceTests {
     protected void setSecureFrpMode(boolean secure) {
         Settings.Secure.putIntForUser(mContext.getContentResolver(),
                 Settings.Secure.SECURE_FRP_MODE, secure ? 1 : 0, UserHandle.USER_SYSTEM);
+    }
+
+    // TODO: Replace all manual calls with this.
+    protected void setAutoPinConfirm(int userId, boolean primary, boolean enabled) {
+        String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
+        mService.setBoolean(key, enabled, userId);
+        assertEquals(enabled, mService.getBoolean(key, false, userId));
     }
 
     private UserInfo installChildProfile(int profileId) {
