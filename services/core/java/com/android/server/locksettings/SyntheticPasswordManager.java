@@ -827,8 +827,6 @@ class SyntheticPasswordManager {
         if (primary) {
             clearSidForUser(userId);
         }
-        // We could call SyntheticPassword.create() directly instead of modifying this method, but
-        // could potentially miss upstream changes.
         SyntheticPassword result = SyntheticPassword.create();
         if (primary) {
             saveEscrowData(result, userId);
@@ -1433,7 +1431,6 @@ class SyntheticPasswordManager {
             if (result.gkResponse.getResponseCode() != VerifyCredentialResponse.RESPONSE_OK) {
                 return result;
             }
-            // result.gkResponse.getGatekeeperHAT is not a HAT.
             protectorSecret = transformUnderWeaverSecret(stretchedLskf,
                     result.gkResponse.getGatekeeperHAT());
         } else {
