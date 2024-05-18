@@ -1812,7 +1812,6 @@ public class LockSettingsService extends ILockSettings.Stub {
                     scheduleGc();
                     return false;
                 }
-                // TODO: Review if these are primary only.
                 notifyPasswordChanged(credential, userId, primary);
                 if (primary) {
                     setSeparateProfileChallengeEnabledLocked(userId, true, /* unused */ null);
@@ -1822,7 +1821,6 @@ public class LockSettingsService extends ILockSettings.Stub {
                 // Make sure the profile doesn't get locked straight after setting challenge.
                 setDeviceUnlockedForUser(userId);
             }
-            // TODO: Review if these are primary only.
             if (primary) {
                 notifySeparateProfileChallengeChanged(userId);
                 onPostPasswordChanged(credential, credential, true, userId);
