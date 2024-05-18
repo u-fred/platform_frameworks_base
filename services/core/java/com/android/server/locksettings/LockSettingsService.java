@@ -2438,8 +2438,10 @@ public class LockSettingsService extends ILockSettings.Stub {
                     }
                 }
                 // credential has matched
-                mBiometricDeferredQueue.addPendingLockoutResetForUser(userId,
-                        authResult.syntheticPassword.deriveGkPassword());
+                if (primary) {
+                    mBiometricDeferredQueue.addPendingLockoutResetForUser(userId,
+                            authResult.syntheticPassword.deriveGkPassword());
+                }
             }
         }
         if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
