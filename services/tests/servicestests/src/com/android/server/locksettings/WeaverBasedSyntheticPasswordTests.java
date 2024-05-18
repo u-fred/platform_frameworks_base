@@ -37,8 +37,8 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         assertEquals(Sets.newHashSet(), mPasswordSlotManager.getUsedSlots());
         mStorage.writePersistentDataBlock(PersistentData.TYPE_SP_WEAVER, frpWeaverSlot, 0,
                 new byte[1]);
-        mService.initializeSyntheticPassword(userId); // This should allocate a Weaver slot.
-        assertEquals(Sets.newHashSet(1), mPasswordSlotManager.getUsedSlots());
+        mService.initializeSyntheticPassword(userId); // This should allocate 2 Weaver slots.
+        assertEquals(Sets.newHashSet(1, 2), mPasswordSlotManager.getUsedSlots());
     }
 
     // Tests that if the device is already provisioned and the FRP credential uses Weaver, then the
@@ -53,7 +53,8 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         assertEquals(Sets.newHashSet(), mPasswordSlotManager.getUsedSlots());
         mStorage.writePersistentDataBlock(PersistentData.TYPE_SP_WEAVER, frpWeaverSlot, 0,
                 new byte[1]);
-        mService.initializeSyntheticPassword(userId); // This should allocate a Weaver slot.
-        assertEquals(Sets.newHashSet(0), mPasswordSlotManager.getUsedSlots());
+        mService.initializeSyntheticPassword(userId); // This should allocate 2 Weaver slots.
+        assertEquals(Sets.newHashSet(0, 1), mPasswordSlotManager.getUsedSlots());
+    }
     }
 }
