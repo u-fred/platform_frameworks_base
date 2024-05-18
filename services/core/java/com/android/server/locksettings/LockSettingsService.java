@@ -3143,14 +3143,21 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Also maintains the invariants described in {@link SyntheticPasswordManager} by enrolling /
      * deleting the synthetic password into Gatekeeper as the LSKF is set / cleared, and asking
      * Keystore to delete the user's auth-bound keys when the LSKF is cleared.
+     *
+     * @param credential The new credential to set.
+     * @param currentPrimaryCredential The existing credential. Must be primary credential even if
+     *                                 setting secondary. Can only be null if primary is false.
+     * @param primary Whether setting primary or secondary credential.
+     * @param sp The synthetic password that is to be protected by credential.
+     * @param userId The user whose credential is being set.
      */
     @GuardedBy("mSpManager")
     private long setLockCredentialWithSpLocked(LockscreenCredential credential,
-            @Nullable LockscreenCredential savedCredential, boolean primary, SyntheticPassword sp,
-            int userId) {
+            @Nullable LockscreenCredential currentPrimaryCredential, boolean primary,
+            SyntheticPassword sp, int userId) {
         Slogf.i(TAG, "Changing lockscreen credential of user %d; newCredentialType=%s;" +
-                        " primaryCrdential=%b\n", userId,
-                LockPatternUtils.credentialTypeToString(credential.getType()), primary);
+                        " primary=%b\n", userId, LockPatternUtils.credentialTypeToString(
+                                credential.getType()), primary);
         final int savedCredentialType = getCredentialTypeInternal(userId, primary);
         final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, primary);
         final long newProtectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
@@ -3169,9 +3176,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
         } else if (primary) {
             // Maintain the invariant that secondary should not be set if primary is not.
-            if (!isCredentialSharableWithParent(userId) && isUserSecure(userId, false) &&
-                    savedCredential != null) {
-                setLockCredentialInternal(LockscreenCredential.createNone(), savedCredential,
+            if (!isCredentialSharableWithParent(userId) && isUserSecure(userId, false)) {
+                setLockCredentialInternal(LockscreenCredential.createNone(), currentPrimaryCredential,
                         false, userId, false);
             }
 
