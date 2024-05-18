@@ -1692,7 +1692,12 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Send credentials for user {@code userId} to {@link RecoverableKeyStoreManager} during an
      * unlock operation.
      */
-    private void sendCredentialsOnUnlockIfRequired(LockscreenCredential credential, int userId) {
+    private void sendCredentialsOnUnlockIfRequired(LockscreenCredential credential, int userId,
+            boolean primary) {
+        if (!primary) {
+            return;
+        }
+
         // Don't send credentials during the special user flow.
         if (isSpecialUserId(userId)) {
             return;
@@ -1722,7 +1727,11 @@ public class LockSettingsService extends ILockSettings.Stub {
      * credentials are set/changed.
      */
     private void sendCredentialsOnChangeIfRequired(
-            LockscreenCredential credential, int userId, boolean isLockTiedToParent) {
+            LockscreenCredential credential, int userId, boolean isLockTiedToParent,
+            boolean primary) {
+        if (!primary) {
+            return;
+        }
         // A profile whose lock screen is being tied to its parent's will either have a randomly
         // generated credential (creation) or null (removal). We rely on the parent to send its
         // credentials for the profile in both cases as it stores the unified lock credential.
@@ -1897,9 +1906,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
             onSyntheticPasswordUnlocked(userId, sp);
             setLockCredentialWithSpLocked(credential, savedCredential, primary, sp, userId);
-            if (primary) {
-                sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent);
-            }
+            sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent, primary);
             return true;
         }
     }
@@ -2453,7 +2460,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                         .setGatekeeperPasswordHandle(gkHandle)
                         .build();
             }
-            sendCredentialsOnUnlockIfRequired(credential, userId);
+            sendCredentialsOnUnlockIfRequired(credential, userId, primary);
         } else if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_RETRY) {
             if (response.getTimeout() > 0) {
                 requireStrongAuth(STRONG_AUTH_REQUIRED_AFTER_LOCKOUT, userId);
