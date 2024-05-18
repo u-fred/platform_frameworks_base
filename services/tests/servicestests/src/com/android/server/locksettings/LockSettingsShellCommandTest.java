@@ -29,6 +29,7 @@ import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STR
 
 import static junit.framework.Assert.assertEquals;
 
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -109,7 +110,7 @@ public class LockSettingsShellCommandTest {
         assertEquals(-1, mCommand.exec(mBinder, in, out, err,
                 new String[] { "set-pin", "--old", "1234" },
                 mShellCallback, mResultReceiver));
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -149,7 +150,7 @@ public class LockSettingsShellCommandTest {
         assertEquals(-1, mCommand.exec(new Binder(), in, out, err,
                 new String[] { "set-pin", "--old", "1234", "4321" },
                 mShellCallback, mResultReceiver));
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -199,7 +200,7 @@ public class LockSettingsShellCommandTest {
         assertEquals(-1,  mCommand.exec(new Binder(), in, out, err,
                 new String[] { "set-password", "--old", "1234", "weakpassword" },
                 mShellCallback, mResultReceiver));
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -245,7 +246,7 @@ public class LockSettingsShellCommandTest {
         assertEquals(-1, mCommand.exec(new Binder(), in, out, err,
                 new String[] { "set-pattern", "--old", "1234", "4321" },
                 mShellCallback, mResultReceiver));
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -291,7 +292,7 @@ public class LockSettingsShellCommandTest {
         assertEquals(-1, mCommand.exec(new Binder(), in, out, err,
                 new String[] { "clear", "--old", "1234" },
                 mShellCallback, mResultReceiver));
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -313,7 +314,7 @@ public class LockSettingsShellCommandTest {
                 new String[] { "set-pin", "--old", "1234", "4321" },
                 mShellCallback, mResultReceiver));
 
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -359,7 +360,7 @@ public class LockSettingsShellCommandTest {
                 new String[] { "set-pattern", "--old", "1234", "4321" },
                 mShellCallback, mResultReceiver));
 
-        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), any(), anyInt());
+        verify(mLockPatternUtils, never()).setLockCredential(any(), any(), anyBoolean(), anyInt());
     }
 
     @Test
