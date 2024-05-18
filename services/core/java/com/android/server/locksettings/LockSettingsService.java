@@ -1188,6 +1188,12 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
+    private void checkNotSecondaryForManagedProfile(int userId, boolean primary) {
+        if (!primary && isCredentialSharableWithParent(userId)) {
+            throw new IllegalArgumentException("Profiles do not have a biometric second factor");
+        }
+    }
+
     private final void checkWritePermission() {
         mContext.enforceCallingOrSelfPermission(PERMISSION, "LockSettingsWrite");
     }
