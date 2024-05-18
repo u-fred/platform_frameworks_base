@@ -1767,10 +1767,6 @@ class SyntheticPasswordManager {
         List<Long> protectorIds =
             mStorage.listSyntheticPasswordProtectorsForUser(SP_BLOB_NAME, userId);
         for (long protectorId : protectorIds) {
-            // Secondary LSKF protectors don't have SP_BLOB_NAME.
-            if (!hasState(SP_BLOB_NAME, protectorId, userId)) {
-                continue;
-            }
             SyntheticPasswordBlob blob = SyntheticPasswordBlob.fromBytes(loadState(SP_BLOB_NAME,
                     protectorId, userId));
             if (blob.mProtectorType == PROTECTOR_TYPE_WEAK_TOKEN_BASED) {
