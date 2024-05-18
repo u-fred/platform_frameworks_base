@@ -1007,6 +1007,7 @@ class SyntheticPasswordManager {
      */
     public long createLskfBasedProtector(IGateKeeperService gatekeeper,
             LockscreenCredential credential, boolean primary, SyntheticPassword sp, int userId) {
+        // TODO: Collisions possible?
         long protectorId = generateProtectorId();
 
         int pinLength = PIN_LENGTH_UNAVAILABLE;
