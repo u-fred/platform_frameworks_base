@@ -19,13 +19,11 @@ package com.android.server.locksettings;
 import static android.content.pm.UserInfo.FLAG_FULL;
 import static android.content.pm.UserInfo.FLAG_MAIN;
 import static android.content.pm.UserInfo.FLAG_PRIMARY;
-
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -48,16 +46,15 @@ import android.os.RemoteException;
 import android.platform.test.annotations.Presubmit;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
+import com.android.server.locksettings.LockSettingsStorage.PersistentData;
 import com.android.server.locksettings.SyntheticPasswordManager.AuthenticationResult;
 import com.android.server.locksettings.SyntheticPasswordManager.PasswordData;
 import com.android.server.locksettings.SyntheticPasswordManager.SyntheticPassword;
 
-import libcore.util.HexEncoding;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,13 +62,17 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import libcore.util.HexEncoding;
+
 /**
  * atest FrameworksServicesTests:SyntheticPasswordTests
  */
 // TODO: Some failures here.
 @SmallTest
 @Presubmit
-@RunWith(AndroidJUnit4.class)
+@RunWith(JUnitParamsRunner.class)
 public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
     public static final byte[] PAYLOAD = new byte[] {1, 2, -1, -2, 55};
@@ -83,7 +84,32 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
-    public void testNoneLskfBasedProtector() throws RemoteException {
+    @Parameters({"true", "false"})
+    public void createLskfBasedProtector_autoConfirmPinEnabled_pinLengthStoredInClear(
+            boolean primary) {
+        final int userId = PRIMARY_USER_ID;
+        final LockscreenCredential pin = newPin("123456");
+        setAutoPinConfirm(userId, primary, true);
+        SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
+                primary);
+        long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
+                pin, primary, sp, userId);
+        assertEquals(6, mSpManager.getPinLength(protectorId, userId));
+    }
+
+    @Test
+    @Parameters({"true", "false"})
+    public void createLskfBasedProtector_autoConfirmPinDisabled_pinLengthNotStoredInClear(
+            boolean primary) {
+        final int userId = PRIMARY_USER_ID;
+        final LockscreenCredential pin = newPin("123456");
+        setAutoPinConfirm(userId, primary, false);
+        SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
+                primary);
+        long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
+                pin, primary, sp, userId);
+        assertEquals(PIN_LENGTH_UNAVAILABLE, mSpManager.getPinLength(protectorId, userId));
+    }
         final int USER_ID = 10;
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
