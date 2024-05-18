@@ -2424,24 +2424,11 @@ public class LockSettingsService extends ILockSettings.Stub {
                         credential, progressCallback);
             }
 
-            long protectorId = getCurrentLskfBasedProtectorId(userId,
-                    primary);
+            long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
             authResult = mSpManager.unlockLskfBasedProtector(
                     getGateKeeperService(), protectorId, credential, primary, userId,
                     progressCallback);
             response = authResult.gkResponse;
-
-            if (!primary) {
-                if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_RETRY &&
-                        response.getTimeout() > 0) {
-                    requireStrongAuth(STRONG_AUTH_REQUIRED_AFTER_LOCKOUT, userId);
-                } else if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK){
-                    onCredentialVerified(authResult.syntheticPassword,
-                            PasswordMetrics.computeForCredential(credential), userId,
-                            primary);
-                }
-                return response;
-            }
 
             if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
                 if ((flags & VERIFY_FLAG_WRITE_REPAIR_MODE_PW) != 0) {
