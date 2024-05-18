@@ -110,51 +110,62 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
                 pin, primary, sp, userId);
         assertEquals(PIN_LENGTH_UNAVAILABLE, mSpManager.getPinLength(protectorId, userId));
     }
+
+    @Test
+    @Parameters({"true", "false"})
+    public void testNoneLskfBasedProtector(boolean primary) throws RemoteException {
         final int USER_ID = 10;
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
-        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, true);
-        assertFalse(lskfGatekeeperHandleExists(USER_ID));
+        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, primary);
+        assertFalse(lskfGatekeeperHandleExists(USER_ID, primary));
         long protectorId = manager.createLskfBasedProtector(mGateKeeperService,
-                LockscreenCredential.createNone(), true, sp, USER_ID);
-        assertFalse(lskfGatekeeperHandleExists(USER_ID));
+                LockscreenCredential.createNone(), primary, sp, USER_ID);
+        assertFalse(lskfGatekeeperHandleExists(USER_ID, primary));
         assertFalse(manager.hasPasswordData(protectorId, USER_ID));
         assertFalse(manager.hasPasswordMetrics(protectorId, USER_ID));
 
         AuthenticationResult result = manager.unlockLskfBasedProtector(mGateKeeperService,
-                protectorId, LockscreenCredential.createNone(), true, USER_ID, null);
+                protectorId, LockscreenCredential.createNone(), primary, USER_ID, null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
     }
 
     @Test
-    public void testNonNoneLskfBasedProtector() throws RemoteException {
-        final int USER_ID = 10;
+    @Parameters({"true", "false"})
+    public void testNonNoneLskfBasedProtector(boolean primary) throws RemoteException {
+        final int USER_ID = PRIMARY_USER_ID;
         final LockscreenCredential password = newPassword("user-password");
         final LockscreenCredential badPassword = newPassword("bad-password");
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
-        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, true);
-        assertFalse(lskfGatekeeperHandleExists(USER_ID));
-        long protectorId = manager.createLskfBasedProtector(mGateKeeperService, password, true, sp,
-                USER_ID);
-        assertTrue(lskfGatekeeperHandleExists(USER_ID));
+        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, primary);
+        assertEquals(LockSettingsStorage.PersistentData.NONE, mStorage.readPersistentDataBlock());
+        assertFalse(lskfGatekeeperHandleExists(USER_ID, primary));
+        long protectorId = manager.createLskfBasedProtector(mGateKeeperService, password, primary,
+                sp, USER_ID);
+        assertTrue(lskfGatekeeperHandleExists(USER_ID, primary));
         assertTrue(manager.hasPasswordData(protectorId, USER_ID));
         assertTrue(manager.hasPasswordMetrics(protectorId, USER_ID));
+        if (primary) {
+            Assert.assertNotEquals(PersistentData.NONE, mStorage.readPersistentDataBlock());
+        } else {
+            assertEquals(PersistentData.NONE, mStorage.readPersistentDataBlock());
+        }
 
         AuthenticationResult result = manager.unlockLskfBasedProtector(mGateKeeperService,
-                protectorId, password, true, USER_ID, null);
+                protectorId, password, primary, USER_ID, null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
 
         result = manager.unlockLskfBasedProtector(mGateKeeperService, protectorId, badPassword,
-                true, USER_ID, null);
+                false, USER_ID, null);
         assertNull(result.syntheticPassword);
     }
 
-    private boolean lskfGatekeeperHandleExists(int userId) throws RemoteException {
+    private boolean lskfGatekeeperHandleExists(int userId, boolean primary) throws RemoteException {
         return mGateKeeperService.getSecureUserId(SyntheticPasswordManager.fakeUserId(
-                userId, true)) != 0;
+                userId, primary)) != 0;
     }
 
     private void initSpAndSetCredential(int userId, LockscreenCredential credential)
@@ -637,18 +648,24 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
-    public void testStorePinLengthOnDisk() {
+    @Parameters({"true", "false"})
+    public void testStorePinLengthOnDisk(boolean primary) {
+        // There is some duplication with this and some tests in LockSettingsServiceTests.
+
         int userId = 1;
         LockscreenCredential lockscreenCredentialPin = LockscreenCredential.createPin("123456");
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
-        SyntheticPassword sp = manager.newSyntheticPassword(userId, true);
+        SyntheticPassword sp = manager.newSyntheticPassword(userId, primary);
         long protectorId = manager.createLskfBasedProtector(mGateKeeperService,
-                lockscreenCredentialPin, true, sp,
+                lockscreenCredentialPin, primary, sp,
                 userId);
         PasswordMetrics passwordMetrics =
                 PasswordMetrics.computeForCredential(lockscreenCredentialPin);
-        boolean result = manager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId, true);
+        setAutoPinConfirm(userId, primary, true);
+        //mService.setBoolean(AUTO_PIN_CONFIRM, true, 1);
+        boolean result = manager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId,
+                primary);
 
         assertEquals(manager.getPinLength(protectorId, userId), lockscreenCredentialPin.size());
         assertTrue(result);
