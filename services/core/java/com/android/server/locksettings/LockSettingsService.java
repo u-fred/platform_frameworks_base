@@ -3039,7 +3039,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         return getCurrentLskfBasedProtectorId(userId, true);
     }
 
-    private long getCurrentLskfBasedProtectorId(int userId, boolean primaryCredential) {
+    @VisibleForTesting
+    long getCurrentLskfBasedProtectorId(int userId, boolean primaryCredential) {
         String keySuffix = getCurrentProtectorKeySuffix(primaryCredential);
 
         return getLong(CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix,
