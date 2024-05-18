@@ -85,6 +85,7 @@ public abstract class BaseLockSettingsServiceTests {
     protected static final int TURNED_OFF_PROFILE_USER_ID = 17;
     protected static final int SECONDARY_USER_ID = 20;
     protected static final int TERTIARY_USER_ID = 21;
+    protected static final int DOES_NOT_EXIST_USER_ID = 30;
 
     protected UserInfo mPrimaryUserInfo;
     protected UserInfo mSecondaryUserInfo;
