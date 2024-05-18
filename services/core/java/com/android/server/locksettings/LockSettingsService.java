@@ -1920,7 +1920,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             LockscreenCredential currentPrimaryCredential, boolean primary, int userHandle) {
         updatePasswordHistory(newCredential, userHandle, primary,
                 currentPrimaryCredential);
-        mContext.getSystemService(TrustManager.class).reportEnabledTrustAgentsChanged(userHandle);
+        if (primary) {
+            mContext.getSystemService(TrustManager.class).reportEnabledTrustAgentsChanged(
+                    userHandle);
+        }
     }
 
     /**
