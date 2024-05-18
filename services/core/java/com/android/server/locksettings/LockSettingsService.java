@@ -3096,9 +3096,12 @@ public class LockSettingsService extends ILockSettings.Stub {
                     mUserPasswordMetrics.put(userId, metrics);
                 } else {
                     mUserBiometricSecondFactorMetrics.put(userId, metrics);
-                    return;
                 }
             }
+        }
+
+        if (!primary) {
+            return;
         }
 
         unlockKeystore(userId, sp);
