@@ -1020,8 +1020,8 @@ class SyntheticPasswordManager {
         long sid = GateKeeper.INVALID_SECURE_USER_ID;
         final byte[] protectorSecret;
 
-        Slogf.i(TAG, "Creating LSKF-based protector %016x for user %d; primaryCredential %b",
-                protectorId, userId, primary);
+        Slogf.i(TAG, "Creating LSKF-based protector %016x for user %d; primary %b", protectorId,
+                userId, primary);
 
         final IWeaver weaver = getWeaverService();
         if (weaver != null) {
