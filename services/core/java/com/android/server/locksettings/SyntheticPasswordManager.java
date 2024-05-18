@@ -1080,7 +1080,9 @@ class SyntheticPasswordManager {
             protectorSecret = transformUnderSecdiscardable(stretchedLskf,
                     createSecdiscardable(protectorId, userId));
             // No need to pass in quality since the credential type already encodes sufficient info
-            synchronizeGatekeeperFrpPassword(pwd, 0, userId);
+            if (primary) {
+                synchronizeGatekeeperFrpPassword(pwd, 0, userId);
+            }
         }
         if (!credential.isNone()) {
             saveState(PASSWORD_DATA_NAME, pwd.toBytes(), protectorId, userId);
