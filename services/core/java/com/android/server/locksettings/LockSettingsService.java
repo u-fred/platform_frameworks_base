@@ -1353,9 +1353,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     @Override
     public int getPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
-        if (!primary && isCredentialSharableWithParent(userId)) {
-            throw new IllegalArgumentException("Profiles do not have a biometric second factor");
-        }
+        checkNotSecondaryForManagedProfile(userId, primary);
 
         PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
         if (passwordMetrics != null && passwordMetrics.credType == CREDENTIAL_TYPE_PIN) {
