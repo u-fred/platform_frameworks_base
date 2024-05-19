@@ -557,6 +557,46 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertEquals(6, mService.getPinLength(userId, false));
     }
 
+    @Test
+    public void refreshStoredPinLength_secondaryForManagedProfile_throwsException() {
+        assertExpectException(IllegalArgumentException.class,
+                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                () -> mService.refreshStoredPinLength(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    @Parameters({"true", "false"})
+    public void refreshStoredPinLength_withMetricsCached_savesToDisk(boolean primary)
+            throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        // Use same pin for primary and secondary.
+        LockscreenCredential pin = newPin("123456");
+
+        // Start with auto confirm false so that PIN length is not saved to disk.
+        setAutoPinConfirm(userId, primary, false);
+
+        setCredential(userId, pin);
+        if (!primary) {
+            setCredential(userId, pin, pin, false);
+        }
+
+        // Verify not already stored on disk.
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, primary));
+        assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(userId, primary));
+
+        // Save credential to disk.
+        assertVerifyCredential(userId, pin, primary);
+        setAutoPinConfirm(userId, primary, true);
+        assertTrue(mService.refreshStoredPinLength(userId, primary));
+
+        // Verify credential was saved to disk.
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, primary));
+        assertEquals(6, mService.getPinLength(userId, primary));
+    }
+
     private void checkPasswordHistoryLength(int userId, int expectedLen) {
         String history = mService.getString(LockPatternUtils.PASSWORD_HISTORY_KEY, "", userId);
         String[] hashes = TextUtils.split(history, LockPatternUtils.PASSWORD_HISTORY_DELIMITER);
