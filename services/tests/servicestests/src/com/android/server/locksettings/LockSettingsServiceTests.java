@@ -460,6 +460,23 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         mService.setString(null, "value", 0);
     }
 
+    @Test
+    public void onUserStopped_removesPasswordMetrics() throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        final LockscreenCredential primaryPassword = newPassword("primaryPassword");
+        setCredential(userId, primaryPassword);
+        assertNotNull(mService.getUserPasswordMetrics(userId, true));
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, true));
+
+        final LockscreenCredential secondaryPin = newPin("1111");
+        setCredential(userId, secondaryPin, primaryPassword, false);
+        assertNotNull(mService.getUserPasswordMetrics(userId, false));
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, false));
+    }
+
     private void checkPasswordHistoryLength(int userId, int expectedLen) {
         String history = mService.getString(LockPatternUtils.PASSWORD_HISTORY_KEY, "", userId);
         String[] hashes = TextUtils.split(history, LockPatternUtils.PASSWORD_HISTORY_DELIMITER);
