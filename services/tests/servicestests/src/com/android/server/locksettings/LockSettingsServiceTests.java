@@ -21,6 +21,8 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSW
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PATTERN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
+import static com.android.server.locksettings.LockSettingsService.EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE;
+import static com.android.server.testutils.TestUtils.assertExpectException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -475,6 +477,84 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertNotNull(mService.getUserPasswordMetrics(userId, false));
         mService.onUserStopped(userId);
         assertNull(mService.getUserPasswordMetrics(userId, false));
+    }
+
+    @Test
+    public void getPinLength_secondaryForManagedProfile_throwsException() {
+        assertExpectException(IllegalArgumentException.class,
+                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                () -> mService.getPinLength(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    public void getPinLength_withCachedMetrics_returnsLength() throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        final LockscreenCredential primaryPin = newPin("123456");
+        setCredential(userId, primaryPin);
+        assertNotNull(mService.getUserPasswordMetrics(userId, true));
+        assertEquals(6, mService.getPinLength(userId, true));
+
+        final LockscreenCredential secondaryPin = newPin("1234");
+        setCredential(userId, secondaryPin, primaryPin, false);
+        assertNotNull(mService.getUserPasswordMetrics(userId, false));
+        assertEquals(4, mService.getPinLength(userId, false));
+    }
+
+    @Test
+    @Parameters({"true", "false"})
+    public void getPinLength_withNullProtector_returnsUnavailable(boolean primary) {
+        int userId = PRIMARY_USER_ID;
+        mService.setCurrentLskfBasedProtectorId(SyntheticPasswordManager.NULL_PROTECTOR_ID, userId,
+                primary);
+
+        PasswordMetrics pm = mService.getUserPasswordMetrics(userId, primary);
+        assertEquals(CREDENTIAL_TYPE_NONE, pm.credType);
+
+        long protectorId = mService.getCurrentLskfBasedProtectorId(userId, primary);
+        assertEquals(SyntheticPasswordManager.NULL_PROTECTOR_ID, protectorId);
+
+        int pinLength = mService.getPinLength(userId, primary);
+        assertEquals(PIN_LENGTH_UNAVAILABLE, pinLength);
+    }
+
+    @Test
+    public void getPinLength_noCachedMetricsAndNotSavedToDisk_returnsUnavailable()
+            throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        setAutoPinConfirm(userId, true, false);
+        final LockscreenCredential primaryPin = newPin("123456");
+        setCredential(userId, primaryPin);
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, true));
+        assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(userId, true));
+
+        setAutoPinConfirm(userId, false, false);
+        final LockscreenCredential secondaryPin = newPin("654321");
+        setCredential(userId, secondaryPin, primaryPin, false);
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, false));
+        assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(userId, false));
+    }
+
+    @Test
+    public void getPinLength_noCachedMetricsAndSavedToDisk_returnsLength() throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        setAutoPinConfirm(userId, true, true);
+        final LockscreenCredential primaryPin = newPin("123456");
+        setCredential(userId, primaryPin);
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, true));
+        assertEquals(6, mService.getPinLength(userId, true));
+
+        setAutoPinConfirm(userId, false, true);
+        final LockscreenCredential secondaryPin = newPin("654321");
+        setCredential(userId, secondaryPin, primaryPin, false);
+        mService.onUserStopped(userId);
+        assertNull(mService.getUserPasswordMetrics(userId, false));
+        assertEquals(6, mService.getPinLength(userId, false));
     }
 
     private void checkPasswordHistoryLength(int userId, int expectedLen) {

@@ -3054,7 +3054,8 @@ public class LockSettingsService extends ILockSettings.Stub {
                 SyntheticPasswordManager.NULL_PROTECTOR_ID, userId);
     }
 
-    private void setCurrentLskfBasedProtectorId(long newProtectorId, int userId,
+    @VisibleForTesting
+    void setCurrentLskfBasedProtectorId(long newProtectorId, int userId,
             boolean primaryCredential) {
         String keySuffix = getCurrentProtectorKeySuffix(primaryCredential);
 
