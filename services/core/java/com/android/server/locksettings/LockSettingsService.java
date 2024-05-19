@@ -234,6 +234,9 @@ public class LockSettingsService extends ILockSettings.Stub {
     private static final String PERMISSION = ACCESS_KEYGUARD_SECURE_STORAGE;
     private static final String BIOMETRIC_PERMISSION = MANAGE_BIOMETRIC;
 
+    public static final String EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE =
+            "Managed profiles do not have a biometric second factor";
+
     private static final int PROFILE_KEY_IV_SIZE = 12;
     private static final String SEPARATE_PROFILE_CHALLENGE_KEY = "lockscreen.profilechallenge";
     private static final String PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE = "prev-sp-handle";
@@ -1190,7 +1193,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     private void checkNotSecondaryForManagedProfile(int userId, boolean primary) {
         if (!primary && isCredentialSharableWithParent(userId)) {
-            throw new IllegalArgumentException("Profiles do not have a biometric second factor");
+            throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE);
         }
     }
 
