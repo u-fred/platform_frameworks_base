@@ -20,7 +20,7 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PATTERN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
-
+import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -34,15 +34,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertThrows;
 
-import android.app.PropertyInvalidatedCache;
+import android.app.admin.PasswordMetrics;
 import android.os.RemoteException;
 import android.platform.test.annotations.Presubmit;
 import android.service.gatekeeper.GateKeeperResponse;
 import android.text.TextUtils;
 
 import androidx.test.filters.SmallTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
@@ -52,17 +52,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+
 /**
  * atest FrameworksServicesTests:LockSettingsServiceTests
  */
 @SmallTest
 @Presubmit
-@RunWith(AndroidJUnit4.class)
+@RunWith(JUnitParamsRunner.class)
 public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Before
     public void setUp() {
-        PropertyInvalidatedCache.disableForTestMode();
         mService.initializeSyntheticPassword(PRIMARY_USER_ID);
         mService.initializeSyntheticPassword(MANAGED_PROFILE_USER_ID);
     }
@@ -122,7 +124,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         setCredential(PRIMARY_USER_ID, newPassword("password"));
         assertFalse(mService.setLockCredential(newPassword("newpwd"), newPassword("badpwd"), true,
                     PRIMARY_USER_ID));
-        assertVerifyCredential(PRIMARY_USER_ID, newPassword("password"));
+        assertVerifyCredential(PRIMARY_USER_ID, newPassword("password"), true);
     }
 
     @Test
@@ -481,23 +483,24 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
             LockscreenCredential oldCredential) throws RemoteException {
         setCredential(userId, oldCredential);
         setCredential(userId, newCredential, oldCredential);
-        assertVerifyCredential(userId, newCredential);
+        assertVerifyCredential(userId, newCredential, true);
     }
 
-    private void assertVerifyCredential(int userId, LockscreenCredential credential)
+    private void assertVerifyCredential(int userId, LockscreenCredential credential,
+            boolean primary)
             throws RemoteException{
-        VerifyCredentialResponse response = mService.verifyCredential(credential, true, userId,
+        VerifyCredentialResponse response = mService.verifyCredential(credential, primary, userId,
                 0 /* flags */);
 
         assertEquals(GateKeeperResponse.RESPONSE_OK, response.getResponseCode());
         if (credential.isPassword()) {
-            assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(userId));
+            assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(userId, primary));
         } else if (credential.isPin()) {
-            assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(userId));
+            assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(userId, primary));
         } else if (credential.isPattern()) {
-            assertEquals(CREDENTIAL_TYPE_PATTERN, mService.getCredentialType(userId));
+            assertEquals(CREDENTIAL_TYPE_PATTERN, mService.getCredentialType(userId, primary));
         } else {
-            assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId));
+            assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, primary));
         }
         // check for bad credential
         final LockscreenCredential badCredential;
@@ -508,33 +511,48 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
             badCredential = LockscreenCredential.createPin("0");
         }
         assertEquals(GateKeeperResponse.RESPONSE_ERROR, mService.verifyCredential(
-                badCredential, true, userId, 0 /* flags */).getResponseCode());
+                badCredential, primary, userId, 0 /* flags */).getResponseCode());
     }
 
     private void setAndVerifyCredential(int userId, LockscreenCredential newCredential)
             throws RemoteException {
         setCredential(userId, newCredential);
-        assertVerifyCredential(userId, newCredential);
+        assertVerifyCredential(userId, newCredential, true);
     }
 
     private void setCredential(int userId, LockscreenCredential newCredential)
             throws RemoteException {
-        setCredential(userId, newCredential, nonePassword());
+        setCredential(userId, newCredential, nonePassword(), true);
     }
 
+    // TODO: Remove overload?
     private void clearCredential(int userId, LockscreenCredential oldCredential)
             throws RemoteException {
-        setCredential(userId, nonePassword(), oldCredential);
+        clearCredential(userId, oldCredential, true);
     }
 
+    private void clearCredential(int userId, LockscreenCredential oldCredential, boolean primary)
+            throws RemoteException {
+        setCredential(userId, nonePassword(), oldCredential, primary);
+    }
+
+    // TODO: Remove overload?
     private void setCredential(int userId, LockscreenCredential newCredential,
             LockscreenCredential oldCredential) throws RemoteException {
-        assertTrue(mService.setLockCredential(newCredential, oldCredential, true, userId));
-        assertEquals(newCredential.getType(), mService.getCredentialType(userId));
-        if (newCredential.isNone()) {
-            assertEquals(0, mGateKeeperService.getSecureUserId(userId));
-        } else {
-            assertNotEquals(0, mGateKeeperService.getSecureUserId(userId));
+        setCredential(userId, newCredential, oldCredential, true);
+    }
+
+    // TODO: Rename oldCredential to existingPrimaryCredential?
+    private void setCredential(int userId, LockscreenCredential newCredential,
+            LockscreenCredential oldCredential, boolean primary) throws RemoteException {
+        assertTrue(mService.setLockCredential(newCredential, oldCredential, primary, userId));
+        assertEquals(newCredential.getType(), mService.getCredentialType(userId, primary));
+        if (primary) {
+            if (newCredential.isNone()) {
+                assertEquals(0, mGateKeeperService.getSecureUserId(userId));
+            } else {
+                assertNotEquals(0, mGateKeeperService.getSecureUserId(userId));
+            }
         }
     }
 }
