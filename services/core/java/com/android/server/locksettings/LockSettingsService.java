@@ -1820,10 +1820,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
             if (primary) {
                 notifySeparateProfileChallengeChanged(userId);
-                onPostPasswordChanged(credential, credential, true, userId);
-            } else {
-                onPostPasswordChanged(credential, savedCredential, false, userId);
             }
+            onPostPasswordChanged(credential, primary, userId);
             scheduleGc();
             return true;
         } finally {
@@ -1903,17 +1901,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    /**
-     *
-     * @param newCredential credential that was just set.
-     * @param currentPrimaryCredential current primary credential (possibly same as newCredential).
-     * @param primary whether newCredential is a primary credential.
-     * @param userHandle
-     */
-    private void onPostPasswordChanged(LockscreenCredential newCredential,
-            LockscreenCredential currentPrimaryCredential, boolean primary, int userHandle) {
-        updatePasswordHistory(newCredential, userHandle, primary,
-                currentPrimaryCredential);
+    private void onPostPasswordChanged(LockscreenCredential newCredential, boolean primary, int userHandle) {
+        updatePasswordHistory(newCredential, userHandle, primary);
         if (primary) {
             mContext.getSystemService(TrustManager.class).reportEnabledTrustAgentsChanged(
                     userHandle);
@@ -1927,14 +1916,9 @@ public class LockSettingsService extends ILockSettings.Stub {
      * This must not be called while the mSpManager lock is held, as this calls into
      * DevicePolicyManagerService to get the requested password history length.
      *
-     * @param password the new password being set (primary or secondary).
-     * @param userHandle the user that password belongs to
-     * @param primary whether password is primary or secondary
-     * @param currentPrimaryPassword the current primary password (will be same as password when
-     *                               password is primary).
      */
     private void updatePasswordHistory(LockscreenCredential password, int userHandle,
-            boolean primary, LockscreenCredential currentPrimaryPassword) {
+            boolean primary) {
         if (!primary) {
             // Doesn't make sense to update secondary until admin supports setting a history length
             // for it. Reusing the primary length value isn't ideal.
@@ -1948,9 +1932,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             return;
         }
         // Add the password to the password history.
-        String key = primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
-                LockPatternUtils.SECONDARY_PASSWORD_HISTORY_KEY;
-        String passwordHistory = getString(key, /* defaultValue= */ null, userHandle);
+        String passwordHistory = getString(
+                LockPatternUtils.PASSWORD_HISTORY_KEY, /* defaultValue= */ null, userHandle);
         if (passwordHistory == null) {
             passwordHistory = "";
         }
@@ -1959,8 +1942,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             passwordHistory = "";
         } else {
             Slogf.d(TAG, "Adding new password to password history for user %d", userHandle);
-            final byte[] hashFactor = getHashFactor(currentPrimaryPassword, userHandle);
-            // TODO: Separate salt for primary and secondary?
+            final byte[] hashFactor = getHashFactor(password, userHandle);
             final byte[] salt = getSalt(userHandle).getBytes();
             String hash = password.passwordToHistoryHash(salt, hashFactor);
             if (hash == null) {
@@ -1983,7 +1965,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 passwordHistory = joiner.toString();
             }
         }
-        setString(key, passwordHistory, userHandle);
+        setString(LockPatternUtils.PASSWORD_HISTORY_KEY, passwordHistory, userHandle);
     }
 
     private String getSalt(int userId) {
@@ -3795,7 +3777,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     credential, tokenHandle, token, userId)) {
                 return false;
             }
-            onPostPasswordChanged(credential, credential, true, userId);
+            onPostPasswordChanged(credential, true, userId);
             return true;
         }
 
