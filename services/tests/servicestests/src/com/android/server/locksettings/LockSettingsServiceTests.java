@@ -600,6 +600,41 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertEquals(6, mService.getPinLength(userId, primary));
     }
 
+    @Test
+    public void getCredentialType_secondaryForManagedProfile_throwsException() {
+        assertExpectException(IllegalArgumentException.class,
+                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                () -> mService.getCredentialType(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    @Parameters({"true", "false"})
+    public void getCredentialType_withNullProtector_returnsNone(boolean primary) {
+        int userId = PRIMARY_USER_ID;
+        mService.setCurrentLskfBasedProtectorId(SyntheticPasswordManager.NULL_PROTECTOR_ID, userId,
+                primary);
+        long protectorId = mService.getCurrentLskfBasedProtectorId(userId, primary);
+        assertEquals(SyntheticPasswordManager.NULL_PROTECTOR_ID, protectorId);
+
+        int credentialType = mService.getCredentialType(userId, primary);
+        assertEquals(CREDENTIAL_TYPE_NONE, credentialType);
+    }
+
+    @Test
+    public void getCredentialType_withPin_returnsPin() throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        // Use same PIN for primary and secondary.
+        final LockscreenCredential pin = newPin("123456");
+        setCredential(userId, pin);
+        int credentialType = mService.getCredentialType(userId, true);
+        assertEquals(CREDENTIAL_TYPE_PIN, credentialType);
+
+        setCredential(userId, pin, pin, false);
+        credentialType = mService.getCredentialType(userId, false);
+        assertEquals(CREDENTIAL_TYPE_PIN, credentialType);
+    }
+
     private void checkPasswordHistoryLength(int userId, int expectedLen) {
         String history = mService.getString(LockPatternUtils.PASSWORD_HISTORY_KEY, "", userId);
         String[] hashes = TextUtils.split(history, LockPatternUtils.PASSWORD_HISTORY_DELIMITER);
