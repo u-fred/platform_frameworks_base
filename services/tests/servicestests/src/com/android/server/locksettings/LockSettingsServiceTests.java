@@ -221,18 +221,21 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         // Start with a profile with unified challenge, parent user has not password
         mService.setSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID, false, null);
         assertEquals(0, mGateKeeperService.getSecureUserId(MANAGED_PROFILE_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID,
+                true));
 
         // Set a separate challenge on the profile
         setCredential(MANAGED_PROFILE_USER_ID, newPassword("12345678"));
         assertNotEquals(0, mGateKeeperService.getSecureUserId(MANAGED_PROFILE_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(MANAGED_PROFILE_USER_ID));
+        assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(MANAGED_PROFILE_USER_ID,
+                true));
 
         // Now unify again, profile should become passwordless again
         mService.setSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID, false,
                 newPassword("12345678"));
         assertEquals(0, mGateKeeperService.getSecureUserId(MANAGED_PROFILE_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID,
+                true));
     }
 
     @Test
@@ -613,7 +616,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
             // Success - the exception was expected.
         }
 
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, true));
     }
 
     private void testChangeCredential(int userId, LockscreenCredential newCredential,

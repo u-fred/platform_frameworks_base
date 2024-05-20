@@ -172,7 +172,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
             throws RemoteException {
         mService.initializeSyntheticPassword(userId);
         assertTrue(mService.setLockCredential(credential, nonePassword(), true, userId));
-        assertEquals(credential.getType(), mService.getCredentialType(userId));
+        assertEquals(credential.getType(), mService.getCredentialType(userId, true));
     }
 
     // Tests that the FRP credential is updated when an LSKF-based protector is created for the user
@@ -534,7 +534,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         } catch (UnsupportedOperationException e) {
             // Success - the exception was expected.
         }
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, true));
 
         try {
             mLocalService.setLockCredentialWithToken(pattern, handle, token, PRIMARY_USER_ID);
@@ -542,7 +542,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         } catch (UnsupportedOperationException e) {
             // Success - the exception was expected.
         }
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, true));
     }
 
     @Test

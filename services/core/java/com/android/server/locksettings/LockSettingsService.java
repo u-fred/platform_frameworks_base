@@ -1399,15 +1399,14 @@ public class LockSettingsService extends ILockSettings.Stub {
      * This API is cached; whenever the result would change,
      * {@link com.android.internal.widget.LockPatternUtils#invalidateCredentialTypeCache}
      * must be called.
+     * @param userId The id of the user whose credential type to return.
+     * @param primary Whether to get the primary or secondary credential type. Ignored for special
+     *                users.
      */
     @Override
     public int getCredentialType(int userId, boolean primary) {
         checkPasswordHavePermission();
         return getCredentialTypeInternal(userId, primary);
-    }
-
-    public int getCredentialType(int userId) {
-        return getCredentialType(userId, true);
     }
 
     /**
