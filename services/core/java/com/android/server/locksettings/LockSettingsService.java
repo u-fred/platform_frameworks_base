@@ -1415,10 +1415,7 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
     private int getCredentialTypeInternal(int userId, boolean primary) {
-        if (!primary && isCredentialSharableWithParent(userId)) {
-            throw new IllegalArgumentException(
-                    "Profiles do not have a biometric second factor");
-        }
+        checkNotSecondaryForManagedProfile(userId, primary);
 
         if (isSpecialUserId(userId)) {
             return mSpManager.getSpecialUserCredentialType(userId);
