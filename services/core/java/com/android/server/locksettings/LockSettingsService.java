@@ -1840,21 +1840,18 @@ public class LockSettingsService extends ILockSettings.Stub {
      *     credentials are being tied to its parent's credentials.
      * @throws IllegalArgumentException if setting secondary for a managed profile, or if setting
      *                                  secondary and credential is not a PIN or None.
+     *  // TODO: add all
      */
     private boolean setLockCredentialInternal(LockscreenCredential credential,
             LockscreenCredential savedCredential, boolean primary, int userId,
             boolean isLockTiedToParent) {
         Objects.requireNonNull(credential);
         Objects.requireNonNull(savedCredential);
-        if (!primary) {
-            if (isCredentialSharableWithParent(userId)) {
-                throw new IllegalArgumentException(
-                        "Can not set biometric second factor for a profile");
-            } else if (credential.getType() != CREDENTIAL_TYPE_PIN &&
-                    credential.getType() != CREDENTIAL_TYPE_NONE) {
-                throw new IllegalArgumentException(
-                        "Biometric second factor must be PIN");
-            }
+        checkNotSecondaryForManagedProfile(userId, primary);
+        if (!primary && !(credential.getType() == CREDENTIAL_TYPE_PIN ||
+                credential.getType() == CREDENTIAL_TYPE_NONE)) {
+            throw new IllegalArgumentException(
+                    "Biometric second factor must be PIN or None");
         }
 
         synchronized (mSpManager) {
