@@ -3159,47 +3159,46 @@ public class LockSettingsService extends ILockSettings.Stub {
         final long newProtectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
                 credential, primary, sp, userId);
         Map<Integer, LockscreenCredential> profilePasswords = null;
-        if (!credential.isNone() && primary) {
-            // not needed by synchronizeUnifiedChallengeForProfiles()
-            profilePasswords = null;
+        if (primary) {
+            if (!credential.isNone()) {
+                // not needed by synchronizeUnifiedChallengeForProfiles()
+                profilePasswords = null;
 
-            if (!mSpManager.hasSidForUser(userId)) {
-                mSpManager.newSidForUser(getGateKeeperService(), sp, userId);
-                mSpManager.verifyChallenge(getGateKeeperService(), sp, 0L, userId);
-                if (!FIX_UNLOCKED_DEVICE_REQUIRED_KEYS) {
-                    setKeystorePassword(sp.deriveKeyStorePassword(), userId);
+                if (!mSpManager.hasSidForUser(userId)) {
+                    mSpManager.newSidForUser(getGateKeeperService(), sp, userId);
+                    mSpManager.verifyChallenge(getGateKeeperService(), sp, 0L, userId);
+                    if (!FIX_UNLOCKED_DEVICE_REQUIRED_KEYS) {
+                        setKeystorePassword(sp.deriveKeyStorePassword(), userId);
+                    }
                 }
-            }
-        } else if (primary) {
-            // Maintain the invariant that secondary should not be set if primary is not.
-            if (!isCredentialSharableWithParent(userId) && isUserSecure(userId, false)) {
-                setLockCredentialInternal(LockscreenCredential.createNone(), currentPrimaryCredential,
-                        false, userId, false);
-            }
-
-            // Cache all profile password if they use unified work challenge. This will later be
-            // used to clear the profile's password in synchronizeUnifiedWorkChallengeForProfiles()
-            profilePasswords = getDecryptedPasswordsForAllTiedProfiles(userId);
-
-            mSpManager.clearSidForUser(userId);
-            gateKeeperClearSecureUserId(userId);
-            unlockCeStorage(userId, sp);
-            unlockKeystore(userId, sp);
-            if (FIX_UNLOCKED_DEVICE_REQUIRED_KEYS) {
-                AndroidKeyStoreMaintenance.onUserLskfRemoved(userId);
             } else {
-                setKeystorePassword(null, userId);
+                // Maintain the invariant that secondary should not be set if primary is not.
+                if (!isCredentialSharableWithParent(userId) && isUserSecure(userId, false)) {
+                    setLockCredentialInternal(LockscreenCredential.createNone(),
+                            currentPrimaryCredential, false, userId, false);
+                }
+
+                // Cache all profile password if they use unified work challenge. This will later be
+                // used to clear the profile's password in
+                // synchronizeUnifiedWorkChallengeForProfiles()
+                profilePasswords = getDecryptedPasswordsForAllTiedProfiles(userId);
+
+                mSpManager.clearSidForUser(userId);
+                gateKeeperClearSecureUserId(userId);
+                unlockCeStorage(userId, sp);
+                unlockKeystore(userId, sp);
+                if (FIX_UNLOCKED_DEVICE_REQUIRED_KEYS) {
+                    AndroidKeyStoreMaintenance.onUserLskfRemoved(userId);
+                } else {
+                    setKeystorePassword(null, userId);
+                }
+                removeBiometricsForUser(userId);
             }
-            removeBiometricsForUser(userId);
         }
         setCurrentLskfBasedProtectorId(newProtectorId, userId, primary);
         LockPatternUtils.invalidateCredentialTypeCache();
         setUserPasswordMetrics(credential, userId, primary);
-        // TODO: Review everything in here to see how we should handle for secondary.
         if (primary) {
-            // TODO: I'm ignoring code paths involving other users/profiles as I don't have a way to
-            //  test them. Review this when that changes. This method will only be called for primary
-            //  but maybe we want to synchronize secondary credentials too.
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
             mUnifiedProfilePasswordCache.removePassword(userId);
             if (savedCredentialType != CREDENTIAL_TYPE_NONE) {
