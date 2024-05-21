@@ -234,6 +234,8 @@ public class LockSettingsService extends ILockSettings.Stub {
     private static final String PERMISSION = ACCESS_KEYGUARD_SECURE_STORAGE;
     private static final String BIOMETRIC_PERMISSION = MANAGE_BIOMETRIC;
 
+    // Need this as a constant because it is used in many tests.
+    // TODO: Should we create a subclass of IllegalArgumentException instead?
     public static final String EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE =
             "Managed profiles do not have a biometric second factor";
 
