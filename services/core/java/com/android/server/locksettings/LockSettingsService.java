@@ -1876,8 +1876,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             // Always unlock current primary, even if setting secondary.
             final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId, true);
             AuthenticationResult authResult = mSpManager.unlockLskfBasedProtector(
-                    getGateKeeperService(), currentPrimaryProtectorId,
-                    savedCredential, true, userId, null);
+                    getGateKeeperService(), currentPrimaryProtectorId, savedCredential, true,
+                    userId, null);
             VerifyCredentialResponse response = authResult.gkResponse;
             SyntheticPassword sp = authResult.syntheticPassword;
 
@@ -1902,7 +1902,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private void onPostPasswordChanged(LockscreenCredential newCredential, boolean primary, int userHandle) {
+    private void onPostPasswordChanged(LockscreenCredential newCredential, boolean primary,
+            int userHandle) {
         updatePasswordHistory(newCredential, userHandle, primary);
         if (primary) {
             mContext.getSystemService(TrustManager.class).reportEnabledTrustAgentsChanged(
