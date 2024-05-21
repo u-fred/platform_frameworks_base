@@ -1838,9 +1838,6 @@ public class LockSettingsService extends ILockSettings.Stub {
      *     TODO (b/80170828): Fix this so profile password is always passed in.
      * @param isLockTiedToParent is {@code true} if {@code userId} is a profile and its new
      *     credentials are being tied to its parent's credentials.
-     * @throws IllegalArgumentException if setting secondary for a managed profile, or if setting
-     *                                  secondary and credential is not a PIN or None.
-     *  // TODO: add all
      */
     private boolean setLockCredentialInternal(LockscreenCredential credential,
             LockscreenCredential savedCredential, boolean primary, int userId,
