@@ -1854,8 +1854,10 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         synchronized (mSpManager) {
             if (!primary && !isUserSecure(userId, true)) {
-                throw new IllegalArgumentException(
-                        "Can not set biometric second factor before primary");
+                // Not using IllegalArgument as another process could change value since caller
+                // checked.
+                Slog.w(TAG, "Must have primary password to set biometric second factor");
+                return false;
             }
 
             if (savedCredential.isNone() && isProfileWithUnifiedLock(userId)) {
