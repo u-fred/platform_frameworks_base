@@ -22,6 +22,7 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PATTE
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.server.locksettings.LockSettingsService.EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE;
+import static com.android.server.locksettings.SyntheticPasswordManager.NULL_PROTECTOR_ID;
 import static com.android.server.testutils.TestUtils.assertExpectException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,6 +35,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertThrows;
@@ -50,6 +52,7 @@ import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -508,14 +511,14 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Parameters({"true", "false"})
     public void getPinLength_withNullProtector_returnsUnavailable(boolean primary) {
         int userId = PRIMARY_USER_ID;
-        mService.setCurrentLskfBasedProtectorId(SyntheticPasswordManager.NULL_PROTECTOR_ID, userId,
+        mService.setCurrentLskfBasedProtectorId(NULL_PROTECTOR_ID, userId,
                 primary);
 
         PasswordMetrics pm = mService.getUserPasswordMetrics(userId, primary);
         assertEquals(CREDENTIAL_TYPE_NONE, pm.credType);
 
         long protectorId = mService.getCurrentLskfBasedProtectorId(userId, primary);
-        assertEquals(SyntheticPasswordManager.NULL_PROTECTOR_ID, protectorId);
+        assertEquals(NULL_PROTECTOR_ID, protectorId);
 
         int pinLength = mService.getPinLength(userId, primary);
         assertEquals(PIN_LENGTH_UNAVAILABLE, pinLength);
@@ -611,10 +614,10 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Parameters({"true", "false"})
     public void getCredentialType_withNullProtector_returnsNone(boolean primary) {
         int userId = PRIMARY_USER_ID;
-        mService.setCurrentLskfBasedProtectorId(SyntheticPasswordManager.NULL_PROTECTOR_ID, userId,
+        mService.setCurrentLskfBasedProtectorId(NULL_PROTECTOR_ID, userId,
                 primary);
         long protectorId = mService.getCurrentLskfBasedProtectorId(userId, primary);
-        assertEquals(SyntheticPasswordManager.NULL_PROTECTOR_ID, protectorId);
+        assertEquals(NULL_PROTECTOR_ID, protectorId);
 
         int credentialType = mService.getCredentialType(userId, primary);
         assertEquals(CREDENTIAL_TYPE_NONE, credentialType);
