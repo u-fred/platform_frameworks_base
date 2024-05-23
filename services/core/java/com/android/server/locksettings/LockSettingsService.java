@@ -1811,7 +1811,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     scheduleGc();
                     return false;
                 }
-                notifyPasswordChanged(credential, userId, primary);
+                notifyPasswordChanged(credential, primary, userId);
                 if (primary) {
                     setSeparateProfileChallengeEnabledLocked(userId, true, /* unused */ null);
                 }
@@ -2530,8 +2530,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Call after {@link #setUserPasswordMetrics} so metrics are updated before
      * reporting the password changed.
      */
-    private void notifyPasswordChanged(LockscreenCredential newCredential, @UserIdInt int userId,
-            boolean primary) {
+    private void notifyPasswordChanged(LockscreenCredential newCredential, boolean primary,
+            @UserIdInt int userId) {
         mHandler.post(() -> {
             mInjector.getDevicePolicyManager().reportPasswordChanged(
                     PasswordMetrics.computeForCredential(newCredential),
@@ -3399,7 +3399,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 // the caller like DPMS), otherwise it can lead to deadlock.
                 mHandler.post(() -> unlockUser(userId));
             }
-            notifyPasswordChanged(credential, userId, true);
+            notifyPasswordChanged(credential, true, userId);
             notifySeparateProfileChallengeChanged(userId);
         }
         return result;
