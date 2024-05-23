@@ -1896,7 +1896,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
 
             onSyntheticPasswordUnlocked(userId, sp);
-            setLockCredentialWithSpLocked(credential, savedCredential, primary, sp, userId);
+            if (!primary) {
+                sp = mSpManager.newSyntheticPassword(userId, false);
+            }
+            setLockCredentialWithSpLocked(credential, primary, sp, userId);
             sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent, primary);
             return true;
         }
@@ -3121,15 +3124,12 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Keystore to delete the user's auth-bound keys when the LSKF is cleared.
      *
      * @param credential The new credential to set.
-     * @param currentPrimaryCredential The existing credential. Must be primary credential even if
-     *                                 setting secondary. Can only be null if primary is false.
      * @param primary Whether setting primary or secondary credential.
      * @param sp The synthetic password that is to be protected by credential.
      * @param userId The user whose credential is being set.
      */
     @GuardedBy("mSpManager")
-    private long setLockCredentialWithSpLocked(LockscreenCredential credential,
-            @Nullable LockscreenCredential currentPrimaryCredential, boolean primary,
+    private long setLockCredentialWithSpLocked(LockscreenCredential credential, boolean primary,
             SyntheticPassword sp, int userId) {
         Slogf.i(TAG, "Changing lockscreen credential of user %d; newCredentialType=%s;" +
                         " primary=%b\n", userId, LockPatternUtils.credentialTypeToString(
@@ -3152,12 +3152,6 @@ public class LockSettingsService extends ILockSettings.Stub {
                     }
                 }
             } else {
-                // Maintain the invariant that secondary should not be set if primary is not.
-                if (!isCredentialSharableWithParent(userId) && isUserSecure(userId, false)) {
-                    setLockCredentialInternal(LockscreenCredential.createNone(),
-                            currentPrimaryCredential, false, userId, false);
-                }
-
                 // Cache all profile password if they use unified work challenge. This will later be
                 // used to clear the profile's password in
                 // synchronizeUnifiedWorkChallengeForProfiles()
@@ -3180,6 +3174,17 @@ public class LockSettingsService extends ILockSettings.Stub {
         setUserPasswordMetrics(credential, userId, primary);
         if (primary) {
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
+
+            if (credential.isNone() && !isCredentialSharableWithParent(userId) &&
+                    isUserSecure(userId, false)) {
+                setLockCredentialWithSpLocked(credential, false,
+                        mSpManager.newSyntheticPassword(userId, false), userId);
+                // This must be called after removeBiometricsForUser has been called for userId and
+                // for all profiles, otherwise it can deadlock.
+                notifyPasswordChanged(credential, false, userId);
+                onPostPasswordChanged(credential, false, userId);
+            }
+
             mUnifiedProfilePasswordCache.removePassword(userId);
             if (savedCredentialType != CREDENTIAL_TYPE_NONE) {
                 mSpManager.destroyAllWeakTokenBasedProtectors(userId);
@@ -3426,8 +3431,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             return false;
         }
         onSyntheticPasswordUnlocked(userId, result.syntheticPassword);
-        setLockCredentialWithSpLocked(credential, null, true,
-                result.syntheticPassword, userId);
+        setLockCredentialWithSpLocked(credential, true, result.syntheticPassword, userId);
         return true;
     }
 
