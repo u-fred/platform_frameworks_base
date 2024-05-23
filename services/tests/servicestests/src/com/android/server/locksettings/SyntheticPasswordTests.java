@@ -400,8 +400,11 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     public void testTokenBasedClearPassword() throws RemoteException {
         LockscreenCredential password = newPassword("password");
         LockscreenCredential pattern = newPattern("123654");
+        LockscreenCredential secondaryPin = newPin("123456");
         byte[] token = "some-high-entropy-secure-token".getBytes();
         initSpAndSetCredential(PRIMARY_USER_ID, password);
+        assertTrue(mService.setLockCredential(secondaryPin, password, false, PRIMARY_USER_ID));
+        assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(PRIMARY_USER_ID, false));
         byte[] storageKey = mStorageManager.getUserUnlockToken(PRIMARY_USER_ID);
 
         long handle = mLocalService.addEscrowToken(token, PRIMARY_USER_ID, null);
@@ -412,6 +415,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         assertTrue(mLocalService.isEscrowTokenActive(handle, PRIMARY_USER_ID));
 
         mLocalService.setLockCredentialWithToken(nonePassword(), handle, token, PRIMARY_USER_ID);
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, false));
         flushHandlerTasks(); // flush the unlockUser() call before changing password again
         mLocalService.setLockCredentialWithToken(pattern, handle, token,
                 PRIMARY_USER_ID);
