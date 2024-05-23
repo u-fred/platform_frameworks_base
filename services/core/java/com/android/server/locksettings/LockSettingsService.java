@@ -1682,7 +1682,9 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private boolean isProfileWithUnifiedLock(int userId) {
+
+    @VisibleForTesting
+    boolean isProfileWithUnifiedLock(int userId) {
         return isCredentialSharableWithParent(userId)
                 && !getSeparateProfileChallengeEnabledInternal(userId);
     }
