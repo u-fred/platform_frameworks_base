@@ -837,7 +837,6 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
     @Test
     public void testPasswordChange_NoOrphanedFilesLeft() throws Exception {
-        // TODO: Fails
         LockscreenCredential password = newPassword("password");
         initSpAndSetCredential(PRIMARY_USER_ID, password);
         assertTrue(mService.setLockCredential(password, password, true, PRIMARY_USER_ID));
@@ -857,12 +856,17 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     }
 
     private void assertNoOrphanedFilesLeft(int userId) {
-        String lskfProtectorPrefix = String.format("%016x",
+        String[] lskfProtectorPrefixes = new String[2];
+        lskfProtectorPrefixes[0] = String.format("%016x",
                 mService.getCurrentLskfBasedProtectorId(userId));
+        lskfProtectorPrefixes[1] = String.format("%016x",
+                mService.getCurrentLskfBasedProtectorId(userId, false));
         File directory = mStorage.getSyntheticPasswordDirectoryForUser(userId);
         for (File file : directory.listFiles()) {
             String[] parts = file.getName().split("\\.");
-            if (!parts[0].equals(lskfProtectorPrefix) && !parts[0].equals("0000000000000000")) {
+            if (!parts[0].equals(lskfProtectorPrefixes[0]) &&
+                    !parts[0].equals(lskfProtectorPrefixes[1]) &&
+                    !parts[0].equals("0000000000000000")) {
                 fail("Orphaned state left: " + file.getName());
             }
         }
