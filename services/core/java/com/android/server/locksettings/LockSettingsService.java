@@ -3171,7 +3171,6 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
         setCurrentLskfBasedProtectorId(newProtectorId, userId, primary);
         LockPatternUtils.invalidateCredentialTypeCache();
-        setUserPasswordMetrics(credential, userId, primary);
         if (primary) {
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
 
@@ -3184,8 +3183,11 @@ public class LockSettingsService extends ILockSettings.Stub {
                 notifyPasswordChanged(credential, false, userId);
                 onPostPasswordChanged(credential, false, userId);
             }
-
+        }
+        setUserPasswordMetrics(credential, userId, primary);
+        if (primary) {
             mUnifiedProfilePasswordCache.removePassword(userId);
+            // TODO: Not exactly sure why this is checking savedCredentialType.
             if (savedCredentialType != CREDENTIAL_TYPE_NONE) {
                 mSpManager.destroyAllWeakTokenBasedProtectors(userId);
             }
