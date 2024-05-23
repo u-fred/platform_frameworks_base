@@ -2974,30 +2974,31 @@ public class LockSettingsService extends ILockSettings.Stub {
                     SyntheticPasswordManager.NULL_PROTECTOR_ID,
                     "Cannot reinitialize SP");
 
-            SyntheticPassword sp = mSpManager.newSyntheticPassword(userId, true);
-            long protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
-                    LockscreenCredential.createNone(), true, sp, userId);
-            setCurrentLskfBasedProtectorId(protectorId, userId, true);
+            SyntheticPassword sp = createNoneProtectorWithNewSpAndSetCurrent(userId, true);
             setCeStorageProtection(userId, sp);
             if (FIX_UNLOCKED_DEVICE_REQUIRED_KEYS) {
                 initKeystoreSuperKeys(userId, sp, /* allowExisting= */ false);
             }
             onSyntheticPasswordCreated(userId, sp);
-            Slogf.i(TAG, "Successfully initialized primary synthetic password for user %d",
-                    userId);
 
-            // Ideally we would only create secondary if !isCredentialSharableWithParent() but it's
-            // too early to call that and there's no major harm in doing it this way.
-            SyntheticPassword spSecondary = mSpManager.newSyntheticPassword(userId, false);
-            protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
-                    LockscreenCredential.createNone(), false, spSecondary, userId);
-            setCurrentLskfBasedProtectorId(protectorId, userId, false);
-            Slogf.i(TAG,
-                    "Successfully initialized secondary synthetic password for user %d",
-                    userId);
+            // Too early to check !isCredentialSharableWithParent() so this will create for managed
+            // profiles even though they don't have secondary.
+            createNoneProtectorWithNewSpAndSetCurrent(userId, false);
 
             return sp;
         }
+    }
+
+    @GuardedBy("mSpManager")
+    private SyntheticPassword createNoneProtectorWithNewSpAndSetCurrent(int userId,
+            boolean primary) {
+        SyntheticPassword sp = mSpManager.newSyntheticPassword(userId, primary);
+        long protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
+                LockscreenCredential.createNone(), primary, sp, userId);
+        setCurrentLskfBasedProtectorId(protectorId, userId, primary);
+        Slogf.i(TAG, "Successfully initialized %s synthetic password for user %d",
+                primary ? "primary" : "secondary", userId);
+        return sp;
     }
 
     private String getCurrentProtectorKeySuffix(boolean primaryCredential) {
