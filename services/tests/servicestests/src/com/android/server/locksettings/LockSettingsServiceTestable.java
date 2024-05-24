@@ -210,6 +210,9 @@ public class LockSettingsServiceTestable extends LockSettingsService {
     @Override
     protected boolean isCredentialSharableWithParent(int userId) {
         UserInfo userInfo = mUserManager.getUserInfo(userId);
+        if (userInfo == null) {
+            return false;
+        }
         return userInfo.isCloneProfile() || userInfo.isManagedProfile();
     }
 
