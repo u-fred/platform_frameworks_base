@@ -492,6 +492,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
+    @Parameters({"true", "false"})
+    public void getPinLength_notExistingUser_returnsUnavailable(boolean primary) {
+        assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(DOES_NOT_EXIST_USER_ID,
+                primary));
+    }
+
+    @Test
     public void getPinLength_withCachedMetrics_returnsLength() throws Exception {
         int userId = PRIMARY_USER_ID;
 
