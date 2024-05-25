@@ -624,6 +624,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test
     @Parameters({"true", "false"})
+    public void getCredentialType_notExistingUser_returnsNone(boolean primary) {
+        assertEquals(CREDENTIAL_TYPE_NONE,
+                mService.getCredentialType(DOES_NOT_EXIST_USER_ID, primary));
+    }
+
+    @Test
+    @Parameters({"true", "false"})
     public void getCredentialType_withNullProtector_returnsNone(boolean primary) {
         int userId = PRIMARY_USER_ID;
         mService.setCurrentLskfBasedProtectorId(NULL_PROTECTOR_ID, userId,
