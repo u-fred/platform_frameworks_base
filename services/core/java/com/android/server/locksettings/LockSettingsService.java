@@ -1437,7 +1437,6 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (!checkUserIfSecondary(userId, primary)) {
             return CREDENTIAL_TYPE_NONE;
         }
-
         if (isSpecialUserId(userId)) {
             return mSpManager.getSpecialUserCredentialType(userId);
         }
