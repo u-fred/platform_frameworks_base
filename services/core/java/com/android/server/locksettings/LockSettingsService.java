@@ -1193,10 +1193,23 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private void checkNotSecondaryForManagedProfile(int userId, boolean primary) {
-        if (!primary && isCredentialSharableWithParent(userId)) {
-            throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE);
+    public boolean checkUserIfSecondary(int userId, boolean primary) {
+        if (!primary) {
+            try {
+                getUserManagerFromCache(userId).getUserProperties(UserHandle.of(userId));
+            } catch (IllegalArgumentException e) {
+                // Don't throw IllegalArgument for this as caller can't guarantee user will still
+                // exist.
+                return false;
+            }
+            // Unless UserManagerService.MAX_USER_ID users were created, this should used the
+            // cached UserProperties from above.
+            // TODO: Handle userId recycling?
+            if (isCredentialSharableWithParent(userId)) {
+                throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE);
+            }
         }
+        return true;
     }
 
     private final void checkWritePermission() {
@@ -1358,7 +1371,9 @@ public class LockSettingsService extends ILockSettings.Stub {
     @Override
     public int getPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
-        checkNotSecondaryForManagedProfile(userId, primary);
+        if (!checkUserIfSecondary(userId, primary)) {
+            return PIN_LENGTH_UNAVAILABLE;
+        }
 
         PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
         if (passwordMetrics != null && passwordMetrics.credType == CREDENTIAL_TYPE_PIN) {
@@ -1382,7 +1397,9 @@ public class LockSettingsService extends ILockSettings.Stub {
     @Override
     public boolean refreshStoredPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
-        checkNotSecondaryForManagedProfile(userId, primary);
+        if (!checkUserIfSecondary(userId, primary)) {
+            return false;
+        }
 
         synchronized (mSpManager) {
             PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
@@ -1417,7 +1434,9 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
     private int getCredentialTypeInternal(int userId, boolean primary) {
-        checkNotSecondaryForManagedProfile(userId, primary);
+        if (!checkUserIfSecondary(userId, primary)) {
+            return CREDENTIAL_TYPE_NONE;
+        }
 
         if (isSpecialUserId(userId)) {
             return mSpManager.getSpecialUserCredentialType(userId);
@@ -1846,11 +1865,13 @@ public class LockSettingsService extends ILockSettings.Stub {
             boolean isLockTiedToParent) {
         Objects.requireNonNull(credential);
         Objects.requireNonNull(savedCredential);
-        checkNotSecondaryForManagedProfile(userId, primary);
         if (!primary && !(credential.getType() == CREDENTIAL_TYPE_PIN ||
                 credential.getType() == CREDENTIAL_TYPE_NONE)) {
             throw new IllegalArgumentException(
                     "Biometric second factor must be PIN or None");
+        }
+        if (!checkUserIfSecondary(userId, primary)) {
+            return false;
         }
 
         synchronized (mSpManager) {
@@ -2376,10 +2397,17 @@ public class LockSettingsService extends ILockSettings.Stub {
     private VerifyCredentialResponse doVerifyCredentialInner(LockscreenCredential credential,
             boolean primary, int userId, ICheckCredentialProgressCallback progressCallback,
             @LockPatternUtils.VerifyFlag int flags) {
-        checkNotSecondaryForManagedProfile(userId, primary);
-        if (!primary && flags != 0) {
-            throw new IllegalArgumentException("Invalid flag for biometric second factor");
+        if (!primary) {
+            if (flags != 0) {
+                throw new IllegalArgumentException("Invalid flag for biometric second factor");
+            } else if (isSpecialUserId(userId)) {
+                throw new IllegalArgumentException("Invalid userId for biometric second factor");
+            }
         }
+        if (!checkUserIfSecondary(userId, primary)) {
+            return VerifyCredentialResponse.ERROR;
+        }
+
         if (credential == null || credential.isNone()) {
             throw new IllegalArgumentException("Credential can't be null or empty");
         }
