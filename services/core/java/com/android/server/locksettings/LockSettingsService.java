@@ -2547,14 +2547,13 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private @Nullable PasswordMetrics loadPasswordMetrics(SyntheticPassword sp, int userHandle,
-            boolean primary) {
+    private @Nullable PasswordMetrics loadPasswordMetrics(SyntheticPassword sp, int userHandle) {
         synchronized (mSpManager) {
-            if (!isUserSecure(userHandle, primary)) {
+            if (!isUserSecure(userHandle, true)) {
                 return null;
             }
             return mSpManager.getPasswordMetrics(sp, getCurrentLskfBasedProtectorId(userHandle,
-                    primary), userHandle);
+                    true), userHandle);
         }
     }
 
@@ -3484,7 +3483,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         Slogf.i(TAG, "Unlocked synthetic password for user %d using escrow token", userId);
         onCredentialVerified(authResult.syntheticPassword,
-                loadPasswordMetrics(authResult.syntheticPassword, userId, true), userId, true);
+                loadPasswordMetrics(authResult.syntheticPassword, userId), userId, true);
         return true;
     }
 
@@ -3889,7 +3888,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 mSpManager.verifyChallenge(getGateKeeperService(), sp, 0L, userId);
             }
             Slogf.i(TAG, "Restored synthetic password for user %d using reboot escrow", userId);
-            onCredentialVerified(sp, loadPasswordMetrics(sp, userId, true), userId, true);
+            onCredentialVerified(sp, loadPasswordMetrics(sp, userId), userId, true);
         }
     }
 
