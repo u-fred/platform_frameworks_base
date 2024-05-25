@@ -2396,20 +2396,17 @@ public class LockSettingsService extends ILockSettings.Stub {
     private VerifyCredentialResponse doVerifyCredentialInner(LockscreenCredential credential,
             boolean primary, int userId, ICheckCredentialProgressCallback progressCallback,
             @LockPatternUtils.VerifyFlag int flags) {
-        if (!primary) {
-            if (flags != 0) {
-                throw new IllegalArgumentException("Invalid flag for biometric second factor");
-            } else if (isSpecialUserId(userId)) {
-                throw new IllegalArgumentException("Invalid userId for biometric second factor");
-            }
+        if (credential == null || credential.isNone()) {
+            throw new IllegalArgumentException("Credential can't be null or empty");
         }
+        if (!primary && flags != 0) {
+            throw new IllegalArgumentException("Invalid flags for biometric second factor");
+        }
+        // This check will also prevent us progressing if special user for secondary.
         if (!checkUserIfSecondary(userId, primary)) {
             return VerifyCredentialResponse.ERROR;
         }
 
-        if (credential == null || credential.isNone()) {
-            throw new IllegalArgumentException("Credential can't be null or empty");
-        }
         if (userId == USER_FRP && Settings.Global.getInt(mContext.getContentResolver(),
                 Settings.Global.DEVICE_PROVISIONED, 0) != 0) {
             Slog.e(TAG, "FRP credential can only be verified prior to provisioning.");
