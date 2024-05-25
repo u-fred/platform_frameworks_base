@@ -677,6 +677,15 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
+    @Parameters({"true", "false"})
+    public void setLockCredential_notExistingUser_returnsFalse(boolean primary) {
+        LockscreenCredential credential = newPin("123456");
+        LockscreenCredential savedCredential = newPin("654321");
+        assertFalse(mService.setLockCredential(credential, savedCredential, primary,
+                DOES_NOT_EXIST_USER_ID));
+    }
+
+    @Test
     public void setLockCredential_secondaryNotPinOrNone_throwsException() throws Exception {
         int userId = PRIMARY_USER_ID;
 
