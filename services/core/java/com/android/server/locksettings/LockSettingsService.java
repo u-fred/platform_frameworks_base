@@ -2416,7 +2416,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slog.e(TAG, "Repair mode is not active on the device.");
             return VerifyCredentialResponse.ERROR;
         }
-        Slogf.i(TAG, "Verifying lockscreen credential for user %d", userId);
+        String primaryString = primary ? "primary" : "secondary";
+        Slogf.i(TAG, "Verifying %s lockscreen credential for user %d", primaryString, userId);
 
         final AuthenticationResult authResult;
         VerifyCredentialResponse response;
@@ -2448,7 +2449,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
         }
         if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
-            Slogf.i(TAG, "Successfully verified lockscreen credential for user %d", userId);
+            Slogf.i(TAG, "Successfully verified %s lockscreen credential for user %d",
+                    primaryString, userId);
             onCredentialVerified(authResult.syntheticPassword,
                     PasswordMetrics.computeForCredential(credential), userId, primary);
             if ((flags & VERIFY_FLAG_REQUEST_GK_PW_HANDLE) != 0) {
