@@ -16,6 +16,7 @@
 
 package com.android.server.locksettings;
 
+import static android.os.UserManager.USER_TYPE_PROFILE_MANAGED;
 import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM;
 import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM_SECONDARY;
 import static org.junit.Assert.assertEquals;
@@ -40,6 +41,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
+import android.content.pm.UserProperties;
 import android.content.res.Resources;
 import android.hardware.authsecret.IAuthSecret;
 import android.hardware.face.FaceManager;
@@ -88,6 +90,7 @@ public abstract class BaseLockSettingsServiceTests {
     protected static final int DOES_NOT_EXIST_USER_ID = 30;
 
     protected UserInfo mPrimaryUserInfo;
+    protected UserInfo mManagedProfileInfo;
     protected UserInfo mSecondaryUserInfo;
     protected UserInfo mTertiaryUserInfo;
 
@@ -191,6 +194,13 @@ public abstract class BaseLockSettingsServiceTests {
                                 | UserInfo.FLAG_PRIMARY
                                 | UserInfo.FLAG_MAIN
                                 | UserInfo.FLAG_FULL);
+        mManagedProfileInfo =
+                new UserInfo(
+                        MANAGED_PROFILE_USER_ID,
+                        null,
+                        null,
+                        0,
+                        USER_TYPE_PROFILE_MANAGED);
         mSecondaryUserInfo =
                 new UserInfo(
                         SECONDARY_USER_ID,
@@ -203,6 +213,15 @@ public abstract class BaseLockSettingsServiceTests {
                         null,
                         null,
                         UserInfo.FLAG_INITIALIZED | UserInfo.FLAG_FULL);
+
+        // Enables testing of invalid userIds.
+        when(mUserManager.getUserProperties(eq(UserHandle.of(PRIMARY_USER_ID)))).thenReturn(
+                new UserProperties.Builder().build());
+        when(mUserManager.getUserProperties(eq(UserHandle.of(MANAGED_PROFILE_USER_ID)))).thenReturn(
+                new UserProperties.Builder().build());
+        when(mUserManager.getUserProperties(eq(UserHandle.of(DOES_NOT_EXIST_USER_ID)))).thenThrow(
+                IllegalArgumentException.class);
+        when(mUserManager.getUserInfo(eq(MANAGED_PROFILE_USER_ID))).thenReturn(mManagedProfileInfo);
 
         when(mUserManager.getUserInfo(eq(PRIMARY_USER_ID))).thenReturn(mPrimaryUserInfo);
         when(mUserManagerInternal.getUserInfo(eq(PRIMARY_USER_ID))).thenReturn(mPrimaryUserInfo);
@@ -217,6 +236,8 @@ public abstract class BaseLockSettingsServiceTests {
                 .thenReturn(mSecondaryUserInfo);
         when(mUserManager.getUserInfo(eq(TERTIARY_USER_ID))).thenReturn(mTertiaryUserInfo);
         when(mUserManagerInternal.getUserInfo(eq(TERTIARY_USER_ID))).thenReturn(mTertiaryUserInfo);
+
+
 
         final ArrayList<UserInfo> allUsers = new ArrayList<>(mPrimaryUserProfiles);
         allUsers.add(mSecondaryUserInfo);

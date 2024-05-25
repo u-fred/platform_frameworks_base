@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Parcel;
 import android.os.Process;
 import android.os.RemoteException;
+import android.os.UserManager;
 import android.os.storage.IStorageManager;
 import android.security.KeyStore;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
@@ -205,6 +206,12 @@ public class LockSettingsServiceTestable extends LockSettingsService {
 
     @Override
     void initKeystoreSuperKeys(int userId, SyntheticPassword sp, boolean allowExisting) {
+    }
+
+    @Override
+    protected UserManager getUserManagerFromCache(int userId) {
+        // This isn't a perfect substitute for the original, good enough for now.
+        return mUserManager;
     }
 
     @Override

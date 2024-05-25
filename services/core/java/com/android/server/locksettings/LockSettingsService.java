@@ -1988,7 +1988,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         return mInjector.getDevicePolicyManager().getPasswordHistoryLength(null, userId);
     }
 
-    private UserManager getUserManagerFromCache(int userId) {
+    @VisibleForTesting /** Note: this method is overridden in unit tests */
+    protected UserManager getUserManagerFromCache(int userId) {
         UserHandle userHandle = UserHandle.of(userId);
         if (mUserManagerCache.containsKey(userHandle)) {
             return mUserManagerCache.get(userHandle);
