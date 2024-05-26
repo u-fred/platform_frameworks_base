@@ -100,6 +100,15 @@ import libcore.util.HexEncoding;
  *    generates a HardwareAuthToken (but only when the user has LSKF).  That HardwareAuthToken can
  *    be provided to KeyMint to authorize the use of the user's authentication-bound Keystore keys.
  *
+ * Invariants for secondary SPs:
+ *
+ *  - Because we require the user to verify only their primary LSKF when setting secondary, it is
+ *    not currently possible to maintain a persistent secondary SP between secondary LSKF changes.
+ *    We could overcome this by storing the secondary SP encrypted by a subkey of the primary SP
+ *    but it's not done for now. Main reason to use secondary SP instead of a null value is to avoid
+ *    having to add additional conditionals to protector handling.
+ *
+ *
  * Files stored on disk for each user:
  *   For the primary (not secondary) SP itself, stored under NULL_PROTECTOR_ID:
  *     SP_HANDLE_NAME: GateKeeper password handle of a password derived from the SP.  Only exists
@@ -110,7 +119,7 @@ import libcore.util.HexEncoding;
  *                              encrypted using a secret derived from the SP using
  *                              PERSONALIZATION_AUTHSECRET_ENCRYPTION_KEY.
  *
- *     For each protector, stored under the corresponding protector ID:
+ *     For each protector (primary and secondary), stored under the corresponding protector ID:
  *       SP_BLOB_NAME: The encrypted SP secret (the SP itself or the P0 value).  Always exists.
  *       PASSWORD_DATA_NAME: Data used for LSKF verification, such as the scrypt salt and
  *                           parameters.  Only exists for LSKF-based protectors.  Doesn't exist when
