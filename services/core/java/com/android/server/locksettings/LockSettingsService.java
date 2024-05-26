@@ -249,6 +249,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     private static final String MIGRATED_KEYSTORE_NS = "migrated_keystore_namespace";
     private static final String MIGRATED_SP_CE_ONLY = "migrated_all_users_to_sp_and_bound_ce";
     private static final String MIGRATED_SP_FULL = "migrated_all_users_to_sp_and_bound_keys";
+    private static final String MIGRATED_SECONDARY_SP = "migrated_all_users_to_secondary_sp";
 
     private static final boolean FIX_UNLOCKED_DEVICE_REQUIRED_KEYS =
             android.security.Flags.fixUnlockedDeviceRequiredKeysV2();
@@ -1087,6 +1088,17 @@ public class LockSettingsService extends ILockSettings.Stub {
                     // Ensure the full migration runs again the next time the flag is enabled...
                     setBoolean(MIGRATED_SP_FULL, false, 0);
                 }
+            }
+
+            // TODO: This has many issues and is just being added as a placeholder. Fix it later.
+            if (!getBoolean(MIGRATED_SECONDARY_SP, false, 0)) {
+                synchronized (mSpManager) {
+                    for (UserInfo user : mUserManager.getAliveUsers()) {
+                        ;
+                       // createNoneProtectorWithNewSpAndSetCurrent(user.id, false);
+                    }
+                }
+                setBoolean(MIGRATED_SECONDARY_SP, true, 0);
             }
 
             mThirdPartyAppsStarted = true;
@@ -3012,8 +3024,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
             onSyntheticPasswordCreated(userId, sp);
 
-            // Too early to check !isCredentialSharableWithParent() so this will create for managed
-            // profiles even though they don't have secondary.
+            // When called by createNewUser, it is too early to check
+            // !isCredentialSharableWithParent() so this will create for credential shareable users
+            // even though they don't have secondary.
+            // TODO: Add isCredentialShareable argument?
             createNoneProtectorWithNewSpAndSetCurrent(userId, false);
 
             return sp;
