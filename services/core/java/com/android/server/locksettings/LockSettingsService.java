@@ -981,7 +981,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                             DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED, userInfo.id);
 
                     mSpManager.migrateFrpPasswordLocked(
-                            getCurrentLskfBasedProtectorId(userInfo.id),
+                            getCurrentLskfBasedProtectorId(userInfo.id, true),
                             userInfo,
                             redactActualQualityToMostLenientEquivalentQuality(actualQuality));
                 }
@@ -1099,7 +1099,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.d(TAG, "User %d is secured; no migration needed", userId);
             return;
         }
-        long protectorId = getCurrentLskfBasedProtectorId(userId);
+        long protectorId = getCurrentLskfBasedProtectorId(userId, true);
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
             Slogf.i(TAG, "Migrating unsecured user %d to SP-based credential", userId);
             initializeSyntheticPassword(userId);
@@ -1123,7 +1123,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.d(TAG, "User %d is secured; no migration needed", userId);
             return;
         }
-        long protectorId = getCurrentLskfBasedProtectorId(userId);
+        long protectorId = getCurrentLskfBasedProtectorId(userId, true);
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
             Slogf.i(TAG, "Migrating unsecured user %d to SP-based credential", userId);
             initializeSyntheticPassword(userId);
@@ -2243,7 +2243,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
             Slogf.i(TAG, "Unwrapping synthetic password for unsecured user %d", userId);
             AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
-                    getGateKeeperService(), getCurrentLskfBasedProtectorId(userId),
+                    getGateKeeperService(), getCurrentLskfBasedProtectorId(userId, true),
                     LockscreenCredential.createNone(), true, userId, null);
             if (result.syntheticPassword == null) {
                 Slogf.wtf(TAG, "Failed to unwrap synthetic password for unsecured user %d", userId);
@@ -3001,7 +3001,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     SyntheticPassword initializeSyntheticPassword(int userId) {
         synchronized (mSpManager) {
             Slogf.i(TAG, "Initializing synthetic passwords for user %d", userId);
-            Preconditions.checkState(getCurrentLskfBasedProtectorId(userId) ==
+            Preconditions.checkState(getCurrentLskfBasedProtectorId(userId, true) ==
                     SyntheticPasswordManager.NULL_PROTECTOR_ID,
                     "Cannot reinitialize SP");
 
@@ -3032,8 +3032,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         return sp;
     }
 
-    private String getCurrentProtectorKeySuffix(boolean primaryCredential) {
-        if (primaryCredential) {
+    private String getCurrentProtectorKeySuffix(boolean primary) {
+        if (primary) {
             // This way we don't need to migrate existing protectors when user updates.
             return "";
         }
@@ -3041,24 +3041,18 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     @VisibleForTesting
-    long getCurrentLskfBasedProtectorId(int userId) {
-        return getCurrentLskfBasedProtectorId(userId, true);
-    }
-
-    @VisibleForTesting
-    long getCurrentLskfBasedProtectorId(int userId, boolean primaryCredential) {
-        String keySuffix = getCurrentProtectorKeySuffix(primaryCredential);
+    long getCurrentLskfBasedProtectorId(int userId, boolean primary) {
+        String keySuffix = getCurrentProtectorKeySuffix(primary);
 
         return getLong(CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix,
                 SyntheticPasswordManager.NULL_PROTECTOR_ID, userId);
     }
 
     @VisibleForTesting
-    void setCurrentLskfBasedProtectorId(long newProtectorId, int userId,
-            boolean primaryCredential) {
-        String keySuffix = getCurrentProtectorKeySuffix(primaryCredential);
+    void setCurrentLskfBasedProtectorId(long newProtectorId, int userId, boolean primary) {
+        String keySuffix = getCurrentProtectorKeySuffix(primary);
 
-        final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, primaryCredential);
+        final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, primary);
         setLong(CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, newProtectorId, userId);
         setLong(PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, oldProtectorId, userId);
         setLong(LSKF_LAST_CHANGED_TIME_KEY_BASE + keySuffix, System.currentTimeMillis(),
@@ -3348,7 +3342,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // LSKF-based one).
             SyntheticPassword sp = null;
             if (!isUserSecure(userId, true)) {
-                long protectorId = getCurrentLskfBasedProtectorId(userId);
+                long protectorId = getCurrentLskfBasedProtectorId(userId, true);
                 sp = mSpManager.unlockLskfBasedProtector(getGateKeeperService(), protectorId,
                         LockscreenCredential.createNone(), true, userId, null).syntheticPassword;
             }
@@ -3394,7 +3388,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     private boolean removeEscrowToken(long handle, int userId) {
         synchronized (mSpManager) {
-            if (handle == getCurrentLskfBasedProtectorId(userId)) {
+            if (handle == getCurrentLskfBasedProtectorId(userId, true)) {
                 Slog.w(TAG, "Escrow token handle equals LSKF-based protector ID");
                 return false;
             }
