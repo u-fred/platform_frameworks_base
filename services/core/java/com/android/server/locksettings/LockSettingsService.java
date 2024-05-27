@@ -1433,8 +1433,9 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link com.android.internal.widget.LockPatternUtils#invalidateCredentialTypeCache}
      * must be called.
      * @param userId The id of the user whose credential type to return.
-     * @param primary Whether to get the primary or secondary credential type. Ignored for special
-     *                users.
+     * @param primary Whether to get the primary or biometric second factor credential type. Must
+     *                set this to true when userId is a special user, or a user that can share
+     *                credentials with parent.
      */
     @Override
     public int getCredentialType(int userId, boolean primary) {
@@ -1448,11 +1449,15 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
     private int getCredentialTypeInternal(int userId, boolean primary) {
+        if (isSpecialUserId(userId)) {
+            if (primary) {
+                return mSpManager.getSpecialUserCredentialType(userId);
+            } else {
+                throw new IllegalArgumentException("Primary must be true for special user");
+            }
+        }
         if (!checkUserIfSecondary(userId, primary)) {
             return CREDENTIAL_TYPE_NONE;
-        }
-        if (isSpecialUserId(userId)) {
-            return mSpManager.getSpecialUserCredentialType(userId);
         }
         synchronized (mSpManager) {
             final long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
