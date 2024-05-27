@@ -1719,7 +1719,6 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-
     @VisibleForTesting
     boolean isProfileWithUnifiedLock(int userId) {
         return isCredentialSharableWithParent(userId)
@@ -1894,8 +1893,8 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         synchronized (mSpManager) {
             if (!primary && !isUserSecure(userId, true)) {
-                // Not using IllegalArgument as another process could change value since caller
-                // checked.
+                // Not using IllegalArgument as caller can't guarantee that user is secure at time
+                // this is executed.
                 Slog.w(TAG, "Must have primary password to set biometric second factor");
                 return false;
             }
