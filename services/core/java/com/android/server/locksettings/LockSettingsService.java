@@ -3414,7 +3414,8 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     private boolean removeEscrowToken(long handle, int userId) {
         synchronized (mSpManager) {
-            if (handle == getCurrentLskfBasedProtectorId(userId, true)) {
+            if (handle == getCurrentLskfBasedProtectorId(userId, true) ||
+                    handle == getCurrentLskfBasedProtectorId(userId, false)) {
                 Slog.w(TAG, "Escrow token handle equals LSKF-based protector ID");
                 return false;
             }
