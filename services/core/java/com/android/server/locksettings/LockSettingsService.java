@@ -3369,7 +3369,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             if (!isUserSecure(userId, true)) {
                 long protectorId = getCurrentLskfBasedProtectorId(userId, true);
                 sp = mSpManager.unlockLskfBasedProtector(getGateKeeperService(), protectorId,
-                        LockscreenCredential.createNone(), true, userId, null).syntheticPassword;
+                        LockscreenCredential.createNone(), true, userId, null)
+                        .syntheticPassword;
             }
             disableEscrowTokenOnNonManagedDevicesIfNeeded(userId);
             if (!mSpManager.hasEscrowData(userId)) {
