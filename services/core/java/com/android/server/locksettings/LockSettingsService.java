@@ -1404,6 +1404,8 @@ public class LockSettingsService extends ILockSettings.Stub {
     /**
      * {@link LockPatternUtils#refreshStoredPinLength(int)}
      * @param userId user id of the user whose pin length we want to save
+     * @param primary Whether to refresh the primary or biometric second factor credential. Must be
+     *               true if userId is a user that can share credentials with parent.
      * @return true/false depending on whether PIN length has been saved or not
      */
     @Override
