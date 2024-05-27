@@ -243,7 +243,6 @@ import static android.provider.Telephony.Carriers.ENFORCE_KEY;
 import static android.provider.Telephony.Carriers.ENFORCE_MANAGED_URI;
 import static android.provider.Telephony.Carriers.INVALID_APN_ID;
 import static android.security.keystore.AttestationUtils.USE_INDIVIDUAL_ATTESTATION;
-
 import static com.android.internal.logging.nano.MetricsProto.MetricsEvent.PROVISIONING_ENTRY_POINT_ADB;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_DPM_LOCK_NOW;
@@ -449,7 +448,6 @@ import android.util.AtomicFile;
 import android.util.DebugUtils;
 import android.util.IndentingPrintWriter;
 import android.util.IntArray;
-import android.util.Log;
 import android.util.Pair;
 import android.util.Slog;
 import android.util.SparseArray;
@@ -885,6 +883,9 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @ChangeId
     @EnabledSince(targetSdkVersion = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     static final long ENABLE_COEXISTENCE_CHANGE = 260560985L;
+
+    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER =
+            "Credential shareable users do not have a biometric second factor";
 
     final Context mContext;
     final Injector mInjector;
@@ -5450,6 +5451,20 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         }
     }
 
+    private boolean checkUserIfSecondary(int userHandle, boolean primary) {
+        if (!primary) {
+            try {
+                boolean isShareable = mInjector.binderWithCleanCallingIdentity(() ->
+                        mLockPatternUtils.isCredentialSharableWithParent(userHandle, true));
+                Preconditions.checkCallAuthorization(!isShareable,
+                        EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER);
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary,
             int userHandle, boolean parent) {
@@ -5457,14 +5472,12 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             return 0;
         }
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
+        if (!checkUserIfSecondary(userHandle, primary)) {
+            return 0;
+        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
-
-        if (!primary) {
-            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
-                    "Managed profiles do not have a biometric second factor");
-        }
 
         synchronized (getLockObject()) {
             if (!isSystemUid(caller)) {
@@ -8037,6 +8050,9 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         if (!mHasFeature || !mLockPatternUtils.hasSecureLockScreen()) {
             return;
         }
+        if (!checkUserIfSecondary(userId, primary)) {
+            return;
+        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(isSystemUid(caller));
@@ -8044,10 +8060,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         if (!isSeparateProfileChallengeEnabled(userId)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userId), "You can "
                     + "not set the active password for a managed profile, userId = %d", userId);
-        }
-        if (!primary) {
-            Preconditions.checkCallAuthorization(!isManagedProfile(userId),
-                    "Managed profiles do not have a biometric second factor");
         }
 
         DevicePolicyData policy = getUserData(userId);
@@ -8107,6 +8119,9 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @Override
     public void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
+        if (!checkUserIfSecondary(userHandle, primary)) {
+            return;
+        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
@@ -8115,10 +8130,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
                     "You can not report failed password attempt if separate profile challenge is "
                             + "not in place for a managed profile, userId = %d", userHandle);
-        }
-        if (!primary) {
-            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
-                    "Managed profiles do not have a biometric second factor");
         }
 
         boolean wipeData = false;
@@ -8210,14 +8221,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @Override
     public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
+        if (!checkUserIfSecondary(userHandle, primary)) {
+            return;
+        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
-        if (!primary) {
-            Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
-                    "Managed profiles do not have a biometric second factor");
-        }
 
         synchronized (getLockObject()) {
             DevicePolicyData policy = getUserData(userHandle);
