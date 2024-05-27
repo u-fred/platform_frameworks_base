@@ -62,6 +62,7 @@ import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChang
 import static com.android.server.SystemTimeZone.TIME_ZONE_CONFIDENCE_HIGH;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_PROFILE_OFF_DEADLINE;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_TURN_PROFILE_ON_NOTIFICATION;
+import static com.android.server.devicepolicy.DevicePolicyManagerService.EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER;
 import static com.android.server.devicepolicy.DpmMockContext.CALLER_USER_HANDLE;
 import static com.android.server.testutils.TestUtils.assertExpectException;
 import static com.google.common.truth.Truth.assertThat;
@@ -79,6 +80,7 @@ import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.reset;
@@ -5160,8 +5162,55 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void getCurrentFailedPasswordAttempts_SecondaryForCredShareableUser_ThrowsException() {
+        final int MANAGED_PROFILE_USER_ID = 15;
+
+        doReturn(true).when(getServices().lockPatternUtils)
+                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
+
+        assertExpectException(SecurityException.class,
+                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
+                () -> dpm.getCurrentFailedPasswordAttempts(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    public void getCurrentFailedPasswordAttempts_SecondaryForNotExistUser_ReturnsZero() {
+        final int DOES_NOT_EXIST_USER_ID = 15;
+
+        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
+                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(DOES_NOT_EXIST_USER_ID, false))
+                .isEqualTo(0);
+    }
+
+    @Test
+    public void reportFailedPasswordAttempt_SecondaryForCredShareableUser_ThrowsException() {
+        final int MANAGED_PROFILE_USER_ID = 15;
+
+        doReturn(true).when(getServices().lockPatternUtils)
+                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
+
+        assertExpectException(SecurityException.class,
+                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
+                () -> dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    public void reportFailedPasswordAttempt_SecondaryForNotExistUser_Returns() {
+        final int DOES_NOT_EXIST_USER_ID = 15;
+
+        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
+                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+
+        // Should not throw.
+        dpm.reportFailedPasswordAttempt(DOES_NOT_EXIST_USER_ID, false);
+
+    }
+
+    @Test
     @Parameters({ "true", "false" })
-    public void testGetCurrentFailedPasswordAttemptsAndReportFailedPasswordAttempt(
+    public void reportFailedPasswordAttempt_Success_IncrementsGetCurrentFailedPasswordAttempts(
             boolean primary) {
         mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
@@ -5178,56 +5227,31 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void testGetCurrentFailedPasswordAttempts_SecondaryWithManagedProfile() throws
-            Exception {
+    public void reportSuccessfulPasswordAttempt_SecondaryForCredShareableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
-        final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
-        addManagedProfile(admin1, MANAGED_PROFILE_ADMIN_UID, admin1);
-
-        mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
-        mServiceContext.permissions.add(permission.INTERACT_ACROSS_USERS_FULL);
-
-        assertExpectException(SecurityException.class,
-                "Managed profiles do not have a biometric second factor",
-                () -> dpm.getCurrentFailedPasswordAttempts(MANAGED_PROFILE_USER_ID, false));
-    }
-    @Test
-    public void testReportFailedPasswordAttempt_SecondaryWithManagedProfile() throws
-            Exception {
-        final int MANAGED_PROFILE_USER_ID = 15;
-        final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
-        addManagedProfile(admin1, MANAGED_PROFILE_ADMIN_UID, admin1);
-
-        mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
-        mServiceContext.permissions.add(permission.INTERACT_ACROSS_USERS_FULL);
-        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
 
         doReturn(true).when(getServices().lockPatternUtils)
-                .isSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID);
+                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
         assertExpectException(SecurityException.class,
-                "Managed profiles do not have a biometric second factor",
-                () -> dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
-    }
-
-    @Test
-    public void testReportSuccessfulPassword_SecondaryWithManagedProfile() throws Exception {
-        final int MANAGED_PROFILE_USER_ID = 15;
-        final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
-        addManagedProfile(admin1, MANAGED_PROFILE_ADMIN_UID, admin1);
-
-        mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
-        mServiceContext.permissions.add(permission.INTERACT_ACROSS_USERS_FULL);
-        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
-
-        assertExpectException(SecurityException.class,
-                "Managed profiles do not have a biometric second factor",
+                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
                 () -> dpm.reportSuccessfulPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
     }
 
     @Test
+    public void reportSuccessfulPasswordAttempt_SecondaryForNotExistUser_Returns() {
+        final int DOES_NOT_EXIST_USER_ID = 15;
+
+        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
+                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+
+        // Should not throw.
+        dpm.reportSuccessfulPasswordAttempt(DOES_NOT_EXIST_USER_ID, false);
+    }
+
+    @Test
     @Parameters({ "true", "false" })
-    public void testReportSuccessfulPassword_ZeroFailedAttemptCounter(boolean primary) {
+    public void reportSuccessfulPassword_ZeroFailedAttemptCounter_DoesNotSave(boolean primary) {
         mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
@@ -5250,7 +5274,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
     @Test
     @Parameters({ "true", "false" })
-    public void testReportSuccessfulPassword_NonZeroFailedAttemptCounter(boolean primary) {
+    public void reportSuccessfulPassword_NonZeroFailedAttemptCounter_ResetsCounterAndSaves(
+            boolean primary) {
         mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
@@ -5273,26 +5298,33 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void testReportPasswordChanged_SecondaryWithManagedProfile() throws
-            Exception {
+    public void reportPasswordChanged_SecondaryForCredShareableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
-        final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
-        addManagedProfile(admin1, MANAGED_PROFILE_ADMIN_UID, admin1);
-
-        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
 
         doReturn(true).when(getServices().lockPatternUtils)
-                .isSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID);
+                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
         assertExpectException(SecurityException.class,
-                "Managed profiles do not have a biometric second factor",
+                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
                 () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
                         MANAGED_PROFILE_USER_ID, false));
     }
 
     @Test
+    public void reportPasswordChanged_SecondaryForNotExistUser_Returns() {
+        final int DOES_NOT_EXIST_USER_ID = 15;
+
+        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
+                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+
+        // Should not throw.
+        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), DOES_NOT_EXIST_USER_ID,
+                false);
+    }
+
+    @Test
     @Parameters({ "true", "false" })
-    public void testReportPasswordChanged(boolean primary) {
+    public void reportPasswordChanged_Success_ResetsCounterAndSaves(boolean primary) {
         mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         final int userId = UserHandle.getUserId(mContext.binder.callingUid);
 
