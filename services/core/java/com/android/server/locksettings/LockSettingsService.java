@@ -41,6 +41,7 @@ import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.internal.widget.LockPatternUtils.USER_REPAIR_MODE;
 import static com.android.internal.widget.LockPatternUtils.VERIFY_FLAG_REQUEST_GK_PW_HANDLE;
 import static com.android.internal.widget.LockPatternUtils.VERIFY_FLAG_WRITE_REPAIR_MODE_PW;
+import static com.android.internal.widget.LockPatternUtils.credentialTypeToPasswordQuality;
 import static com.android.internal.widget.LockPatternUtils.frpCredentialEnabled;
 import static com.android.internal.widget.LockPatternUtils.isSpecialUserId;
 import static com.android.internal.widget.LockPatternUtils.pinOrPasswordQualityToCredentialType;
@@ -3557,12 +3558,27 @@ public class LockSettingsService extends ILockSettings.Stub {
             pw.println("User " + userId);
             pw.increaseIndent();
             synchronized (mSpManager) {
-                pw.println(TextUtils.formatSimple("LSKF-based SP protector ID: %016x",
+                String keySuffix = getCurrentProtectorKeySuffix(true);
+                pw.println(TextUtils.formatSimple("Primary LSKF-based SP protector ID: %016x",
                         getCurrentLskfBasedProtectorId(userId, true)));
                 pw.println(TextUtils.formatSimple(
                             "Primary LSKF last changed: %s (previous protector: %016x)",
-                            timestampToString(getLong(LSKF_LAST_CHANGED_TIME_KEY_BASE, 0, userId)),
-                            getLong(PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE, 0, userId)));
+                            timestampToString(getLong(LSKF_LAST_CHANGED_TIME_KEY_BASE + keySuffix,
+                                    0, userId)),
+                            getLong(PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, 0,
+                                    userId)));
+
+                if (isCredentialSharableWithParent(userId)) {
+                    keySuffix = getCurrentProtectorKeySuffix(false);
+                    pw.println(TextUtils.formatSimple("Secondary LSKF-based SP protector ID: %016x",
+                            getCurrentLskfBasedProtectorId(userId, false)));
+                    pw.println(TextUtils.formatSimple(
+                            "Secondary LSKF last changed: %s (previous protector: %016x)",
+                            timestampToString(getLong(LSKF_LAST_CHANGED_TIME_KEY_BASE + keySuffix,
+                                    0, userId)),
+                            getLong(PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, 0,
+                                    userId)));
+                }
             }
             try {
                 pw.println(TextUtils.formatSimple("SID: %016x",
@@ -3572,12 +3588,23 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
             // It's OK to dump the credential type since anyone with physical access can just
             // observe it from the keyguard directly.
-            pw.println("Quality: " + getKeyguardStoredQuality(userId));
-            pw.println("CredentialType: " + LockPatternUtils.credentialTypeToString(
+            pw.println("Primary Quality: " + getKeyguardStoredQuality(userId));
+            pw.println("Primary CredentialType: " + LockPatternUtils.credentialTypeToString(
                     getCredentialTypeInternal(userId, true)));
-            pw.println("SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(userId));
-            pw.println(TextUtils.formatSimple("Metrics: %s",
+            pw.println("Primary SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(
+                    userId));
+            pw.println(TextUtils.formatSimple("Primary Metrics: %s",
                     getUserPasswordMetrics(userId, true) != null ? "known" : "unknown"));
+
+            if (isCredentialSharableWithParent(userId)) {
+                pw.println("Secondary Quality: " + credentialTypeToPasswordQuality(
+                        getCredentialTypeInternal(userId, false)));
+                pw.println("Secondary CredentialType: " + LockPatternUtils.credentialTypeToString(
+                        getCredentialTypeInternal(userId, false)));
+                pw.println(TextUtils.formatSimple("Secondary Metrics: %s",
+                        getUserPasswordMetrics(userId, false) != null ? "known" : "unknown"));
+            }
+
             pw.decreaseIndent();
         }
         pw.println();
@@ -3841,7 +3868,6 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         @Override
         public PasswordMetrics getUserPasswordMetrics(int userHandle) {
-            // TODO: Review whether it is worth implementing this for secondary.
             final long identity = Binder.clearCallingIdentity();
             try {
                 if (isProfileWithUnifiedLock(userHandle)) {
