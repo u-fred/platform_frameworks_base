@@ -1205,7 +1205,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    public boolean checkUserIfSecondary(int userId, boolean primary) {
+    private boolean checkUserIfSecondary(int userId, boolean primary) {
         if (!primary) {
             try {
                 getUserManagerFromCache(userId).getUserProperties(UserHandle.of(userId));
