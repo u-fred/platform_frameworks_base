@@ -2392,8 +2392,9 @@ public class LockSettingsService extends ILockSettings.Stub {
     /**
      * Verify user credential and unlock the user.
      * @param credential User's lockscreen credential
-     * @param primary Whether credential is a primary or secondary credential (must be true if
-     *                userId is a profile user).
+     * @param primary Whether to verify the primary or biometric second factor. Must set this to
+     *                true when userId is a special user, or a user that can share credentials with
+     *                parent.
      * @param userId User to verify the credential for
      * @param progressCallback Receive progress callbacks
      * @param flags See {@link LockPatternUtils.VerifyFlag}
@@ -2417,10 +2418,13 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (credential == null || credential.isNone()) {
             throw new IllegalArgumentException("Credential can't be null or empty");
         }
-        if (!primary && flags != 0) {
-            throw new IllegalArgumentException("Invalid flags for biometric second factor");
+        if (!primary) {
+            if (flags != 0) {
+                throw new IllegalArgumentException("Invalid flags for biometric second factor");
+            } else if (isSpecialUserId(userId)) {
+                throw new IllegalArgumentException("Primary must be true for special user");
+            }
         }
-        // This check will also prevent us progressing if special user for secondary.
         if (!checkUserIfSecondary(userId, primary)) {
             return VerifyCredentialResponse.ERROR;
         }
