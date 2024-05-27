@@ -3170,7 +3170,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Keystore to delete the user's auth-bound keys when the LSKF is cleared.
      *
      * @param credential The new credential to set.
-     * @param primary Whether setting primary or secondary credential.
+     * @param primary Whether to set the primary or biometric second factor credential. Must be true
+     *               if userId is user that can share credentials with parent.
      * @param sp The synthetic password that is to be protected by credential.
      * @param userId The user whose credential is being set.
      */
