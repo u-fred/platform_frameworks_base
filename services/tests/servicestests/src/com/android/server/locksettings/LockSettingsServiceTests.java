@@ -881,11 +881,11 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test
     @Parameters({"true", "false"})
-    public void verifyCredential_secondaryForSpecialUser_returnsError(boolean primary) {
+    public void verifyCredential_notExistingUser_returnsError(boolean primary) {
         LockscreenCredential credentialToVerify = newPin("123456");
 
         assertEquals(VerifyCredentialResponse.ERROR, mService.verifyCredential(credentialToVerify,
-                primary, USER_FRP, 0));
+                primary, DOES_NOT_EXIST_USER_ID, 0));
     }
 
     @Test
