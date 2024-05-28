@@ -698,7 +698,7 @@ public class LockPatternUtils {
     }
 
     public boolean isBiometricSecondFactorEnabled(int userId) {
-        return getActivePasswordQuality(userId, false) != PASSWORD_QUALITY_UNSPECIFIED;
+        return getActivePasswordQuality(userId, false) == PASSWORD_QUALITY_NUMERIC;
     }
 
     /**
