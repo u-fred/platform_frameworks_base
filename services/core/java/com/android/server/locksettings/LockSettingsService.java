@@ -237,7 +237,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     // Need this as a constant because it is used in many tests.
     // TODO: Should we create a subclass of IllegalArgumentException instead?
-    public static final String EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE =
+    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER =
             "Managed profiles do not have a biometric second factor";
 
     private static final int PROFILE_KEY_IV_SIZE = 12;
@@ -1219,7 +1219,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // cached UserProperties from above.
             // TODO: Handle userId recycling?
             if (isCredentialSharableWithParent(userId)) {
-                throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE);
+                throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER);
             }
         }
         return true;

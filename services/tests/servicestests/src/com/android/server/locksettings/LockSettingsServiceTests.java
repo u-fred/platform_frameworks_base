@@ -22,7 +22,7 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PATTE
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
-import static com.android.server.locksettings.LockSettingsService.EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE;
+import static com.android.server.locksettings.LockSettingsService.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER;
 import static com.android.server.locksettings.SyntheticPasswordManager.NULL_PROTECTOR_ID;
 import static com.android.server.testutils.TestUtils.assertExpectException;
 import static org.junit.Assert.assertEquals;
@@ -488,7 +488,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void getPinLength_secondaryForManagedProfile_throwsException() {
         assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> mService.getPinLength(MANAGED_PROFILE_USER_ID, false));
     }
 
@@ -573,7 +573,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void refreshStoredPinLength_secondaryForManagedProfile_throwsException() {
         assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> mService.refreshStoredPinLength(MANAGED_PROFILE_USER_ID, false));
     }
 
@@ -619,7 +619,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void getCredentialType_secondaryForManagedProfile_throwsException() {
         assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> mService.getCredentialType(MANAGED_PROFILE_USER_ID, false));
     }
 
@@ -669,7 +669,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         final LockscreenCredential profileSecondaryPin = newPin("654321");
         assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_MANAGED_PROFILE,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> mService.setLockCredential(profileSecondaryPin, parentPrimaryPin, false,
                         MANAGED_PROFILE_USER_ID));
         LockscreenCredential zeroizedPin = newPin("0");
@@ -847,12 +847,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
-    @Parameters({"true", "false"})
-    public void verifyCredential_notExistingUser_returnsError(boolean primary) {
+    public void verifyCredential_secondaryForManagedProfile_throwsException() {
         LockscreenCredential credentialToVerify = newPin("123456");
 
-        assertEquals(VerifyCredentialResponse.ERROR, mService.verifyCredential(credentialToVerify,
-                primary, DOES_NOT_EXIST_USER_ID, 0));
+        assertExpectException(IllegalArgumentException.class,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+                () -> mService.verifyCredential(credentialToVerify, false,
+                        MANAGED_PROFILE_USER_ID, 0));
     }
 
     @Test
