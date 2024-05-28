@@ -40,6 +40,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
+import android.content.pm.UserProperties;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -976,7 +977,7 @@ public class LockPatternUtils {
      */
     public void setSeparateProfileChallengeEnabled(int userHandle, boolean enabled,
             LockscreenCredential profilePassword) {
-        if (!isCredentialSharableWithParent(userHandle)) {
+        if (!isCredentialSharableWithParent(userHandle, false)) {
             return;
         }
         try {
@@ -995,7 +996,8 @@ public class LockPatternUtils {
      * credential is not shareable with its parent, or a non-profile user.
      */
     public boolean isSeparateProfileChallengeEnabled(int userHandle) {
-        return isCredentialSharableWithParent(userHandle) && hasSeparateChallenge(userHandle);
+        return isCredentialSharableWithParent(userHandle, false) &&
+                hasSeparateChallenge(userHandle);
     }
 
     /**
@@ -1005,7 +1007,8 @@ public class LockPatternUtils {
      * credential is not shareable with its parent, or a non-profile user.
      */
     public boolean isProfileWithUnifiedChallenge(int userHandle) {
-        return isCredentialSharableWithParent(userHandle) && !hasSeparateChallenge(userHandle);
+        return isCredentialSharableWithParent(userHandle, false) &&
+                !hasSeparateChallenge(userHandle);
     }
 
     /**
@@ -1030,8 +1033,18 @@ public class LockPatternUtils {
         return info != null && info.isManagedProfile();
     }
 
-    private boolean isCredentialSharableWithParent(int userHandle) {
-        return getUserManager(userHandle).isCredentialSharableWithParent();
+    public boolean isCredentialSharableWithParent(int userHandle, boolean throwIfUserNotExist) {
+        UserProperties props;
+        try {
+            props = getUserManager(userHandle).getUserProperties(
+                    UserHandle.of(userHandle));
+        } catch (IllegalArgumentException e) {
+            if (throwIfUserNotExist) {
+                throw e;
+            }
+            return false;
+        }
+        return props.isCredentialShareableWithParent();
     }
 
     /**
