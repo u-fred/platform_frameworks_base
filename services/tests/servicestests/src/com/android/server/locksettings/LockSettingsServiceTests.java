@@ -666,6 +666,22 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
+    public void getCredentialType_primaryAndSecondaryDifferent_returnsDifferent() throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        // Use same PIN for primary and secondary.
+        final LockscreenCredential password = newPassword("validpassword");
+        setCredential(userId, password);
+        int credentialType = mService.getCredentialType(userId, true);
+        assertEquals(CREDENTIAL_TYPE_PASSWORD, credentialType);
+
+        final LockscreenCredential pin = newPin("123456");
+        setCredential(userId, pin, password, false);
+        credentialType = mService.getCredentialType(userId, false);
+        assertEquals(CREDENTIAL_TYPE_PIN, credentialType);
+    }
+
+    @Test
     public void setLockCredential_secondaryForManagedProfile_doesNotVerifyPrimaryAndThrowsException()
             throws Exception {
         final LockscreenCredential parentPrimaryPin = newPin("123456");
