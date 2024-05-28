@@ -62,7 +62,7 @@ import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChang
 import static com.android.server.SystemTimeZone.TIME_ZONE_CONFIDENCE_HIGH;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_PROFILE_OFF_DEADLINE;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_TURN_PROFILE_ON_NOTIFICATION;
-import static com.android.server.devicepolicy.DevicePolicyManagerService.EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER;
+import static com.android.server.devicepolicy.DevicePolicyManagerService.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER;
 import static com.android.server.devicepolicy.DpmMockContext.CALLER_USER_HANDLE;
 import static com.android.server.testutils.TestUtils.assertExpectException;
 import static com.google.common.truth.Truth.assertThat;
@@ -5162,14 +5162,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void getCurrentFailedPasswordAttempts_SecondaryForCredShareableUser_ThrowsException() {
+    public void getCurrentFailedPasswordAttempts_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
 
         doReturn(true).when(getServices().lockPatternUtils)
                 .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
         assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.getCurrentFailedPasswordAttempts(MANAGED_PROFILE_USER_ID, false));
     }
 
@@ -5185,14 +5185,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void reportFailedPasswordAttempt_SecondaryForCredShareableUser_ThrowsException() {
+    public void reportFailedPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
 
         doReturn(true).when(getServices().lockPatternUtils)
                 .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
         assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
     }
 
@@ -5227,14 +5227,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void reportSuccessfulPasswordAttempt_SecondaryForCredShareableUser_ThrowsException() {
+    public void reportSuccessfulPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
 
         doReturn(true).when(getServices().lockPatternUtils)
                 .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
         assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.reportSuccessfulPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
     }
 
@@ -5298,14 +5298,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void reportPasswordChanged_SecondaryForCredShareableUser_ThrowsException() {
+    public void reportPasswordChanged_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
 
         doReturn(true).when(getServices().lockPatternUtils)
                 .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
         assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER,
+                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
                         MANAGED_PROFILE_USER_ID, false));
     }

@@ -884,8 +884,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @EnabledSince(targetSdkVersion = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     static final long ENABLE_COEXISTENCE_CHANGE = 260560985L;
 
-    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER =
-            "Credential shareable users do not have a biometric second factor";
+    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER =
+            "Credential sharable users do not have a biometric second factor";
 
     final Context mContext;
     final Injector mInjector;
@@ -5457,7 +5457,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
                 boolean isShareable = mInjector.binderWithCleanCallingIdentity(() ->
                         mLockPatternUtils.isCredentialSharableWithParent(userHandle, true));
                 Preconditions.checkCallAuthorization(!isShareable,
-                        EXCEPTION_SECONDARY_FOR_CRED_SHAREAEBLE_USER);
+                        EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER);
             } catch (IllegalArgumentException e) {
                 return false;
             }
