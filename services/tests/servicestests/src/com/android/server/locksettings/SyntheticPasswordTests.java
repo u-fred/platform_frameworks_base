@@ -862,7 +862,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     private void assertNoOrphanedFilesLeft(int userId) {
         String[] lskfProtectorPrefixes = new String[2];
         lskfProtectorPrefixes[0] = String.format("%016x",
-                mService.getCurrentLskfBasedProtectorId(userId));
+                mService.getCurrentLskfBasedProtectorId(userId, true));
         lskfProtectorPrefixes[1] = String.format("%016x",
                 mService.getCurrentLskfBasedProtectorId(userId, false));
         File directory = mStorage.getSyntheticPasswordDirectoryForUser(userId);
