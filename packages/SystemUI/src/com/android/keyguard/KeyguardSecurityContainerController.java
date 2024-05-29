@@ -1193,8 +1193,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         mLockPatternUtils.reportFailedPasswordAttempt(userId, primary);
 
         if (timeoutMs > 0) {
-            // TODO: Secondary
-            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId);
+            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, primary);
 
             if (!mFeatureFlags.isEnabled(REVAMPED_BOUNCER_MESSAGES)) {
                 if (primary) {

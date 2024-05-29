@@ -258,7 +258,7 @@ constructor(
 
     override suspend fun reportLockoutStarted(durationMs: Int) {
         return withContext(backgroundDispatcher) {
-            lockPatternUtils.reportPasswordLockout(durationMs, selectedUserId)
+            lockPatternUtils.reportPasswordLockout(durationMs, selectedUserId, true)
         }
     }
 

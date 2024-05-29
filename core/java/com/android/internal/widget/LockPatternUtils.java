@@ -452,12 +452,14 @@ public class LockPatternUtils {
 
     }
 
-    // TODO: Make secondary aware.
-    public void reportPasswordLockout(int timeoutMs, int userId) {
+    public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {
+        // TODO: IllegalArgument if !primary && isSpecialUserID()?
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
-        getTrustManager().reportUnlockLockout(timeoutMs, userId);
+        if (primary) {
+            getTrustManager().reportUnlockLockout(timeoutMs, userId);
+        }
     }
 
     public int getCurrentFailedPasswordAttempts(int userId) {
