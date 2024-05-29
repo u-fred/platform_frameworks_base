@@ -22,6 +22,7 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_NUMERIC;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
+import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 
 import android.annotation.IntDef;
 import android.annotation.NonNull;
@@ -61,7 +62,6 @@ import android.util.SparseLongArray;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.LocalServices;
-
 import com.google.android.collect.Lists;
 
 import java.lang.annotation.Retention;
@@ -73,7 +73,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Utilities for the lock pattern and its settings.
@@ -426,17 +425,31 @@ public class LockPatternUtils {
 
     @UnsupportedAppUsage
     public void reportSuccessfulPasswordAttempt(int userId) {
-        reportSuccessfulPasswordAttempt(userId, true);
+        reportSuccessfulPasswordAttempt(userId, true, /** ignored **/ true);
     }
 
-    @UnsupportedAppUsage
-    public void reportSuccessfulPasswordAttempt(int userId, boolean primary) {
+    /**
+     * @param userId The user who made the successful attempt.
+     * @param primary Whether the successful attempt was for primary password or biometric second
+     *                factor.
+     * @param forUnlock Whether the password was entered as part of an unlock process (Keyguard).
+     *                  Ignored if primary is true.
+     */
+    public void reportSuccessfulPasswordAttempt(int userId, boolean primary, boolean forUnlock) {
+        // TODO: IllegalArgument if !primary && isSpecialUserID()?
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
         getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, primary);
-        // TODO: Secondary.
-        getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
+        if (primary) {
+            getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
+        } else if (forUnlock) {
+            // This call was suppressed in KeyguardUpdateMonitor#onFingerprintAuthenticated.
+            // Should only be called as part of an unlock process, not if the second factor was
+            // being authenticated on its own (such as in Settings app).
+            getTrustManager().unlockedByBiometricForUser(userId, FINGERPRINT);
+        }
+
     }
 
     // TODO: Make secondary aware.

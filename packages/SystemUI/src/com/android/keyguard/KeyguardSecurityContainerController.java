@@ -275,7 +275,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__SUCCESS,
                         bouncerSide);
-                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId, primary);
+                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId, primary, true);
 
                 // Force a garbage collection in an attempt to erase any lockscreen password left in
                 // memory. Do it asynchronously with a 5-sec delay to avoid making the keyguard
