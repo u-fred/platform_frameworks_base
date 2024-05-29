@@ -738,7 +738,6 @@ public class LockPatternUtils {
      * @param userId User ID of the user this has effect on
      */
     public void setLockScreenDisabled(boolean disable, int userId) {
-        // TODO: Do we need this for secondary?
         setBoolean(DISABLE_LOCKSCREEN_KEY, disable, userId);
     }
 
@@ -759,17 +758,17 @@ public class LockPatternUtils {
      *
      * @return true if lock screen is disabled
      */
-    @UnsupportedAppUsage
-    public boolean isLockScreenDisabled(int userId, boolean primaryCredential) {
-        if (isSecure(userId, primaryCredential)) {
+    public boolean isLockScreenDisabled(int userId, boolean primary) {
+        if (isSecure(userId, primary)) {
             return false;
         }
 
-        if (!primaryCredential) {
-            // TODO: Review this. When it isn't set, ScreenLockPreferenceDetailUtils#getSummaryResId
-            //  is returning a value that results in "Swipe" being displayed instead of "None". It
-            //  goes from "Swipe" to "None" if "None" is selected manually. Maybe look at
-            //  setLockCredentialWithSpLocked None path.
+        if (!primary) {
+            // For primary when !isSecure, the lockscreen will either be "Swipe" or "None" depending
+            // on the result of this method. Base code calls setLockScreenDisabled(true) when
+            // setting "None" in ChooseLockGeneric. Having "Swipe" for secondary makes no sense in
+            // any situation, so we can return true immediately. We don't need to implement
+            // setLockScreenDisabled for secondary.
             return true;
         }
 
