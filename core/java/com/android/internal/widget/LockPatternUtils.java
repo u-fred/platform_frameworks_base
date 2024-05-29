@@ -413,14 +413,15 @@ public class LockPatternUtils {
         reportFailedPasswordAttempt(userId, true);
     }
 
-    @UnsupportedAppUsage
     public void reportFailedPasswordAttempt(int userId, boolean primary) {
+        // TODO: IllegalArgument if !primary && isSpecialUserID()?
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
         getDevicePolicyManager().reportFailedPasswordAttempt(userId, primary);
-        // TODO: Secondary.
-        getTrustManager().reportUnlockAttempt(false /* authenticated */, userId);
+        if (primary) {
+            getTrustManager().reportUnlockAttempt(false /* authenticated */, userId);
+        }
     }
 
     @UnsupportedAppUsage
