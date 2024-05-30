@@ -455,8 +455,10 @@ public class LockPatternUtils {
     }
 
     public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {
-        // TODO: IllegalArgument if !primary && isSpecialUserID()?
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
+            return;
+        }
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
         }
         if (primary) {
