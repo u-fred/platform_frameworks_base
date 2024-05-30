@@ -216,9 +216,15 @@ public abstract class BaseLockSettingsServiceTests {
 
         // Enables testing of invalid userIds.
         when(mUserManager.getUserProperties(eq(UserHandle.of(PRIMARY_USER_ID)))).thenReturn(
-                new UserProperties.Builder().build());
+                new UserProperties.Builder().setCredentialShareableWithParent(false).build());
+        when(mUserManager.getUserProperties(eq(UserHandle.of(SECONDARY_USER_ID)))).thenReturn(
+                new UserProperties.Builder().setCredentialShareableWithParent(false).build());
+        when(mUserManager.getUserProperties(eq(UserHandle.of(TERTIARY_USER_ID)))).thenReturn(
+                new UserProperties.Builder().setCredentialShareableWithParent(false).build());
         when(mUserManager.getUserProperties(eq(UserHandle.of(MANAGED_PROFILE_USER_ID)))).thenReturn(
-                new UserProperties.Builder().build());
+                new UserProperties.Builder().setCredentialShareableWithParent(true).build());
+        when(mUserManager.getUserProperties(eq(UserHandle.of(TURNED_OFF_PROFILE_USER_ID)))).thenReturn(
+                new UserProperties.Builder().setCredentialShareableWithParent(true).build());
         when(mUserManager.getUserProperties(eq(UserHandle.of(DOES_NOT_EXIST_USER_ID)))).thenThrow(
                 IllegalArgumentException.class);
         when(mUserManager.getUserInfo(eq(MANAGED_PROFILE_USER_ID))).thenReturn(mManagedProfileInfo);

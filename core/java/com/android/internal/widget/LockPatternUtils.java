@@ -220,6 +220,11 @@ public class LockPatternUtils {
 
     private static final String GSI_RUNNING_PROP = "ro.gsid.image_running";
 
+    // Need this as a constant because it is used in many tests.
+    // TODO: Should we create a subclass of IllegalArgumentException instead?
+    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER =
+            "Credential sharable users do not have a biometric second factor";;
+
     /**
      * drives the pin auto confirmation feature availability in code logic.
      */
@@ -1051,8 +1056,7 @@ public class LockPatternUtils {
     public boolean isCredentialSharableWithParent(int userHandle, boolean throwIfUserNotExist) {
         UserProperties props;
         try {
-            props = getUserManager(userHandle).getUserProperties(
-                    UserHandle.of(userHandle));
+            props = getUserManager().getUserProperties(UserHandle.of(userHandle));
         } catch (IllegalArgumentException e) {
             if (throwIfUserNotExist) {
                 throw e;
@@ -1060,6 +1064,20 @@ public class LockPatternUtils {
             return false;
         }
         return props.isCredentialShareableWithParent();
+    }
+
+    public boolean checkUserSupportsBiometricSecondFactor(int userId) {
+        boolean sharable;
+        try {
+            sharable = isCredentialSharableWithParent(userId, true);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        if (sharable) {
+            throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER);
+        }
+        return true;
     }
 
     /**

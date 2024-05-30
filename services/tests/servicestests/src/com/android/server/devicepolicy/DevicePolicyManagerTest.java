@@ -62,7 +62,6 @@ import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChang
 import static com.android.server.SystemTimeZone.TIME_ZONE_CONFIDENCE_HIGH;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_PROFILE_OFF_DEADLINE;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_TURN_PROFILE_ON_NOTIFICATION;
-import static com.android.server.devicepolicy.DevicePolicyManagerService.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER;
 import static com.android.server.devicepolicy.DpmMockContext.CALLER_USER_HANDLE;
 import static com.android.server.testutils.TestUtils.assertExpectException;
 import static com.google.common.truth.Truth.assertThat;
@@ -5164,21 +5163,22 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     @Test
     public void getCurrentFailedPasswordAttempts_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
+        doThrow(new IllegalArgumentException(
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
 
-        doReturn(true).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
-
-        assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(IllegalArgumentException.class,
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.getCurrentFailedPasswordAttempts(MANAGED_PROFILE_USER_ID, false));
     }
 
     @Test
     public void getCurrentFailedPasswordAttempts_SecondaryForNotExistUser_ReturnsZero() {
         final int DOES_NOT_EXIST_USER_ID = 15;
-
-        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(DOES_NOT_EXIST_USER_ID, false))
                 .isEqualTo(0);
@@ -5187,21 +5187,22 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     @Test
     public void reportFailedPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
+        doThrow(new IllegalArgumentException(
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
 
-        doReturn(true).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
-
-        assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(IllegalArgumentException.class,
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
     }
 
     @Test
     public void reportFailedPasswordAttempt_SecondaryForNotExistUser_Returns() {
         final int DOES_NOT_EXIST_USER_ID = 15;
-
-        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
         // Should not throw.
         dpm.reportFailedPasswordAttempt(DOES_NOT_EXIST_USER_ID, false);
@@ -5216,6 +5217,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary))
                 .isEqualTo(0);
@@ -5229,21 +5235,22 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     @Test
     public void reportSuccessfulPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
+        doThrow(new IllegalArgumentException(
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
 
-        doReturn(true).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
-
-        assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(IllegalArgumentException.class,
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.reportSuccessfulPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
     }
 
     @Test
     public void reportSuccessfulPasswordAttempt_SecondaryForNotExistUser_Returns() {
         final int DOES_NOT_EXIST_USER_ID = 15;
-
-        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
         // Should not throw.
         dpm.reportSuccessfulPasswordAttempt(DOES_NOT_EXIST_USER_ID, false);
@@ -5256,6 +5263,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
         mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
         reset(mServiceContext.spiedContext);
@@ -5280,6 +5292,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
         mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
 
         dpm.reportFailedPasswordAttempt(userId, primary);
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(1);
@@ -5300,12 +5317,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     @Test
     public void reportPasswordChanged_SecondaryForCredSharableUser_ThrowsException() {
         final int MANAGED_PROFILE_USER_ID = 15;
+        doThrow(new IllegalArgumentException(
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
 
-        doReturn(true).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(MANAGED_PROFILE_USER_ID, true);
 
-        assertExpectException(SecurityException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(IllegalArgumentException.class,
+                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
                 () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
                         MANAGED_PROFILE_USER_ID, false));
     }
@@ -5313,9 +5332,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     @Test
     public void reportPasswordChanged_SecondaryForNotExistUser_Returns() {
         final int DOES_NOT_EXIST_USER_ID = 15;
-
-        doThrow(IllegalArgumentException.class).when(getServices().lockPatternUtils)
-                .isCredentialSharableWithParent(DOES_NOT_EXIST_USER_ID, true);
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
         // Should not throw.
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), DOES_NOT_EXIST_USER_ID,
@@ -5327,6 +5346,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     public void reportPasswordChanged_Success_ResetsCounterAndSaves(boolean primary) {
         mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         final int userId = UserHandle.getUserId(mContext.binder.callingUid);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
 
         // Only used when primary true.
         when(getServices().lockSettingsInternal.getUserPasswordMetrics(userId))

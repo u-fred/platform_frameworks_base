@@ -235,11 +235,6 @@ public class LockSettingsService extends ILockSettings.Stub {
     private static final String PERMISSION = ACCESS_KEYGUARD_SECURE_STORAGE;
     private static final String BIOMETRIC_PERMISSION = MANAGE_BIOMETRIC;
 
-    // Need this as a constant because it is used in many tests.
-    // TODO: Should we create a subclass of IllegalArgumentException instead?
-    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER =
-            "Managed profiles do not have a biometric second factor";
-
     private static final int PROFILE_KEY_IV_SIZE = 12;
     private static final String SEPARATE_PROFILE_CHALLENGE_KEY = "lockscreen.profilechallenge";
     private static final String PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE = "prev-sp-handle";
@@ -297,6 +292,8 @@ public class LockSettingsService extends ILockSettings.Stub {
     private final UnifiedProfilePasswordCache mUnifiedProfilePasswordCache;
 
     private final RebootEscrowManager mRebootEscrowManager;
+
+    private final LockPatternUtils mLockPatternUtils;
 
     // Locking order is mUserCreationAndRemovalLock -> mSpManager.
     private final Object mUserCreationAndRemovalLock = new Object();
@@ -591,6 +588,10 @@ public class LockSettingsService extends ILockSettings.Stub {
                     getHandler(getServiceThread()));
         }
 
+        public LockPatternUtils getLockPatternUtils() {
+            return new LockPatternUtils(mContext);
+        }
+
         public int binderGetCallingUid() {
             return Binder.getCallingUid();
         }
@@ -681,6 +682,8 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         mRebootEscrowManager = injector.getRebootEscrowManager(new RebootEscrowCallbacks(),
                 mStorage);
+
+        mLockPatternUtils = injector.getLockPatternUtils();
 
         LocalServices.addService(LockSettingsInternal.class, new LocalService());
 
@@ -1206,23 +1209,11 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private boolean checkUserIfSecondary(int userId, boolean primary) {
-        if (!primary) {
-            try {
-                getUserManagerFromCache(userId).getUserProperties(UserHandle.of(userId));
-            } catch (IllegalArgumentException e) {
-                // Don't throw IllegalArgument for this as caller can't guarantee user will still
-                // exist.
-                return false;
-            }
-            // Unless UserManagerService.MAX_USER_ID users were created, this should used the
-            // cached UserProperties from above.
-            // TODO: Handle userId recycling?
-            if (isCredentialSharableWithParent(userId)) {
-                throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER);
-            }
+    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId, boolean primary) {
+        if (primary) {
+            return true;
         }
-        return true;
+        return mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId);
     }
 
     private final void checkWritePermission() {
@@ -1384,7 +1375,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     @Override
     public int getPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
-        if (!checkUserIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return PIN_LENGTH_UNAVAILABLE;
         }
 
@@ -1412,7 +1403,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     @Override
     public boolean refreshStoredPinLength(int userId, boolean primary) {
         checkPasswordHavePermission();
-        if (!checkUserIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return false;
         }
 
@@ -1457,7 +1448,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 throw new IllegalArgumentException("Primary must be true for special user");
             }
         }
-        if (!checkUserIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return CREDENTIAL_TYPE_NONE;
         }
         synchronized (mSpManager) {
@@ -1888,7 +1879,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             throw new IllegalArgumentException(
                     "Biometric second factor must be PIN or None");
         }
-        if (!checkUserIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return false;
         }
 
@@ -2027,8 +2018,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         return mInjector.getDevicePolicyManager().getPasswordHistoryLength(null, userId);
     }
 
-    @VisibleForTesting /** Note: this method is overridden in unit tests */
-    protected UserManager getUserManagerFromCache(int userId) {
+    private UserManager getUserManagerFromCache(int userId) {
         UserHandle userHandle = UserHandle.of(userId);
         if (mUserManagerCache.containsKey(userHandle)) {
             return mUserManagerCache.get(userHandle);
@@ -2044,9 +2034,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    @VisibleForTesting /** Note: this method is overridden in unit tests */
-    protected boolean isCredentialSharableWithParent(int userId) {
-        return getUserManagerFromCache(userId).isCredentialSharableWithParent();
+    private boolean isCredentialSharableWithParent(int userId) {
+        return mLockPatternUtils.isCredentialSharableWithParent(userId, false);
     }
 
     /** Register the given WeakEscrowTokenRemovedListener. */
@@ -2426,7 +2415,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 throw new IllegalArgumentException("Primary must be true for special user");
             }
         }
-        if (!checkUserIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return VerifyCredentialResponse.ERROR;
         }
 

@@ -884,9 +884,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @EnabledSince(targetSdkVersion = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     static final long ENABLE_COEXISTENCE_CHANGE = 260560985L;
 
-    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER =
-            "Credential sharable users do not have a biometric second factor";
-
     final Context mContext;
     final Injector mInjector;
     final PolicyPathProvider mPathProvider;
@@ -5451,18 +5448,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         }
     }
 
-    private boolean checkUserIfSecondary(int userHandle, boolean primary) {
-        if (!primary) {
-            try {
-                boolean isShareable = mInjector.binderWithCleanCallingIdentity(() ->
-                        mLockPatternUtils.isCredentialSharableWithParent(userHandle, true));
-                Preconditions.checkCallAuthorization(!isShareable,
-                        EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER);
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
+    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userHandle,
+            boolean primary) {
+        if (primary) {
+            return true;
         }
-        return true;
+        return mInjector.binderWithCleanCallingIdentity(() ->
+                mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userHandle));
     }
 
     @Override
@@ -5472,7 +5464,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             return 0;
         }
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
-        if (!checkUserIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
             return 0;
         }
 
@@ -8050,7 +8042,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         if (!mHasFeature || !mLockPatternUtils.hasSecureLockScreen()) {
             return;
         }
-        if (!checkUserIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
         }
 
@@ -8119,7 +8111,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @Override
     public void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
-        if (!checkUserIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
             return;
         }
 
@@ -8221,7 +8213,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @Override
     public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
-        if (!checkUserIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
             return;
         }
 
