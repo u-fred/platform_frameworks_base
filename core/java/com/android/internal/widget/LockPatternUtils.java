@@ -440,7 +440,6 @@ public class LockPatternUtils {
      *                  Ignored if primary is true.
      */
     public void reportSuccessfulPasswordAttempt(int userId, boolean primary, boolean forUnlock) {
-        // TODO: IllegalArgument if !primary && isSpecialUserID()?
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
@@ -453,7 +452,6 @@ public class LockPatternUtils {
             // being authenticated on its own (such as in Settings app).
             getTrustManager().unlockedByBiometricForUser(userId, FINGERPRINT);
         }
-
     }
 
     public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {

@@ -248,7 +248,8 @@ constructor(
     override suspend fun reportAuthenticationAttempt(isSuccessful: Boolean) {
         withContext(backgroundDispatcher) {
             if (isSuccessful) {
-                lockPatternUtils.reportSuccessfulPasswordAttempt(selectedUserId)
+                lockPatternUtils.reportSuccessfulPasswordAttempt(selectedUserId, true,
+                        /** ignored **/ true)
             } else {
                 lockPatternUtils.reportFailedPasswordAttempt(selectedUserId, true)
             }
