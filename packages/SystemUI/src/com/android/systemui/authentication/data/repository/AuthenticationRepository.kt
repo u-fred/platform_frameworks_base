@@ -250,7 +250,7 @@ constructor(
             if (isSuccessful) {
                 lockPatternUtils.reportSuccessfulPasswordAttempt(selectedUserId)
             } else {
-                lockPatternUtils.reportFailedPasswordAttempt(selectedUserId)
+                lockPatternUtils.reportFailedPasswordAttempt(selectedUserId, true)
             }
             authenticationChallengeResult.emit(isSuccessful)
         }

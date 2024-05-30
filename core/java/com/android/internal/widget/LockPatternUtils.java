@@ -418,7 +418,6 @@ public class LockPatternUtils {
     }
 
     public void reportFailedPasswordAttempt(int userId, boolean primary) {
-        // TODO: IllegalArgument if !primary && isSpecialUserID()?
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }

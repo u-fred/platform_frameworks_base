@@ -131,7 +131,7 @@ constructor(
                     )
                 )
             }
-            lockPatternUtils.reportFailedPasswordAttempt(effectiveUserId)
+            lockPatternUtils.reportFailedPasswordAttempt(effectiveUserId, true)
         }
     }
 
