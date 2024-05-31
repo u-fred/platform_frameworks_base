@@ -1076,6 +1076,13 @@ public class LockPatternUtils {
         return true;
     }
 
+    public boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId, boolean primary) {
+        if (primary) {
+            return true;
+        }
+        return checkUserSupportsBiometricSecondFactor(userId);
+    }
+
     /**
      * Deserialize a pattern.
      * @param  bytes The pattern serialized with {@link #patternToByteArray}
