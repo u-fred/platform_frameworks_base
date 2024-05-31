@@ -959,13 +959,6 @@ public class LockPatternUtils {
         return StorageManager.isFileEncrypted();
     }
 
-    /**
-     * Retrieves the quality mode for {@code userHandle}.
-     * @see DevicePolicyManager#getPasswordQuality(android.content.ComponentName)
-     *
-     * @return stored password quality
-     * @deprecated use {@link #getCredentialTypeForUser(int)} instead
-     */
     @UnsupportedAppUsage
     @Deprecated
     public int getKeyguardStoredPasswordQuality(int userHandle) {
@@ -979,11 +972,9 @@ public class LockPatternUtils {
      * @return stored password quality
      * @deprecated use {@link #getCredentialTypeForUser(int)} instead
      */
-    @UnsupportedAppUsage
     @Deprecated
-    public int getKeyguardStoredPasswordQuality(int userHandle, boolean primaryCredential) {
-        return credentialTypeToPasswordQuality(getCredentialTypeForUser(userHandle,
-                primaryCredential));
+    public int getKeyguardStoredPasswordQuality(int userHandle, boolean primary) {
+        return credentialTypeToPasswordQuality(getCredentialTypeForUser(userHandle, primary));
     }
 
     /**
