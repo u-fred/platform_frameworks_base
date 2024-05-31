@@ -743,12 +743,6 @@ public class LockPatternUtils {
         setBoolean(DISABLE_LOCKSCREEN_KEY, disable, userId);
     }
 
-    /**
-     * Determine if LockScreen is disabled for the current user. This is used to decide whether
-     * LockScreen is shown after reboot or after screen timeout / short press on power.
-     *
-     * @return true if lock screen is disabled
-     */
     @UnsupportedAppUsage
     public boolean isLockScreenDisabled(int userId) {
         return isLockScreenDisabled(userId, true);
@@ -766,11 +760,10 @@ public class LockPatternUtils {
         }
 
         if (!primary) {
-            // For primary when !isSecure, the lockscreen will either be "Swipe" or "None" depending
-            // on the result of this method. Base code calls setLockScreenDisabled(true) when
-            // setting "None" in ChooseLockGeneric. Having "Swipe" for secondary makes no sense in
-            // any situation, so we can return true immediately. We don't need to implement
-            // setLockScreenDisabled for secondary.
+            // When primary is !secure, the lockscreen is either enabled ("Swipe") or disabled
+            // ("None"). For secondary there is no situation where swipe makes sense, so always
+            // disable it. Don't need to implement setLockScreenDisabled for secondary as it is
+            // just a way for caller to set swipe/none.
             return true;
         }
 
