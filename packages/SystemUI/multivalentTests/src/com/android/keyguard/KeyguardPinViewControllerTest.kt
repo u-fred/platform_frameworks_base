@@ -219,7 +219,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
-        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
+        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), true)).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), true)).thenReturn(3)
         `when`(passwordTextView.text).thenReturn("")
 
@@ -236,7 +236,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
-        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
+        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), true)).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), true)).thenReturn(6)
         `when`(passwordTextView.text).thenReturn("")
 
@@ -262,7 +262,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         whenever(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         whenever(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
-        whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
+        whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), true)).thenReturn(true)
         whenever(passwordTextView.text).thenReturn("000000")
         whenever(enterButton.visibility).thenReturn(View.INVISIBLE)
         whenever(mockKeyguardPinView.enteredCredential)
