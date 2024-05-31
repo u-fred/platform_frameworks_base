@@ -542,6 +542,7 @@ public class LockPatternUtils {
      * Check to see if a credential matches the saved one.
      *
      * @param credential The credential to check.
+     * @param primary Whether to check the primary or biometric second factor credential.
      * @param userId The user whose credential is being checked
      * @param progressCallback callback to deliver early signal that the credential matches
      * @return {@code true} if credential matches, {@code false} otherwise
