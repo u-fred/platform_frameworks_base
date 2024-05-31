@@ -791,18 +791,25 @@ public class LockPatternUtils {
         setBoolean(key, enabled, userId);
     }
 
-    /**
-     * Determines if the auto pin confirmation feature is enabled or not for current user
-     * If setting is not available, the default behaviour is disabled
-     * @param userId user ID of the user this has effect on
-     *
-     * @return true, if the entered pin should be auto confirmed
-     */
+    // TODO: Remove final call to this.
     public boolean isAutoPinConfirmEnabled(int userId) {
         return isAutoPinConfirmEnabled(userId, true);
     }
 
+    /**
+     * Determines if the auto pin confirmation feature is enabled or not for current user
+     * If setting is not available, the default behaviour is disabled
+     * @param userId user ID of the user this has effect on
+     * @param primary whether to get primary or biometric second factor PIN auto confirm
+     *
+     * @return true, if the entered pin should be auto confirmed
+     */
     public boolean isAutoPinConfirmEnabled(int userId, boolean primary) {
+        // This check can be bypassed, but it doesn't matter because the LSS methods that use
+        // AUTO_PIN_CONFIRM_SECONDARY have internal checks.
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return false;
+        }
         String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
         return getBoolean(key, /* defaultValue= */ false, userId);
     }
