@@ -220,7 +220,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
-        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt())).thenReturn(3)
+        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), true)).thenReturn(3)
         `when`(passwordTextView.text).thenReturn("")
 
         pinViewController.onViewAttached()
@@ -237,7 +237,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         `when`(lockPatternUtils.getPinLength(anyInt(), true)).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt())).thenReturn(true)
-        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt())).thenReturn(6)
+        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), true)).thenReturn(6)
         `when`(passwordTextView.text).thenReturn("")
 
         pinViewController.onViewAttached()
@@ -254,7 +254,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
         pinViewController.handleAttemptLockout(0)
 
-        verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt())
+        verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt(), true)
     }
 
     @Test
