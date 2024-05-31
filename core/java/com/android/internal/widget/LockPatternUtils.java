@@ -1191,15 +1191,6 @@ public class LockPatternUtils {
      * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
-    public @CredentialType int getCredentialTypeForUser(int userHandle) {
-        return getCredentialTypeForUser(userHandle, true);
-    }
-
-    /**
-     * Returns the credential type of the user, can be one of {@link #CREDENTIAL_TYPE_NONE},
-     * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
-     * {@link #CREDENTIAL_TYPE_PASSWORD}
-     */
     public @CredentialType int getCredentialTypeForUser(int userHandle, boolean primaryCredential) {
         var cache = primaryCredential ? mPrimaryCredentialTypeCache : mSecondaryCredentialTypeCache;
         return cache.query(userHandle);
@@ -1219,14 +1210,13 @@ public class LockPatternUtils {
      * @return Whether the lock screen is secured.
      */
     @UnsupportedAppUsage
-    public boolean isSecure(int userId, boolean primaryCredential) {
-        int type = getCredentialTypeForUser(userId, primaryCredential);
+        int type = getCredentialTypeForUser(userId, primary);
         return type != CREDENTIAL_TYPE_NONE;
     }
 
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
     public boolean isLockPasswordEnabled(int userId) {
-        int type = getCredentialTypeForUser(userId);
+        int type = getCredentialTypeForUser(userId, true);
         return type == CREDENTIAL_TYPE_PASSWORD || type == CREDENTIAL_TYPE_PIN;
     }
 
@@ -1235,7 +1225,7 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public boolean isLockPatternEnabled(int userId) {
-        int type = getCredentialTypeForUser(userId);
+        int type = getCredentialTypeForUser(userId, true);
         return type == CREDENTIAL_TYPE_PATTERN;
     }
 
