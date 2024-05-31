@@ -1058,6 +1058,10 @@ public class LockPatternUtils {
         return props.isCredentialShareableWithParent();
     }
 
+    /**
+     * @returns True if user supports biometric second factor, or false if user does not exist.
+     * @throws IllegalArgumentException If user does not support biometric second factor.
+     */
     public boolean checkUserSupportsBiometricSecondFactor(int userId) {
         boolean sharable;
         try {
