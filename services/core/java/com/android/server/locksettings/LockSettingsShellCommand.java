@@ -243,7 +243,8 @@ class LockSettingsShellCommand extends ShellCommand {
             return LockscreenCredential.createNone();
         }
         if (mLockPatternUtils.isLockPasswordEnabled(mCurrentUserId)) {
-            final int quality = mLockPatternUtils.getKeyguardStoredPasswordQuality(mCurrentUserId);
+            final int quality = mLockPatternUtils.getKeyguardStoredPasswordQuality(mCurrentUserId,
+                    true);
             if (LockPatternUtils.isQualityAlphabeticPassword(quality)) {
                 return LockscreenCredential.createPassword(mOld);
             } else {
