@@ -666,7 +666,8 @@ public class LockPatternUtils {
      * Returns the length of the PIN set by a particular user.
      * @param userId User id of the user whose pin length we have to return.
      * @param primary Whether to return primary or biometric second factor PIN length.
-     * @throws IllegalArgumentException If userId is for managed profile and primary is false.
+     * @throws IllegalArgumentException If userId is for user that can share credentials with parent
+     *                                  and primary is false.
      * @return
      *       A. the length of the pin set by user if it is currently available
      *       B. PIN_LENGTH_UNAVAILABLE if it is not available or if an exception occurs
