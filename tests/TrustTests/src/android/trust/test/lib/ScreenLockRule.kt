@@ -111,7 +111,7 @@ class ScreenLockRule : TestRule {
 
         lockPatternUtils.setLockScreenDisabled(true, context.userId)
         wait("screen lock un-set") {
-            lockPatternUtils.isLockScreenDisabled(context.userId)
+            lockPatternUtils.isLockScreenDisabled(context.userId, true)
         }
         wait("screen lock insecure") { !lockPatternUtils.isSecure(context.userId) }
     }

@@ -921,7 +921,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                     // Shortcut for SIM PIN/PUK to go to directly to user's security screen or home
                     SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId);
                     boolean isLockscreenDisabled = mLockPatternUtils.isLockScreenDisabled(
-                            mSelectedUserInteractor.getSelectedUserId())
+                            mSelectedUserInteractor.getSelectedUserId(), true)
                             || !mDeviceProvisionedController.isUserSetup(targetUserId);
 
                     if (securityMode == SecurityMode.None && isLockscreenDisabled) {

@@ -138,7 +138,7 @@ constructor(
     override suspend fun isLockscreenEnabled(): Boolean {
         return withContext(backgroundDispatcher) {
             val selectedUserId = userRepository.getSelectedUserInfo().id
-            !lockPatternUtils.isLockScreenDisabled(selectedUserId)
+            !lockPatternUtils.isLockScreenDisabled(selectedUserId, true)
         }
     }
 
