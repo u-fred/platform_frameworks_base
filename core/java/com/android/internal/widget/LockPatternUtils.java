@@ -702,11 +702,6 @@ public class LockPatternUtils {
         }
     }
 
-    /**
-     * Used by device policy manager to validate the current password
-     * information it has.
-     * @Deprecated use {@link #getKeyguardStoredPasswordQuality}
-     */
     @UnsupportedAppUsage
     public int getActivePasswordQuality(int userId) {
         return getActivePasswordQuality(userId, true);
@@ -717,9 +712,8 @@ public class LockPatternUtils {
      * information it has.
      * @Deprecated use {@link #getKeyguardStoredPasswordQuality}
      */
-    @UnsupportedAppUsage
-    public int getActivePasswordQuality(int userId, boolean primaryCredential) {
-        return getKeyguardStoredPasswordQuality(userId, primaryCredential);
+    public int getActivePasswordQuality(int userId, boolean primary) {
+        return getKeyguardStoredPasswordQuality(userId, primary);
     }
 
     public boolean isBiometricSecondFactorEnabled(int userId) {
