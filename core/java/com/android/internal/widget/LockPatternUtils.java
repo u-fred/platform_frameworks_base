@@ -623,10 +623,14 @@ public class LockPatternUtils {
      * @param passwordToCheck The password to check.
      * @param hashFactor Hash factor of the current user returned from
      *        {@link ILockSettings#getHashFactor}
+     * @param primary Whether to check the primary or biometric second factor credential.
      * @return Whether the password matches any in the history.
      */
     public boolean checkPasswordHistory(byte[] passwordToCheck, byte[] hashFactor, int userId,
             boolean primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return false;
+        }
         if (!primary) {
             // Doesn't make sense to check secondary until admin supports setting a history length
             // for it. Reusing the primary length value isn't ideal.
