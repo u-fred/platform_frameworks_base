@@ -1210,6 +1210,7 @@ public class LockPatternUtils {
      * @return Whether the lock screen is secured.
      */
     @UnsupportedAppUsage
+    public boolean isSecure(int userId, boolean primary) {
         int type = getCredentialTypeForUser(userId, primary);
         return type != CREDENTIAL_TYPE_NONE;
     }
