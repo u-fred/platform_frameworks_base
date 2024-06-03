@@ -33,7 +33,7 @@ public class DuressPasswordHelper {
         this.spManager = spManager;
     }
 
-    void onVerifyCredentialResult(@Nullable VerifyCredentialResponse res, @Nullable LockscreenCredential credential) {
+    protected void onVerifyCredentialResult(@Nullable VerifyCredentialResponse res, @Nullable LockscreenCredential credential) {
         if (res != null && res.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
             return;
         }

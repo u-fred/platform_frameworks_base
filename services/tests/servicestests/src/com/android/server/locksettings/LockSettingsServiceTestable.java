@@ -21,13 +21,11 @@ import static org.mockito.Mockito.mock;
 import android.app.IActivityManager;
 import android.app.admin.DeviceStateCache;
 import android.content.Context;
-import android.content.pm.UserInfo;
 import android.hardware.authsecret.IAuthSecret;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Process;
 import android.os.RemoteException;
-import android.os.UserManager;
 import android.os.storage.IStorageManager;
 import android.security.KeyStore;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
@@ -154,6 +152,12 @@ public class LockSettingsServiceTestable extends LockSettingsService {
         @Override
         public boolean isMainUserPermanentAdmin() {
             return mIsMainUserPermanentAdmin;
+        }
+
+        @Override
+        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lss,
+                LockSettingsStorage sm, SyntheticPasswordManager spm) {
+            return mock(DuressPasswordHelper.class);
         }
     }
 
