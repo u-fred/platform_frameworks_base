@@ -97,9 +97,9 @@ class CredentialInteractorImplTest : SysuiTestCase() {
 
     private fun pinCredential(result: VerifyCredentialResponse) = runTest {
         val usedAttempts = 1
-        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), true))
+        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), eq(true)))
             .thenReturn(usedAttempts)
-        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt())).thenReturn(result)
+        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt())).thenReturn(result)
         whenever(lockPatternUtils.verifyGatekeeperPasswordHandle(anyLong(), anyLong(), eq(USER_ID)))
             .thenReturn(result)
         whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), anyInt())).thenAnswer {
@@ -143,16 +143,16 @@ class CredentialInteractorImplTest : SysuiTestCase() {
                     .matches(Regex("(.*)try again(.*)", RegexOption.IGNORE_CASE).toPattern())
                 assertThat(statusList).isEmpty()
 
-                verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), true)
+                verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
             }
         }
     }
 
     @Test
     fun pinCredentialWhenBadAndFinalAttempt() = runTest {
-        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt()))
+        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt()))
             .thenReturn(badCredential())
-        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), true))
+        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), eq(true)))
             .thenReturn(MAX_ATTEMPTS - 2)
 
         val statusList = mutableListOf<CredentialStatus>()
@@ -166,14 +166,14 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         assertThat(result.urgentMessage).isNotEmpty()
         assertThat(statusList).isEmpty()
 
-        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), true)
+        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
     }
 
     @Test
     fun pinCredentialWhenBadAndNoMoreAttempts() = runTest {
-        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt()))
+        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt()))
             .thenReturn(badCredential())
-        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), true))
+        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), eq(true)))
             .thenReturn(MAX_ATTEMPTS - 1)
         whenever(devicePolicyResourcesManager.getString(any(), any())).thenReturn("wipe")
 
@@ -188,7 +188,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         assertThat(result.urgentMessage).isNotEmpty()
         assertThat(statusList).isEmpty()
 
-        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), true)
+        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
     }
 }
 
