@@ -458,6 +458,7 @@ public class LockPatternUtils {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
+        // Calling this with primary false is a no-op, but should still enforce this.
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
         }
