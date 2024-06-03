@@ -49,6 +49,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.statusbar.ISessionListener;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -91,7 +92,7 @@ public class BiometricContextProviderTest {
                         new DisplayInfo(), DEFAULT_DISPLAY_ADJUSTMENTS));
         mProvider = new BiometricContextProvider(mContext, mWindowManager,
                 mStatusBarService, null /* handler */,
-                null /* authSessionCoordinator */);
+                null /* authSessionCoordinator */, new BiometricAuthTokenStore());
         ArgumentCaptor<IBiometricContextListener> captor =
                 ArgumentCaptor.forClass(IBiometricContextListener.class);
         verify(mStatusBarService).setBiometicContextListener(captor.capture());

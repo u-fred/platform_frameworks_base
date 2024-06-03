@@ -116,7 +116,7 @@ public class FingerprintProviderTest {
         mFingerprintProvider = new FingerprintProvider(mContext,
                 mBiometricStateCallback, mAuthenticationStateListeners, mSensorProps, TAG,
                 mLockoutResetDispatcher, mGestureAvailabilityDispatcher, mBiometricContext,
-                mDaemon;
+                mDaemon);
 
     }
 
