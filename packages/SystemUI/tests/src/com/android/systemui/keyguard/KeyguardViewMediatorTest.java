@@ -75,6 +75,7 @@ import androidx.test.filters.SmallTest;
 import com.android.internal.jank.InteractionJankMonitor;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.logging.UiEventLogger;
+import com.android.internal.widget.ILockSettings;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardDisplayManager;
 import com.android.keyguard.KeyguardSecurityView;
@@ -157,6 +158,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
     private @Mock UserTracker mUserTracker;
     private @Mock DevicePolicyManager mDevicePolicyManager;
     private @Mock LockPatternUtils mLockPatternUtils;
+    private @Mock ILockSettings mLockSettingsService;
     private @Mock KeyguardUpdateMonitor mUpdateMonitor;
     private @Mock StatusBarKeyguardViewManager mStatusBarKeyguardViewManager;
     private @Mock BroadcastDispatcher mBroadcastDispatcher;
@@ -229,6 +231,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
         mFalsingCollector = new FalsingCollectorFake();
         mSystemClock = new FakeSystemClock();
         when(mLockPatternUtils.getDevicePolicyManager()).thenReturn(mDevicePolicyManager);
+        when(mLockPatternUtils.getLockSettings()).thenReturn(mLockSettingsService);
         when(mPowerManager.newWakeLock(anyInt(), any())).thenReturn(mock(WakeLock.class));
         when(mPowerManager.isInteractive()).thenReturn(true);
         when(mInteractionJankMonitor.begin(any(), anyInt())).thenReturn(true);
