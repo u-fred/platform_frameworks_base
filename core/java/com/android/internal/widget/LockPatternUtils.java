@@ -667,8 +667,6 @@ public class LockPatternUtils {
      * Returns the length of the PIN set by a particular user.
      * @param userId User id of the user whose pin length we have to return.
      * @param primary Whether to return primary or biometric second factor PIN length.
-     * @throws IllegalArgumentException If userId is for user that can share credentials with parent
-     *                                  and primary is false.
      * @return
      *       A. the length of the pin set by user if it is currently available
      *       B. PIN_LENGTH_UNAVAILABLE if it is not available or if an exception occurs
@@ -690,8 +688,6 @@ public class LockPatternUtils {
      * flag is enabled, the pin length value is set to the actual length of the user's PIN.
      * @param userId user id of the user whose pin length we want to save
      * @param primary whether to refresh primary or biometric second factor PIN length
-     * @throws IllegalArgumentException if userId is for user that can share credentials with parent
-     *                                  and primary is false
      * @return true/false depending on whether PIN length has been saved or not
      */
     public boolean refreshStoredPinLength(int userId, boolean primary) {
