@@ -477,7 +477,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         // WHEN a request is made from the SimPin screens to show the next security method
         whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
             .thenReturn(SecurityMode.None)
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), true)).thenReturn(true)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(true)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
             TARGET_USER_ID,
@@ -520,7 +520,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
             .thenReturn(SecurityMode.None)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), true)).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
             TARGET_USER_ID,
@@ -543,7 +543,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
             .thenReturn(SecurityMode.None)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), true)).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
@@ -568,7 +568,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
             .thenReturn(SecurityMode.Password)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), true)).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
@@ -594,7 +594,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
             .thenReturn(SecurityMode.SimPin)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), true)).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
