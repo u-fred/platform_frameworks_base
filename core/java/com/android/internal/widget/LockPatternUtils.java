@@ -1207,6 +1207,7 @@ public class LockPatternUtils {
     }
 
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    // TODO: Add a secondary overload?
     public boolean isLockPasswordEnabled(int userId) {
         int type = getCredentialTypeForUser(userId, true);
         return type == CREDENTIAL_TYPE_PASSWORD || type == CREDENTIAL_TYPE_PIN;
