@@ -1191,11 +1191,8 @@ public class LockPatternUtils {
         return cache.query(userHandle);
     }
 
-    /**
-     * @param userId the user for which to report the value
-     * @return Whether the lock screen is secured.
-     */
     @UnsupportedAppUsage
+    // TODO: Remove all calls to this overload?
     public boolean isSecure(int userId) {
         return isSecure(userId, true);
     }
@@ -1204,7 +1201,6 @@ public class LockPatternUtils {
      * @param userId the user for which to report the value
      * @return Whether the lock screen is secured.
      */
-    @UnsupportedAppUsage
     public boolean isSecure(int userId, boolean primary) {
         int type = getCredentialTypeForUser(userId, primary);
         return type != CREDENTIAL_TYPE_NONE;
