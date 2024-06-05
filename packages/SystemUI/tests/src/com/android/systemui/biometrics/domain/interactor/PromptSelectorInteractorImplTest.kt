@@ -41,6 +41,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 
@@ -189,7 +190,7 @@ class PromptSelectorInteractorImplTest : SysuiTestCase() {
     }
 
     private fun setUserCredentialType(isPin: Boolean = false, isPassword: Boolean = false) {
-        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(any(), true))
+        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(any(), eq(true)))
             .thenReturn(
                 when {
                     isPin -> DevicePolicyManager.PASSWORD_QUALITY_NUMERIC
