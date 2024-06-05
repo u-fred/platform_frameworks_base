@@ -180,7 +180,7 @@ public class KeyguardPatternViewController
                     getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
                     if (timeoutMs > 0) {
                         long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                                userId, timeoutMs);
+                                userId, true, timeoutMs);
                         handleAttemptLockout(deadline);
                     }
                 }

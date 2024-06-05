@@ -277,7 +277,7 @@ constructor(
 
     override suspend fun setLockoutDuration(durationMs: Int) {
         withContext(backgroundDispatcher) {
-            lockPatternUtils.setLockoutAttemptDeadline(selectedUserId, durationMs)
+            lockPatternUtils.setLockoutAttemptDeadline(selectedUserId, true, durationMs)
         }
     }
 

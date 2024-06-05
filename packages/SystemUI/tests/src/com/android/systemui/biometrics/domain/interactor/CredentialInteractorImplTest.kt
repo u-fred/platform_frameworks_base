@@ -102,8 +102,8 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt())).thenReturn(result)
         whenever(lockPatternUtils.verifyGatekeeperPasswordHandle(anyLong(), anyLong(), eq(USER_ID)))
             .thenReturn(result)
-        whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), anyInt())).thenAnswer {
-            systemClock.elapsedRealtime() + (it.arguments[1] as Int)
+        whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), eq(true), anyInt())).thenAnswer {
+            systemClock.elapsedRealtime() + (it.arguments[2] as Int)
         }
 
         // wrap in an async block so the test can advance the clock if throttling credential
@@ -137,7 +137,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
                 assertThat(statusList.filterIsInstance(CredentialStatus.Fail.Throttled::class.java))
                     .hasSize(statusList.size)
 
-                verify(lockPatternUtils).setLockoutAttemptDeadline(eq(USER_ID), eq(result.timeout))
+                verify(lockPatternUtils).setLockoutAttemptDeadline(eq(USER_ID), eq(true), eq(result.timeout))
             } else { // failed
                 assertThat(failedResult.error)
                     .matches(Regex("(.*)try again(.*)", RegexOption.IGNORE_CASE).toPattern())

@@ -1290,6 +1290,9 @@ public class LockPatternUtils {
             // enforces the deadline. Since we cannot store settings for the FRP user, don't.
             return deadline;
         }
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return 0L;
+        }
         SparseLongArray deadlines = primary ?
                 mPrimaryLockoutDeadlines : mBiometricSecondFactorLockoutDeadlines;
         deadlines.put(userId, deadline);
@@ -1297,14 +1300,6 @@ public class LockPatternUtils {
         return deadline;
     }
 
-    /**
-     * Set and store the lockout deadline, meaning the user can't attempt their unlock
-     * pattern until the deadline has passed.
-     * @param userId the user whose lockout time to set.
-     * @param timeoutMs the timeout to set.
-     * @return the chosen deadline.
-     */
-    // TODO: Review all uses of this.
     @UnsupportedAppUsage
     public long setLockoutAttemptDeadline(int userId, int timeoutMs) {
         return setLockoutAttemptDeadline(userId, true, timeoutMs);
