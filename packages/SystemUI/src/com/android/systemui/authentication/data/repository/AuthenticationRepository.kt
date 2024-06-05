@@ -231,7 +231,7 @@ constructor(
     override val isPinEnhancedPrivacyEnabled: StateFlow<Boolean> =
         refreshingFlow(
             initialValue = true,
-            getFreshValue = { userId -> lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) },
+            getFreshValue = { userId -> lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, true) },
         )
 
     override suspend fun getAuthenticationMethod(): AuthenticationMethodModel {

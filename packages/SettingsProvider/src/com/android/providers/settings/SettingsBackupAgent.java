@@ -735,7 +735,7 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             }
             if (lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId)) {
                 out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY);
-                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) ? "1" : "0");
+                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, true) ? "1" : "0");
             }
             // End marker
             out.writeUTF("");

@@ -1243,11 +1243,10 @@ public class LockPatternUtils {
     /**
      * @return Whether enhanced pin privacy is enabled.
      */
-    public boolean isPinEnhancedPrivacyEnabled(int userId) {
-        return isPinEnhancedPrivacyEnabled(userId, true);
-    }
-
     public boolean isPinEnhancedPrivacyEnabled(int userId, boolean primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return true;
+        }
         String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
         return getBoolean(key, true, userId);
     }
