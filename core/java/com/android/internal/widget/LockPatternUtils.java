@@ -802,8 +802,6 @@ public class LockPatternUtils {
      * @return true, if the entered pin should be auto confirmed
      */
     public boolean isAutoPinConfirmEnabled(int userId, boolean primary) {
-        // This check can be bypassed, but it doesn't matter because the LSS methods that use
-        // AUTO_PIN_CONFIRM_SECONDARY have internal checks.
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return false;
         }
