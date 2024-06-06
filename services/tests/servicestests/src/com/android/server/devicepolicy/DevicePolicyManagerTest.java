@@ -60,6 +60,7 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSW
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChangeCallback;
 import static com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
+import static com.android.internal.widget.LockPatternUtils.SecondaryForSpecialUserException;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.server.SystemTimeZone.TIME_ZONE_CONFIDENCE_HIGH;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_PROFILE_OFF_DEADLINE;
@@ -5327,21 +5328,38 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
     @Test
     public void reportPasswordChanged_SecondaryForCredSharableUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
         final int MANAGED_PROFILE_USER_ID = 15;
-        doThrow(new IllegalArgumentException(
-                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
+        doThrow(SecondaryForCredSharableUserException.class)
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
 
 
-        assertExpectException(IllegalArgumentException.class,
-                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(SecondaryForCredSharableUserException.class,
+                null,
                 () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
                         MANAGED_PROFILE_USER_ID, false));
     }
 
     @Test
+    public void reportPasswordChanged_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForSpecialUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(USER_FRP);
+
+        assertExpectException(SecondaryForSpecialUserException.class,
+                null,
+                () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
+                        USER_FRP, false));
+    }
+
+    @Test
     public void reportPasswordChanged_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
         final int DOES_NOT_EXIST_USER_ID = 15;
         doReturn(false)
                 .when(getServices().lockPatternUtils)
