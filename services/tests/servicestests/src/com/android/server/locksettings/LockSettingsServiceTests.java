@@ -49,6 +49,8 @@ import android.text.TextUtils;
 import androidx.test.filters.SmallTest;
 
 import com.android.internal.widget.LockPatternUtils;
+import com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
+import com.android.internal.widget.LockPatternUtils.SecondaryForSpecialUserException;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 
@@ -487,9 +489,18 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test
     public void getPinLength_secondaryForManagedProfile_throwsException() {
-        assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(
+                SecondaryForCredSharableUserException.class,
+                null,
                 () -> mService.getPinLength(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    public void getPinLength_secondaryForSpecialUser_throwsException() {
+        assertExpectException(
+                SecondaryForSpecialUserException.class,
+                null,
+                () -> mService.getPinLength(USER_FRP, false));
     }
 
     @Test
