@@ -896,8 +896,8 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     public void verifyCredential_secondaryForSpecialUser_throwsException() {
         LockscreenCredential credentialToVerify = newPin("123456");
 
-        assertExpectException(IllegalArgumentException.class,
-                "Primary must be true for special user",
+        assertThrows(
+                SecondaryForSpecialUserException.class,
                 () -> mService.verifyCredential(credentialToVerify, false,
                         USER_FRP, 0));
     }
@@ -906,8 +906,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     public void verifyCredential_secondaryForManagedProfile_throwsException() {
         LockscreenCredential credentialToVerify = newPin("123456");
 
-        assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertThrows(SecondaryForCredSharableUserException.class,
                 () -> mService.verifyCredential(credentialToVerify, false,
                         MANAGED_PROFILE_USER_ID, 0));
     }
