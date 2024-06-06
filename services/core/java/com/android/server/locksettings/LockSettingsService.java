@@ -1446,12 +1446,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
     private int getCredentialTypeInternal(int userId, boolean primary) {
-        if (isSpecialUserId(userId)) {
-            if (primary) {
+        if (isSpecialUserId(userId) && primary) {
                 return mSpManager.getSpecialUserCredentialType(userId);
-            } else {
-                throw new IllegalArgumentException("Primary must be true for special user");
-            }
         }
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return CREDENTIAL_TYPE_NONE;
