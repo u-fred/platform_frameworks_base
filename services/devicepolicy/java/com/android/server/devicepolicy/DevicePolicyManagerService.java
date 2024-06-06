@@ -5464,12 +5464,12 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             return 0;
         }
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
-            return 0;
-        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+            return 0;
+        }
 
         synchronized (getLockObject()) {
             if (!isSystemUid(caller)) {
