@@ -583,9 +583,18 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test
     public void refreshStoredPinLength_secondaryForManagedProfile_throwsException() {
-        assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertExpectException(
+                SecondaryForCredSharableUserException.class,
+                null,
                 () -> mService.refreshStoredPinLength(MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    public void refreshStoredPinLength_secondaryForSpecialUser_throwsException() {
+        assertExpectException(
+                SecondaryForSpecialUserException.class,
+                null,
+                () -> mService.refreshStoredPinLength(USER_FRP, false));
     }
 
     @Test
