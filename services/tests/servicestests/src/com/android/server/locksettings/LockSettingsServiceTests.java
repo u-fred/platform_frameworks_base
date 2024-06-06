@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -638,16 +639,18 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test
     public void getCredentialType_secondaryForSpecialUser_throwsException() {
-        assertExpectException(IllegalArgumentException.class,
-                "Primary must be true for special user",
-                () -> mService.getCredentialType(USER_FRP, false));
+        assertThrows(
+                SecondaryForSpecialUserException.class,
+                () -> mService.getCredentialType(USER_FRP, false)
+        );
     }
 
     @Test
     public void getCredentialType_secondaryForManagedProfile_throwsException() {
-        assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
-                () -> mService.getCredentialType(MANAGED_PROFILE_USER_ID, false));
+        assertThrows(
+                SecondaryForCredSharableUserException.class,
+                () -> mService.getCredentialType(MANAGED_PROFILE_USER_ID, false)
+        );
     }
 
     @Test
