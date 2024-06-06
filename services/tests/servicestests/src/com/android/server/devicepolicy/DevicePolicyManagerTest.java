@@ -59,6 +59,8 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChangeCallback;
+import static com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
+import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.server.SystemTimeZone.TIME_ZONE_CONFIDENCE_HIGH;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_PROFILE_OFF_DEADLINE;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_TURN_PROFILE_ON_NOTIFICATION;
@@ -5162,20 +5164,29 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
     @Test
     public void getCurrentFailedPasswordAttempts_SecondaryForCredSharableUser_ThrowsException() {
-        final int MANAGED_PROFILE_USER_ID = 15;
-        doThrow(new IllegalArgumentException(
-                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
-                .when(getServices().lockPatternUtils)
-                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
+        final int userId = 15;
+        mServiceContext.binder.callingUid = UserHandle.getUid(userId, 19436);
 
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.getCurrentFailedPasswordAttempts(userId, false));
+    }
+
+    @Test
+    public void getCurrentFailedPasswordAttempts_SecondaryForSpecialUser_ThrowsException() {
         assertExpectException(IllegalArgumentException.class,
-                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
-                () -> dpm.getCurrentFailedPasswordAttempts(MANAGED_PROFILE_USER_ID, false));
+                "Invalid userId",
+                () -> dpm.reportFailedPasswordAttempt(USER_FRP, false));
     }
 
     @Test
     public void getCurrentFailedPasswordAttempts_SecondaryForNotExistUser_ReturnsZero() {
         final int DOES_NOT_EXIST_USER_ID = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
         doReturn(false)
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
