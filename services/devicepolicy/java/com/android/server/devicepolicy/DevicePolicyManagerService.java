@@ -8042,16 +8042,16 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         if (!mHasFeature || !mLockPatternUtils.hasSecureLockScreen()) {
             return;
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
-            return;
-        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(isSystemUid(caller));
         // Managed Profile password can only be changed when it has a separate challenge.
-        if (!isSeparateProfileChallengeEnabled(userId)) {
+        if (primary && !isSeparateProfileChallengeEnabled(userId)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userId), "You can "
                     + "not set the active password for a managed profile, userId = %d", userId);
+        }
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return;
         }
 
         DevicePolicyData policy = getUserData(userId);
