@@ -2409,12 +2409,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (credential == null || credential.isNone()) {
             throw new IllegalArgumentException("Credential can't be null or empty");
         }
-        if (!primary) {
-            if (flags != 0) {
-                throw new IllegalArgumentException("Invalid flags for biometric second factor");
-            } else if (isSpecialUserId(userId)) {
-                throw new IllegalArgumentException("Primary must be true for special user");
-            }
+        if (!primary && flags != 0) {
+            throw new IllegalArgumentException("Invalid flags for biometric second factor");
         }
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return VerifyCredentialResponse.ERROR;
