@@ -1053,11 +1053,28 @@ public class LockPatternUtils {
         return props.isCredentialShareableWithParent();
     }
 
+    public static class SecondaryForCredSharableUserException extends IllegalArgumentException {
+        public SecondaryForCredSharableUserException() {
+            super("Credential sharable users do not support biometric second factor");
+        }
+    }
+
+    public static class SecondaryForSpecialUserException extends IllegalArgumentException {
+        public SecondaryForSpecialUserException() {
+            super("Special users do not support biometric second factor");
+        }
+    }
+
     /**
      * @return True if user supports biometric second factor, or false if user does not exist.
      * @throws IllegalArgumentException If user does not support biometric second factor.
      */
     public boolean checkUserSupportsBiometricSecondFactor(int userId) {
+        // LockSettingsService/LockSettingsStorage don't use checkDeviceSupported argument.
+        if (isSpecialUserId(userId)) {
+            throw new SecondaryForSpecialUserException();
+        }
+
         boolean sharable;
         try {
             sharable = isCredentialSharableWithParent(userId, true);
@@ -1066,7 +1083,7 @@ public class LockPatternUtils {
         }
 
         if (sharable) {
-            throw new IllegalArgumentException(EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER);
+            throw new SecondaryForCredSharableUserException();
         }
         return true;
     }
