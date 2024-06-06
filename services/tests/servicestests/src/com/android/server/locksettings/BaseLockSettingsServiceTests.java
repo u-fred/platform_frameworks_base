@@ -19,6 +19,7 @@ package com.android.server.locksettings;
 import static android.os.UserManager.USER_TYPE_PROFILE_MANAGED;
 import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM;
 import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM_SECONDARY;
+import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -226,6 +227,8 @@ public abstract class BaseLockSettingsServiceTests {
         when(mUserManager.getUserProperties(eq(UserHandle.of(TURNED_OFF_PROFILE_USER_ID)))).thenReturn(
                 new UserProperties.Builder().setCredentialShareableWithParent(true).build());
         when(mUserManager.getUserProperties(eq(UserHandle.of(DOES_NOT_EXIST_USER_ID)))).thenThrow(
+                IllegalArgumentException.class);
+        when(mUserManager.getUserProperties(eq(UserHandle.of(USER_FRP)))).thenThrow(
                 IllegalArgumentException.class);
         when(mUserManager.getUserInfo(eq(MANAGED_PROFILE_USER_ID))).thenReturn(mManagedProfileInfo);
 

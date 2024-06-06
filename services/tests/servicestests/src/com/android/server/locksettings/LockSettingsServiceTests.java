@@ -714,13 +714,23 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertTrue(mService.isProfileWithUnifiedLock(MANAGED_PROFILE_USER_ID));
 
         final LockscreenCredential profileSecondaryPin = newPin("654321");
-        assertExpectException(IllegalArgumentException.class,
-                EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
+        assertThrows(
+                SecondaryForCredSharableUserException.class,
                 () -> mService.setLockCredential(profileSecondaryPin, parentPrimaryPin, false,
                         MANAGED_PROFILE_USER_ID));
         LockscreenCredential zeroizedPin = newPin("0");
         zeroizedPin.zeroize();
         Assert.assertNotEquals(zeroizedPin, parentPrimaryPin);
+    }
+
+    @Test
+    public void setLockCredential_secondaryForSpecialUser_throwsException() {
+        final LockscreenCredential pin = newPin("123456");
+
+        assertThrows(
+                SecondaryForSpecialUserException.class,
+                () -> mService.setLockCredential(pin, pin, false,
+                        USER_FRP));
     }
 
     @Test
