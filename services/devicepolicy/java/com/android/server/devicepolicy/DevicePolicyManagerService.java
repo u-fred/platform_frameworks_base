@@ -8111,17 +8111,17 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @Override
     public void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
-            return;
-        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
-        if (!isSeparateProfileChallengeEnabled(userHandle)) {
+        if (primary && !isSeparateProfileChallengeEnabled(userHandle)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
                     "You can not report failed password attempt if separate profile challenge is "
                             + "not in place for a managed profile, userId = %d", userHandle);
+        }
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+            return;
         }
 
         boolean wipeData = false;
