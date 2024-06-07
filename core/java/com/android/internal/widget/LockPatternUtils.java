@@ -414,7 +414,10 @@ public class LockPatternUtils {
 
     public void reportFailedPasswordAttempt(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return;
+            if (primary) {
+                return;
+            }
+            throw new SecondaryForSpecialUserException();
         }
         getDevicePolicyManager().reportFailedPasswordAttempt(userId, primary);
         if (primary) {
@@ -436,7 +439,10 @@ public class LockPatternUtils {
      */
     public void reportSuccessfulPasswordAttempt(int userId, boolean primary, boolean forUnlock) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return;
+            if (primary) {
+                return;
+            }
+            throw new SecondaryForSpecialUserException();
         }
         getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, primary);
         if (primary) {
@@ -450,11 +456,10 @@ public class LockPatternUtils {
     }
 
     public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {
-        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
         }
-        // Calling this with primary false is a no-op, but should still enforce this.
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+        if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
         if (primary) {
@@ -464,7 +469,10 @@ public class LockPatternUtils {
 
     public int getCurrentFailedPasswordAttempts(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return 0;
+            if (primary) {
+                return 0;
+            }
+            throw new SecondaryForSpecialUserException();
         }
         return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId, primary);
     }
