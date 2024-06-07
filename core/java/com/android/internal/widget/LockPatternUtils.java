@@ -220,11 +220,6 @@ public class LockPatternUtils {
 
     private static final String GSI_RUNNING_PROP = "ro.gsid.image_running";
 
-    // Need this as a constant because it is used in many tests.
-    // TODO: Should we create a subclass of IllegalArgumentException instead?
-    public static final String EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER =
-            "Credential sharable users do not have a biometric second factor";;
-
     /**
      * drives the pin auto confirmation feature availability in code logic.
      */

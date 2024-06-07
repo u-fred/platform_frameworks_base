@@ -20,7 +20,6 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PATTERN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
-import static com.android.internal.widget.LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.server.locksettings.SyntheticPasswordManager.NULL_PROTECTOR_ID;
