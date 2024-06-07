@@ -1303,15 +1303,20 @@ public class LockPatternUtils {
      * @return the chosen deadline.
      */
     public long setLockoutAttemptDeadline(int userId, boolean primary, int timeoutMs) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            // We can't follow the base behaviour and add to deadlines even if user does not exist
+            // because the user could later be created as a non-secondary-supporting user and then
+            // we've violated constraints.
+            return 0L;
+        }
+
         final long deadline = SystemClock.elapsedRealtime() + timeoutMs;
         if (userId == USER_FRP) {
             // For secure password storage (that is required for FRP), the underlying storage also
             // enforces the deadline. Since we cannot store settings for the FRP user, don't.
             return deadline;
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
-            return 0L;
-        }
+
         SparseLongArray deadlines = primary ?
                 mPrimaryLockoutDeadlines : mBiometricSecondFactorLockoutDeadlines;
         deadlines.put(userId, deadline);
@@ -1332,16 +1337,19 @@ public class LockPatternUtils {
      *   enter a pattern.
      */
     public long getLockoutAttemptDeadline(int userId, boolean primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return 0L;
+        }
         SparseLongArray deadlines = primary ? mPrimaryLockoutDeadlines :
                 mBiometricSecondFactorLockoutDeadlines;
         final long deadline = deadlines.get(userId, 0L);
         final long now = SystemClock.elapsedRealtime();
-        // It's possible that biometric (secondary) PIN was changed while it was locked out.
-        // TODO: Eventually we would like to store the secondary PIN encrypted by (or auth bound to)
-        //  the primary password so that we can reset secondary lockout when primary succeeds.
-        final boolean resetLockout = getDevicePolicyManager().getCurrentFailedPasswordAttempts(
-                userId, primary) == 0;
-        if ((deadline < now || resetLockout) && deadline != 0) {
+        // TODO: Users can change their secondary while secondary has a deadline. We should check
+        //  if this has happened and reset the deadline. Can't check that DPM has failed attempts at
+        //  0 because user could accumulate failure in another process. Could track the protector
+        //  IDs? There's KeyguardUpdateMonitorCallback#onDevicePolicyManagerStateChanged, not sure
+        //  if it is useful for this.
+        if (deadline < now  && deadline != 0) {
             // timeout expired
             deadlines.put(userId, 0);
             return 0L;
