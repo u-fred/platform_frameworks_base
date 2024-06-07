@@ -8213,13 +8213,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     @Override
     public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
-            return;
-        }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+            return;
+        }
 
         synchronized (getLockObject()) {
             DevicePolicyData policy = getUserData(userHandle);
