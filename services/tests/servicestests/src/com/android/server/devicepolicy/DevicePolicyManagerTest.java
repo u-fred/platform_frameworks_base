@@ -5261,26 +5261,41 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
     @Test
     public void reportSuccessfulPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
-        final int MANAGED_PROFILE_USER_ID = 15;
-        doThrow(new IllegalArgumentException(
-                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER))
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        final int userId = 15;
+
+        doThrow(SecondaryForCredSharableUserException.class)
                 .when(getServices().lockPatternUtils)
-                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.reportSuccessfulPasswordAttempt(userId, false));
+    }
+
+    @Test
+    public void reportSuccessfulPasswordAttempt_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
 
         assertExpectException(IllegalArgumentException.class,
-                LockPatternUtils.EXCEPTION_SECONDARY_FOR_CRED_SHARABLE_USER,
-                () -> dpm.reportSuccessfulPasswordAttempt(MANAGED_PROFILE_USER_ID, false));
+                "Invalid userId",
+                () -> dpm.reportSuccessfulPasswordAttempt(USER_FRP, false));
     }
 
     @Test
     public void reportSuccessfulPasswordAttempt_SecondaryForNotExistUser_Returns() {
-        final int DOES_NOT_EXIST_USER_ID = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+        final int userId = 15;
+
         doReturn(false)
                 .when(getServices().lockPatternUtils)
-                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
+                .checkUserSupportsBiometricSecondFactor(userId);
 
         // Should not throw.
-        dpm.reportSuccessfulPasswordAttempt(DOES_NOT_EXIST_USER_ID, false);
+        dpm.reportSuccessfulPasswordAttempt(userId, false);
     }
 
     @Test
