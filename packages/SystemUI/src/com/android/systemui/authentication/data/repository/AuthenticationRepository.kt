@@ -271,7 +271,7 @@ constructor(
 
     override suspend fun getLockoutEndTimestamp(): Long {
         return withContext(backgroundDispatcher) {
-            lockPatternUtils.getLockoutAttemptDeadline(selectedUserId)
+            lockPatternUtils.getLockoutAttemptDeadline(selectedUserId, true)
         }
     }
 
