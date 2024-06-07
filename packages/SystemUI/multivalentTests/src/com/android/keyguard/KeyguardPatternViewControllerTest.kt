@@ -44,6 +44,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito.never
@@ -187,7 +188,7 @@ class KeyguardPatternViewControllerTest : SysuiTestCase() {
         mKeyguardPatternViewController.onViewAttached()
         verify(mKeyguardMessageAreaController)
             .setMessage(context.resources.getString(R.string.keyguard_enter_your_pattern), false)
-        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), true)
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(true))
     }
 
     @Test
