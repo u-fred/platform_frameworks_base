@@ -1056,12 +1056,14 @@ public class LockPatternUtils {
         return props.isCredentialShareableWithParent();
     }
 
+    // TODO: Rename to CredSharableUserNotHaveSecondaryException.
     public static class SecondaryForCredSharableUserException extends IllegalArgumentException {
         public SecondaryForCredSharableUserException() {
             super("Credential sharable users do not support biometric second factor");
         }
     }
 
+    // TODO: Rename to SpecialUserNotHaveSecondaryException.
     public static class SecondaryForSpecialUserException extends IllegalArgumentException {
         public SecondaryForSpecialUserException() {
             super("Special users do not support biometric second factor");
@@ -1355,16 +1357,6 @@ public class LockPatternUtils {
             return 0L;
         }
         return deadline;
-    }
-
-    /**
-     * @return The elapsed time in millis in the future when the user is allowed to
-     *   attempt to enter their lock pattern, or 0 if the user is welcome to
-     *   enter a pattern.
-     */
-    // TODO: Review all uses of this.
-    public long getLockoutAttemptDeadline(int userId) {
-        return getLockoutAttemptDeadline(userId, true);
     }
 
     private boolean getBoolean(String secureSettingKey, boolean defaultValue, int userId) {
