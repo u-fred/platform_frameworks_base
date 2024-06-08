@@ -18,6 +18,7 @@ package com.android.keyguard;
 
 import static android.app.StatusBarManager.SESSION_KEYGUARD;
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_BIOMETRIC;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_EXTENDED_ACCESS;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_NONE_SECURITY;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_PASSWORD;
@@ -890,6 +891,11 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             finish = true;
             eventSubtype = BOUNCER_DISMISS_EXTENDED_ACCESS;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_EXTENDED_ACCESS;
+        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId) &&
+                !mLockPatternUtils.isBiometricSecondFactorEnabled(targetUserId)) {
+            finish = true;
+            eventSubtype = BOUNCER_DISMISS_BIOMETRIC;
+            uiEvent = BouncerUiEvent.BOUNCER_DISMISS_BIOMETRIC;
         } else if (SecurityMode.None == getCurrentSecurityMode()) {
             SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId);
             if (SecurityMode.None == securityMode) {
@@ -1151,10 +1157,9 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
     }
 
     public void reportFailedUnlockAttempt(int userId, boolean primary, int timeoutMs) {
+        // +1 for this time
         int failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary) +
                 1;
-        Log.d("CredentialCountDebug", "reportFailedUnlockAttempt() userId: " + userId + " failedAttempts: " + failedAttempts + " timeoutMs: " + timeoutMs);
-
         if (DEBUG) Log.d(TAG, "reportFailedPatternAttempt: #" + failedAttempts);
 
         if (primary) {
