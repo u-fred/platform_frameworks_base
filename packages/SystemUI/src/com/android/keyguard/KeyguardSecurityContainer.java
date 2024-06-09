@@ -684,10 +684,6 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
         mViewMediatorCallback = viewMediatorCallback;
     }
 
-    private void showDialog(String title, String message) {
-        showDialog(title, message, null);
-    }
-
     private void showDialog(String title, String message, DialogInterface.OnClickListener onClick) {
         if (mAlertDialog != null) {
             mAlertDialog.dismiss();
@@ -780,7 +776,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                         attempts, remaining);
                 break;
         }
-        showDialog(null, message);
+        showDialog(null, message, null);
     }
 
     void showWipeDialog(int attempts, int userType) {
@@ -802,7 +798,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                         attempts);
                 break;
         }
-        showDialog(null, message);
+        showDialog(null, message, null);
     }
 
     public void reset() {
