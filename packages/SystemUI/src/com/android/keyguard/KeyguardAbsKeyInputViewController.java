@@ -190,11 +190,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,true,
                     0);
             if (!mIsForPrimaryCredential) {
-                // TODO: Review getSystemService implementation to see how inefficient it is. Might
-                //  prefer instance variable or getting from KeyguardUpdateMonitor.
                 FingerprintManager fm = (FingerprintManager) getContext().getSystemService(
                         Context.FINGERPRINT_SERVICE);
-                fm.addPendingAuthTokenToKeyStore(userId);
+                if (fm != null) {
+                    fm.addPendingAuthTokenToKeyStore(userId);
+                }
             }
             if (dismissKeyguard) {
                 mDismissing = true;
