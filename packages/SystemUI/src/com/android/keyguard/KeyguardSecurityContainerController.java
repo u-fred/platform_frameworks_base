@@ -249,11 +249,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         }
 
         @Override
-        public void reportUnlockAttempt(int userId, boolean success, int timeoutMs) {
-            reportUnlockAttempt(userId, true, success, timeoutMs);
-        }
-
-        @Override
         public void reportUnlockAttempt(int userId, boolean primary, boolean success,
                 int timeoutMs) {
             if (timeoutMs == 0 && !success) {
