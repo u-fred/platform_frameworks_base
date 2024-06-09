@@ -187,8 +187,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,true,
-                    0);
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
+                    true, 0);
             if (!mIsForPrimaryCredential) {
                 FingerprintManager fm = (FingerprintManager) getContext().getSystemService(
                         Context.FINGERPRINT_SERVICE);
@@ -209,7 +209,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                             userId, mIsForPrimaryCredential, timeoutMs);
-                        handleAttemptLockout(deadline);
+                    handleAttemptLockout(deadline);
                 }
             }
             if (timeoutMs == 0) {
