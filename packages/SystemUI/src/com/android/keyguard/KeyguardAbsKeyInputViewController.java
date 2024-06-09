@@ -147,11 +147,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     }
 
     // Prevent user from using the PIN/Password entry until scheduled deadline.
-    protected void handleAttemptLockout(long elapsedRealtimeDeadline, boolean viewJustCreated) {
+    protected void handleAttemptLockout(long elapsedRealtimeDeadline, boolean viewJustAttached) {
         mView.setPasswordEntryEnabled(false);
         mView.setPasswordEntryInputEnabled(false);
         mLockedOut = true;
-        if (!mIsForPrimaryCredential && !viewJustCreated) {
+        if (!mIsForPrimaryCredential && !viewJustAttached) {
             // Secondary won't have a countdown here because after lockout we must use primary auth.
             mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
             return;
