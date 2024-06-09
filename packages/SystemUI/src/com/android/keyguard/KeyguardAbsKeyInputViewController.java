@@ -186,9 +186,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
 
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
-        // TODO: Review this. I believe this is to prevent a situation where you begin an
-        //  authentication as one userId but then switch to another before the password is verified
-        //  and bypass the screen lock of the other.
         if (matched) {
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,true,
                     0);
