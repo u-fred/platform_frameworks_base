@@ -125,8 +125,8 @@ public class KeyguardPinViewController
     }
 
     @Override
-    protected void handleAttemptLockout(long elapsedRealtimeDeadline) {
-        super.handleAttemptLockout(elapsedRealtimeDeadline);
+    protected void handleAttemptLockout(long elapsedRealtimeDeadline, boolean viewJustCreated) {
+        super.handleAttemptLockout(elapsedRealtimeDeadline, viewJustCreated);
         updateAutoConfirmationState();
     }
 
