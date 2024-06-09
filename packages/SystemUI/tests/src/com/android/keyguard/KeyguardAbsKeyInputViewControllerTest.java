@@ -65,7 +65,6 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     private BouncerKeyguardMessageArea mKeyguardMessageArea;
     @Mock
     private KeyguardUpdateMonitor mKeyguardUpdateMonitor;
-    @Mock
     private SecurityMode mSecurityMode;
     @Mock
     private LockPatternUtils mLockPatternUtils;
@@ -89,6 +88,7 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
+        mSecurityMode = SecurityMode.PIN;
         when(mKeyguardMessageAreaControllerFactory.create(any(KeyguardMessageArea.class)))
                 .thenReturn(mKeyguardMessageAreaController);
         when(mAbsKeyInputView.getPasswordTextViewId()).thenReturn(1);
@@ -175,7 +175,6 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
                 false);
     }
 
-
     @Test
     public void testReset() {
         mKeyguardAbsKeyInputViewController.reset();
@@ -208,4 +207,14 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
         verify(mAbsKeyInputView, never()).setPasswordEntryInputEnabled(true);
         verify(mAbsKeyInputView, never()).setPasswordEntryEnabled(true);
     }
+
+    @Test
+    public void handleAttemptLockout_Secondary_DisplaysErrorMessageWithoutCountdown() {
+        mSecurityMode = SecurityMode.BiometricSecondFactorPin;
+        mKeyguardAbsKeyInputViewController = createTestObject();
+        mKeyguardAbsKeyInputViewController.handleAttemptLockout(SystemClock.elapsedRealtime());
+        verify(mKeyguardMessageAreaController).setMessage(
+                mAbsKeyInputView.getWrongPasswordStringId());
+    }
+
 }
