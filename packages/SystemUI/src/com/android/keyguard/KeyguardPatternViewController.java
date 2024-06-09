@@ -163,7 +163,6 @@ public class KeyguardPatternViewController
             }
         }
 
-        // TODO: Sync with PIN/password.
         private void onPatternChecked(int userId, boolean matched, int timeoutMs,
                 boolean isValidPattern) {
             boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
