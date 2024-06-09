@@ -244,7 +244,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL);
         mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL_UNLOCKED);
 
-        // TODO: Primary/secondary?
         mKeyguardUpdateMonitor.setCredentialAttempted();
         mPendingLockCheck = LockPatternChecker.checkCredential(
                 mLockPatternUtils,
