@@ -183,10 +183,21 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     }
 
     @Test
-    public void testOnViewAttached() {
+    public void testOnViewAttached_Primary_GetsLockoutAttemptDeadline() {
+        mSecurityMode = SecurityMode.PIN;
+        mKeyguardAbsKeyInputViewController = createTestObject();
         reset(mLockPatternUtils);
         mKeyguardAbsKeyInputViewController.onViewAttached();
-        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), true);
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(true));
+    }
+
+    @Test
+    public void testOnViewAttached_Secondary_GetsLockoutAttemptDeadline() {
+        mSecurityMode = SecurityMode.BiometricSecondFactorPin;
+        mKeyguardAbsKeyInputViewController = createTestObject();
+        reset(mLockPatternUtils);
+        mKeyguardAbsKeyInputViewController.onViewAttached();
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(false));
     }
 
     @Test
