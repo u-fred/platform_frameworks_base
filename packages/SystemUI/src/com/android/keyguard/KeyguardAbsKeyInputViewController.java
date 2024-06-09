@@ -151,6 +151,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mView.setPasswordEntryEnabled(false);
         mView.setPasswordEntryInputEnabled(false);
         mLockedOut = true;
+        if (!mIsForPrimaryCredential) {
+            // Secondary won't have a countdown here because after lockout we must use primary auth.
+            mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
+            return;
+        }
         long elapsedRealtime = SystemClock.elapsedRealtime();
         long secondsInFuture = (long) Math.ceil(
                 (elapsedRealtimeDeadline - elapsedRealtime) / 1000.0);
@@ -207,13 +212,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                             userId, mIsForPrimaryCredential, timeoutMs);
-                    // Secondary won't have a countdown here because after lockout we must use
-                    // primary auth.
-                    if (mIsForPrimaryCredential) {
                         handleAttemptLockout(deadline);
-                    } else {
-                        mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
-                    }
                 }
             }
             if (timeoutMs == 0) {
