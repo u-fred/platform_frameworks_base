@@ -215,7 +215,7 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
     public void handleAttemptLockout_Secondary_DisplaysErrorMessageWithoutCountdown() {
         mSecurityMode = SecurityMode.BiometricSecondFactorPin;
         mKeyguardAbsKeyInputViewController = createTestObject();
-        mKeyguardAbsKeyInputViewController.handleAttemptLockout(SystemClock.elapsedRealtime());
+        mKeyguardAbsKeyInputViewController.handleAttemptLockout(0);
         verify(mKeyguardMessageAreaController).setMessage(
                 mAbsKeyInputView.getWrongPasswordStringId());
     }
