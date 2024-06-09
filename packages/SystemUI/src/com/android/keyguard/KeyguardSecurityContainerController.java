@@ -1196,19 +1196,16 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, primary);
 
             if (!mFeatureFlags.isEnabled(REVAMPED_BOUNCER_MESSAGES)) {
-                if (primary) {
-                    mView.showTimeoutDialog(userId, timeoutMs, mLockPatternUtils,
-                            mSecurityModel.getSecurityMode(userId));
-                } else {
-                    final DialogInterface.OnClickListener onClick =
+                DialogInterface.OnClickListener onClick = null;
+                if (!primary) {
+                    onClick =
                             (dialog, which) -> {
-                                // So that SecurityMode will be primary.
                                 mUpdateMonitor.clearFingerprintRecognized(userId);
                                 showPrimarySecurityScreen(false);
                             };
-                    mView.showTimeoutDialog(userId, false, timeoutMs, mLockPatternUtils,
-                            mSecurityModel.getSecurityMode(userId), onClick);
                 }
+                mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
+                        mSecurityModel.getSecurityMode(userId), onClick);
             }
         }
     }

@@ -698,11 +698,6 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
         mAlertDialog.show();
     }
 
-    void showTimeoutDialog(int userId, int timeoutMs, LockPatternUtils lockPatternUtils,
-            SecurityMode securityMode) {
-        showTimeoutDialog(userId, true, timeoutMs, lockPatternUtils, securityMode, null);
-    }
-
     void showTimeoutDialog(int userId, boolean primary, int timeoutMs,
             LockPatternUtils lockPatternUtils, SecurityMode securityMode,
             DialogInterface.OnClickListener onClick) {
