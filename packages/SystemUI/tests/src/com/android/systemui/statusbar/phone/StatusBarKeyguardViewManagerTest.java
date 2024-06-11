@@ -259,7 +259,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
     @Test
     public void showBouncer_notWhenBouncerAlreadyShowing() {
         mStatusBarKeyguardViewManager.hide(0 /* startTime */, 0 /* fadeoutDuration */);
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(
                 KeyguardSecurityModel.SecurityMode.Password);
         mStatusBarKeyguardViewManager.showPrimaryBouncer(true /* scrimmed */);
         verify(mPrimaryBouncerInteractor, never()).show(anyBoolean());
@@ -616,7 +616,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
 
     @Test
     public void testPredictiveBackCallback_noBackAnimationForFullScreenBouncer() {
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt()))
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true)))
                 .thenReturn(KeyguardSecurityModel.SecurityMode.SimPin);
         mBouncerExpansionCallback.onVisibilityChanged(true);
         /* capture the predictive back callback during registration */
@@ -1009,7 +1009,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
 
     @Test
     public void testShowBouncerOrKeyguard_needsFullScreen() {
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(
                 KeyguardSecurityModel.SecurityMode.SimPin);
         mStatusBarKeyguardViewManager.showBouncerOrKeyguard(false);
         verify(mCentralSurfaces).hideKeyguard();
@@ -1018,7 +1018,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
 
     @Test
     public void testShowBouncerOrKeyguard_needsFullScreen_bouncerAlreadyShowing() {
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(
                 KeyguardSecurityModel.SecurityMode.SimPin);
         when(mPrimaryBouncerInteractor.isFullyShowing()).thenReturn(true);
         mStatusBarKeyguardViewManager.showBouncerOrKeyguard(false);

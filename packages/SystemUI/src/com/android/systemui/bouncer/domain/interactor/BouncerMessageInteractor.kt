@@ -120,7 +120,8 @@ constructor(
             .stateIn(applicationScope, SharingStarted.Eagerly, false)
 
     private val currentSecurityMode
-        get() = securityModel.getSecurityMode(currentUserId)
+        // TODO: Change primaryModesOnly to false and add BiometricSecondFactorPin messages.
+        get() = securityModel.getSecurityMode(currentUserId, true)
     private val currentUserId
         get() = userRepository.getSelectedUserInfo().id
 

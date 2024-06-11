@@ -62,12 +62,12 @@ public class KeyguardSecurityModel {
         mKeyguardUpdateMonitor = keyguardUpdateMonitor;
     }
 
-    public SecurityMode getSecurityMode(int userId) {
-        boolean primary = !mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId);
-        return getSecurityMode(userId, primary);
-    }
-
-    public SecurityMode getSecurityMode(int userId, boolean primary) {
+    /**
+     * @param primaryModesOnly Whether to include biometric second factor modes (currently only
+     *                         PIN). Eventually this parameter can be removed, but for now there
+     *                         is upstream code that is too incomplete to add secondary handling to.
+     */
+    public SecurityMode getSecurityMode(int userId, boolean primaryModesOnly) {
         if (mIsPukScreenAvailable && SubscriptionManager.isValidSubscriptionId(
                 mKeyguardUpdateMonitor.getNextSubIdForState(
                         TelephonyManager.SIM_STATE_PUK_REQUIRED))) {
@@ -80,6 +80,14 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
+        final boolean primary;
+        if (!primaryModesOnly &&
+                mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId) &&
+                mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            primary = false;
+        } else {
+            primary = true;
+        }
         final int security = whitelistIpcs(() ->
                 mLockPatternUtils.getActivePasswordQuality(userId, primary));
         switch (security) {

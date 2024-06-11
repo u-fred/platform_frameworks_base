@@ -51,6 +51,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Answers
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
@@ -83,7 +84,7 @@ class PrimaryBouncerInteractorTest : SysuiTestCase() {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt()))
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true)))
             .thenReturn(KeyguardSecurityModel.SecurityMode.PIN)
 
         DejankUtils.setImmediate(true)
@@ -164,7 +165,7 @@ class PrimaryBouncerInteractorTest : SysuiTestCase() {
     @Test
     fun testShow_isResumed() {
         whenever(repository.primaryBouncerShow.value).thenReturn(true)
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt()))
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true)))
             .thenReturn(KeyguardSecurityModel.SecurityMode.SimPuk)
 
         underTest.show(true)

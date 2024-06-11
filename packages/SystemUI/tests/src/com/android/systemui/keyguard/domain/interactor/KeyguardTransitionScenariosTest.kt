@@ -60,6 +60,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.never
@@ -118,7 +119,7 @@ class KeyguardTransitionScenariosTest : SysuiTestCase() {
         transitionRepository = spy(FakeKeyguardTransitionRepository())
         powerInteractor = PowerInteractorFactory.create().powerInteractor
 
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(PIN)
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(PIN)
 
         featureFlags = FakeFeatureFlags().apply { set(Flags.KEYGUARD_WM_STATE_REFACTOR, false) }
 
