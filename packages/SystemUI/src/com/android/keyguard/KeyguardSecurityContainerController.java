@@ -26,6 +26,7 @@ import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_SIM
 import static com.android.keyguard.KeyguardSecurityContainer.USER_TYPE_PRIMARY;
 import static com.android.keyguard.KeyguardSecurityContainer.USER_TYPE_SECONDARY_USER;
 import static com.android.keyguard.KeyguardSecurityContainer.USER_TYPE_WORK_PROFILE;
+import static com.android.keyguard.KeyguardSecurityModel.SecurityMode.BiometricSecondFactorPin;
 import static com.android.keyguard.KeyguardSecurityModel.SecurityMode.SimPin;
 import static com.android.keyguard.KeyguardSecurityModel.SecurityMode.SimPuk;
 import static com.android.systemui.DejankUtils.whitelistIpcs;
@@ -913,6 +914,8 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                     break;
 
                 case BiometricSecondFactorPin:
+                    // TODO: Set authenticatedWithPrimaryAuth? Refer to comments below around
+                    //  flag REFACTOR_KEYGUARD_DISMISS_INTENT.
                     finish = true;
                     eventSubtype = BOUNCER_DISMISS_PASSWORD;
                     uiEvent = BouncerUiEvent.BOUNCER_DISMISS_PASSWORD;
@@ -960,11 +963,14 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             mUiEventLogger.log(uiEvent, getSessionId());
         }
 
+        // TODO: Need to be careful when this flag is enabled as can't currently tell what this
+        //  code is doing. Might need to set authenticatedWithPrimaryAuth to true even when doing
+        //  biometric second factor. Primary in base AOSP means PIN/password/pattern.
         if (mFeatureFlags.isEnabled(Flags.REFACTOR_KEYGUARD_DISMISS_INTENT)) {
             if (authenticatedWithPrimaryAuth) {
                 mPrimaryBouncerInteractor.get()
                         .notifyKeyguardAuthenticatedPrimaryAuth(targetUserId);
-            } else if (finish) {
+            } else if (finish && expectedSecurityMode != BiometricSecondFactorPin) {
                 mPrimaryBouncerInteractor.get().notifyUserRequestedBouncerWhenAlreadyAuthenticated(
                         targetUserId);
             }
