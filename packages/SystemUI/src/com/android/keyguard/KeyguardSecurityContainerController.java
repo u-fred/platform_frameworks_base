@@ -1291,26 +1291,22 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         mSecurityViewFlipperController.asynchronouslyInflateView(mCurrentSecurityMode,
                 mKeyguardSecurityCallback, onViewInflatedListener);
 
-        // TODO: Better place to put all this?
-        // TODO: Refine this.
-        int selectedUserId = mSelectedUserInteractor.getSelectedUserId();
-        boolean isSecondFactorEnabled = new LockPatternUtils(getContext()).isBiometricSecondFactorEnabled(selectedUserId);
-
         if (mCurrentSecurityMode == SecurityMode.Invalid) {
             return;
         }
-        if (mCurrentSecurityMode != SecurityMode.BiometricSecondFactorPin) {
-            if (isSecondFactorEnabled) {
-                mSecurityViewFlipperController.asynchronouslyInflateView(
-                        SecurityMode.BiometricSecondFactorPin, mKeyguardSecurityCallback,
-                        // TODO: Empty callback?
-                        (c) -> {});
-            }
-        } else {
+
+        if (mCurrentSecurityMode == SecurityMode.BiometricSecondFactorPin) {
+            // Preload primary to avoid creating duplicate views/controllers in onPause().
+            int currentUser = mSelectedUserInteractor.getSelectedUserId();
+            SecurityMode primarySecurityMode = mSecurityModel.getSecurityMode(currentUser, true);
             mSecurityViewFlipperController.asynchronouslyInflateView(
-                    mSecurityModel.getSecurityMode(selectedUserId, true), mKeyguardSecurityCallback,
-                    // TODO: Empty callback?
-                    (c) -> {});
+                    primarySecurityMode, mKeyguardSecurityCallback, (c) -> {});
+        } else {
+            // TODO: This prevents duress PIN tests from receiving the PIN input.
+            // Preload the biometric second factor so that we can call showPrimarySecurityScreen()
+            // in onResume().
+            mSecurityViewFlipperController.asynchronouslyInflateView(
+                    SecurityMode.BiometricSecondFactorPin, mKeyguardSecurityCallback, (c) -> {});
         }
     }
 
