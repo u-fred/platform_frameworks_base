@@ -957,7 +957,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             }
         }
         // Check for device admin specified additional security measures.
-        // TODO: Manually test this.
+        // bypassSecondaryLockscreen will be true when called from BiometricSecondFactorPin.
         if (finish && !bypassSecondaryLockScreen) {
             Intent secondaryLockscreenIntent =
                     mUpdateMonitor.getSecondaryLockscreenRequirement(targetUserId);
