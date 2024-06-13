@@ -252,6 +252,8 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         @Override
         public void reportUnlockAttempt(int userId, boolean primary, boolean success,
                 int timeoutMs) {
+            mLockPatternUtils.checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary);
+
             if (timeoutMs == 0 && !success) {
                 mBouncerMessageInteractor.onAuthIncorrectAttempt(primary);
             }
@@ -263,7 +265,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             }
 
             if (success) {
-                // TODO: Reuse existing SysUiStatsLog and BouncerUiEvent?
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__SUCCESS,
                         bouncerSide);
@@ -287,7 +288,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                         bouncerSide);
                 reportFailedUnlockAttempt(userId, primary, timeoutMs);
             }
-            // TODO: Reuse existing MetricsEvent and BouncerUiEvent?
             mMetricsLogger.write(new LogMaker(MetricsEvent.BOUNCER)
                     .setType(success ? MetricsEvent.TYPE_SUCCESS : MetricsEvent.TYPE_FAILURE));
             mUiEventLogger.log(success ? BouncerUiEvent.BOUNCER_PASSWORD_SUCCESS
