@@ -1113,6 +1113,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
 
         getCurrentSecurityController(oldView -> oldView.onPause());
 
+        SecurityMode previousSecurityMode = mCurrentSecurityMode;
         mCurrentSecurityMode = securityMode;
 
         getCurrentSecurityController(
@@ -1122,7 +1123,9 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                     configureMode();
                     mKeyguardSecurityCallback.onSecurityModeChanged(
                             securityMode, newView != null && newView.needsInput());
-
+                    if (previousSecurityMode == BiometricSecondFactorPin) {
+                        setInitialMessage();
+                    }
                 });
     }
 
