@@ -768,18 +768,22 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             getCurrentSecurityController(controller -> controller.onResume(reason));
         }
 
-        if (mCurrentSecurityMode != mSecurityModel.getSecurityMode(
-                mSelectedUserInteractor.getSelectedUserId())) {
-            // Do this here so that the call to showPrimarySecurityScreen in the callback passed to
-            // reinflateViewFlipper by KeyguardBouncerViewBinder will be a no-op. This call here
-            // plus the preloading of the view for SecurityMode.BiometricSecondFactorPin results in
-            // fingerprint -> biometric PIN behaving the same as 3 failed fingerprints -> primary
-            // PIN.
+
+        SecurityMode trueCurrentSecurityMode = mSecurityModel.getSecurityMode(
+                mSelectedUserInteractor.getSelectedUserId(), false);
+        if (trueCurrentSecurityMode != mCurrentSecurityMode &&
+                trueCurrentSecurityMode == BiometricSecondFactorPin) {
+            // Do this here so that mCurrentSecurityMode is updated and in turn the call to
+            // showPrimarySecurityScreen() in the callback passed to reinflateViewFlipper() by
+            // KeyguardBouncerViewBinder will be a no-op. Because the controller/view for
+            // SecurityMode.BiometricSecondFactorPin was preloaded, this call won't do any async
+            // inflation. The end result is that going from successful fingerprint to biometric PIN
+            // behaves basically the same as going from 3 failed fingerprints to primary PIN.
             showPrimarySecurityScreen(false);
         }
 
         mView.onResume(
-                mSecurityModel.getSecurityMode(mSelectedUserInteractor.getSelectedUserId()),
+                trueCurrentSecurityMode,
                 mKeyguardStateController.isFaceEnrolledAndEnabled());
     }
 
