@@ -628,6 +628,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
      * Enables/disables swipe up to retry on the bouncer.
      */
     private void updateBiometricRetry(SecurityMode securityMode, boolean faceAuthEnabled) {
+        // TODO: Do we want to allow biometric retry for SecurityMode.BiometricSecondFactorPin?
         mSwipeUpToRetry = faceAuthEnabled
                 && securityMode != SecurityMode.SimPin
                 && securityMode != SecurityMode.SimPuk
