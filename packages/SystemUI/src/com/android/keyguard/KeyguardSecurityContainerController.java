@@ -252,12 +252,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         public void reportUnlockAttempt(int userId, boolean primary, boolean success,
                 int timeoutMs) {
             if (timeoutMs == 0 && !success) {
-                if (primary) {
-                    mBouncerMessageInteractor.onPrimaryAuthIncorrectAttempt();
-                } else {
-                    // TODO: This is untested as this is flag is not activated.
-                    mBouncerMessageInteractor.onBiometricSecondFactorAuthIncorrectAttempt();
-                }
+                mBouncerMessageInteractor.onAuthIncorrectAttempt(primary);
             }
             int bouncerSide = SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__SIDE__DEFAULT;
             if (mView.isSidedSecurityMode()) {

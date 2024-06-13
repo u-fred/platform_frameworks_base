@@ -250,20 +250,17 @@ constructor(
         countDownTimerUtil.startNewTimer(secondsBeforeLockoutReset * 1000, 1000, callback)
     }
 
-    fun onPrimaryAuthIncorrectAttempt() {
+    fun onAuthIncorrectAttempt(primary: Boolean) {
         if (!featureFlags.isEnabled(REVAMPED_BOUNCER_MESSAGES)) return
 
+        val fingerprintAllowed : Boolean
+        if (primary) {
+            fingerprintAllowed = isFingerprintAuthCurrentlyAllowed.value
+        } else {
+            fingerprintAllowed = false
+        }
         repository.setMessage(
-            incorrectSecurityInput(currentSecurityMode, isFingerprintAuthCurrentlyAllowed.value)
-        )
-    }
-
-    fun onBiometricSecondFactorAuthIncorrectAttempt() {
-        if (!featureFlags.isEnabled(REVAMPED_BOUNCER_MESSAGES)) return
-
-        // Doesn't make sense to suggest fingerprint here.
-        repository.setMessage(
-                incorrectSecurityInput(currentSecurityMode, false)
+            incorrectSecurityInput(currentSecurityMode, fingerprintAllowed)
         )
     }
 
