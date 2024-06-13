@@ -769,7 +769,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             getCurrentSecurityController(controller -> controller.onResume(reason));
         }
 
-
         SecurityMode trueCurrentSecurityMode = mSecurityModel.getSecurityMode(
                 mSelectedUserInteractor.getSelectedUserId(), false);
         if (trueCurrentSecurityMode != mCurrentSecurityMode &&
