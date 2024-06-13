@@ -535,6 +535,13 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         showPrimarySecurityScreen(false);
 
         if (mSceneContainerFlags.isEnabled()) {
+            // Need to verify this won't break with SecurityMode.BiometricSecondFactorPin.
+            if (true) {
+                String message = "mSceneContainerFlags.isEnabled(), update secondary handling";
+                Log.e(TAG, message);
+                throw new IllegalStateException(message);
+            }
+
             // When the scene framework says that the lockscreen has been dismissed, dismiss the
             // keyguard here, revealing the underlying app or launcher:
             mSceneTransitionCollectionJob = mJavaAdapter.get().alwaysCollectFlow(
@@ -542,8 +549,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                     isDeviceEntered -> {
                     if (isDeviceEntered) {
                         final int selectedUserId = mSelectedUserInteractor.getSelectedUserId();
-                        // TODO: Find way to verify this doesn't break with
-                        //  BiometricSecondFactorPin.
                         showNextSecurityScreenOrFinish(
                             /* authenticated= */ true,
                             selectedUserId,
