@@ -970,14 +970,21 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             mUiEventLogger.log(uiEvent, getSessionId());
         }
 
-        // TODO: Need to be careful when this flag is enabled as can't currently tell what this
-        //  code is doing. Might need to set authenticatedWithPrimaryAuth to true even when doing
-        //  biometric second factor. Primary in base AOSP means PIN/password/pattern.
         if (mFeatureFlags.isEnabled(Flags.REFACTOR_KEYGUARD_DISMISS_INTENT)) {
+            //  Can't currently tell what the values set by these calls will be used for. Might
+            //  need to set authenticatedWithPrimaryAuth to true even when doing biometric second
+            //  factor as primary in this context refers to PIN/password/pattern.
+            if (true) {
+                String message =
+                        "REFACTOR_KEYGUARD_DISMISS_INTENT enabled, update secondary handling";
+                Log.e(TAG, message);
+                throw new IllegalStateException(message);
+            }
+
             if (authenticatedWithPrimaryAuth) {
                 mPrimaryBouncerInteractor.get()
                         .notifyKeyguardAuthenticatedPrimaryAuth(targetUserId);
-            } else if (finish && expectedSecurityMode != BiometricSecondFactorPin) {
+            } else if (finish) {
                 mPrimaryBouncerInteractor.get().notifyUserRequestedBouncerWhenAlreadyAuthenticated(
                         targetUserId);
             }
