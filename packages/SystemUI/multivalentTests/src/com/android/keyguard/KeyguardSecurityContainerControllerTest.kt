@@ -97,6 +97,7 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -191,7 +192,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         whenever(messageAreaControllerFactory.create(any()))
             .thenReturn(keyguardMessageAreaController)
         whenever(keyguardPasswordView.windowInsetsController).thenReturn(windowInsetsController)
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(SecurityMode.PIN)
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(SecurityMode.PIN)
         whenever(keyguardStateController.canDismissLockScreen()).thenReturn(true)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(true)
 
@@ -475,7 +476,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, true))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.None)
         whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(true)
         underTest.showNextSecurityScreenOrFinish(
@@ -517,7 +518,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, true))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.None)
         // WHEN security method is SWIPE
         whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
@@ -540,7 +541,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, true))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.None)
         // WHEN security method is SWIPE
         whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
@@ -565,7 +566,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, true))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.Password)
         // WHEN security method is SWIPE
         whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
@@ -591,7 +592,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, true))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.SimPin)
         // WHEN security method is SWIPE
         whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
@@ -922,7 +923,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         verify(userSwitcherController)
             .addUserSwitchCallback(capture(userSwitchCallbackArgumentCaptor))
         userSwitchCallbackArgumentCaptor.value.onUserSwitched()
-        verify(viewFlipperController).asynchronouslyInflateView(any(), any(), any())
+        verify(viewFlipperController, times(2)).asynchronouslyInflateView(any(), any(), any())
     }
 
     private val registeredSwipeListener: KeyguardSecurityContainer.SwipeListener
