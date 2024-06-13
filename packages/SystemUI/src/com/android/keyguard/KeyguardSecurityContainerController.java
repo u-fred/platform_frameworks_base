@@ -1118,6 +1118,11 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         SecurityMode previousSecurityMode = mCurrentSecurityMode;
         mCurrentSecurityMode = securityMode;
 
+        // Remove the stored HAT as early as possible.
+        if (previousSecurityMode == BiometricSecondFactorPin) {
+            mUpdateMonitor.clearFingerprintRecognized();
+        }
+
         getCurrentSecurityController(
                 newView -> {
                     newView.onResume(KeyguardSecurityView.VIEW_REVEALED);
