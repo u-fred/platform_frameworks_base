@@ -21,7 +21,6 @@ import android.app.admin.DevicePolicyManager;
 import android.content.res.Resources;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.android.internal.widget.LockPatternUtils;
 import com.android.systemui.dagger.SysUISingleton;
@@ -44,7 +43,7 @@ public class KeyguardSecurityModel {
         PIN, // Strictly numeric password
         SimPin, // Unlock by entering a sim pin.
         SimPuk, // Unlock by entering a sim puk
-        // TODO: Look at all places PIN is used and see if BiometricSecondFactorPin should be there.
+        // TODO: Add BiometricSecondFactorPin BouncerMessageInteractor messages.
         BiometricSecondFactorPin // Unlock by entering a second factor PIN.
     }
 
