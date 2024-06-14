@@ -1236,7 +1236,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 if (!primary) {
                     onClick =
                             (dialog, which) -> {
-                                mUpdateMonitor.clearFingerprintRecognized(userId);
+                                mUpdateMonitor.clearFingerprintRecognized();
                                 showPrimarySecurityScreen(false);
                             };
                 }
