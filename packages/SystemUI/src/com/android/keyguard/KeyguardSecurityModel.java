@@ -80,6 +80,7 @@ public class KeyguardSecurityModel {
         }
 
         if (!primaryModesOnly &&
+                mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false) &&
                 mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId) &&
                 mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
             return SecurityMode.BiometricSecondFactorPin;
