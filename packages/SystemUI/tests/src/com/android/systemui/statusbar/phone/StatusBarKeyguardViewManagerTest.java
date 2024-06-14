@@ -259,7 +259,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
     @Test
     public void showBouncer_notWhenBouncerAlreadyShowing() {
         mStatusBarKeyguardViewManager.hide(0 /* startTime */, 0 /* fadeoutDuration */);
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(
                 KeyguardSecurityModel.SecurityMode.Password);
         mStatusBarKeyguardViewManager.showPrimaryBouncer(true /* scrimmed */);
         verify(mPrimaryBouncerInteractor, never()).show(anyBoolean());
@@ -616,7 +616,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
 
     @Test
     public void testPredictiveBackCallback_noBackAnimationForFullScreenBouncer() {
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true)))
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(false)))
                 .thenReturn(KeyguardSecurityModel.SecurityMode.SimPin);
         mBouncerExpansionCallback.onVisibilityChanged(true);
         /* capture the predictive back callback during registration */
