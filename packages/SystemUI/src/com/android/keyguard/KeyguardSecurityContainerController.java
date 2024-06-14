@@ -536,6 +536,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
 
         if (mSceneContainerFlags.isEnabled()) {
             // Need to verify this won't break with SecurityMode.BiometricSecondFactorPin.
+            // This breaks some tests.
             if (true) {
                 String message = "mSceneContainerFlags.isEnabled(), update secondary handling";
                 Log.e(TAG, message);
