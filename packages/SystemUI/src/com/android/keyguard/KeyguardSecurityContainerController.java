@@ -1242,6 +1242,10 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 }
                 mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
                         mSecurityModel.getSecurityMode(userId, false), onClick);
+            } else {
+                String message = "REVAMPED_BOUNCER_MESSAGES enabled, update secondary handling";
+                Log.e(TAG, message);
+                throw new IllegalStateException(message);
             }
         }
     }
