@@ -1134,7 +1134,10 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         SecurityMode previousSecurityMode = mCurrentSecurityMode;
         mCurrentSecurityMode = securityMode;
 
-        // Remove the stored HAT as early as possible.
+        // Remove any stored HATs as early as possible. It will always be cleared in
+        // PrimaryBouncerInteractor#hide and in the callback after too many failed second factor
+        // attempts, but going to SimPin/SimPuk while on second factor screen will benefit from
+        // this.
         if (previousSecurityMode == BiometricSecondFactorPin) {
             mUpdateMonitor.clearFingerprintRecognized();
         }
