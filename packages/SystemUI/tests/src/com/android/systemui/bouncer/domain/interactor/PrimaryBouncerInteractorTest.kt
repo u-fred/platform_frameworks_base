@@ -84,7 +84,7 @@ class PrimaryBouncerInteractorTest : SysuiTestCase() {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true)))
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(false)))
             .thenReturn(KeyguardSecurityModel.SecurityMode.PIN)
 
         DejankUtils.setImmediate(true)
@@ -165,7 +165,7 @@ class PrimaryBouncerInteractorTest : SysuiTestCase() {
     @Test
     fun testShow_isResumed() {
         whenever(repository.primaryBouncerShow.value).thenReturn(true)
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true)))
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(false)))
             .thenReturn(KeyguardSecurityModel.SecurityMode.SimPuk)
 
         underTest.show(true)
