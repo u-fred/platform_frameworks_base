@@ -609,6 +609,24 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     }
 
     @Test
+    fun showNextSecurityScreenOrFinish_BiometricUnlockedWithSecondFactorEnabled_DoesNotFinish() {
+        whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+                .thenReturn(true)
+        whenever(lockPatternUtils.isBiometricSecondFactorEnabled(TARGET_USER_ID)).thenReturn(true)
+        underTest.showSecurityScreen(SecurityMode.PIN)
+
+        val finish = underTest.showNextSecurityScreenOrFinish(
+                /* authenticated= */ true,
+                TARGET_USER_ID,
+                /* bypassSecondaryLockScreen= */ true,
+                SecurityMode.SimPin
+        )
+
+        Assert.assertFalse(finish)
+    }
+
+    @Test
     fun onSwipeUp_forwardsItToFaceAuthInteractor() {
         val registeredSwipeListener = registeredSwipeListener
         setupGetSecurityView(SecurityMode.Password)
