@@ -1075,9 +1075,16 @@ public class LockPatternUtils {
      * @throws IllegalArgumentException If user does not support biometric second factor.
      */
     public boolean checkUserSupportsBiometricSecondFactor(int userId) {
+        return checkUserSupportsBiometricSecondFactorIfSecondary(userId, true);
+    }
+
+    public boolean checkUserSupportsBiometricSecondFactor(int userId, boolean throwIfNotSupport) {
         // LockSettingsService/LockSettingsStorage don't use checkDeviceSupported argument.
         if (isSpecialUserId(userId)) {
-            throw new SecondaryForSpecialUserException();
+            if (throwIfNotSupport) {
+                throw new SecondaryForSpecialUserException();
+            }
+            return false;
         }
 
         boolean sharable;
@@ -1088,7 +1095,10 @@ public class LockPatternUtils {
         }
 
         if (sharable) {
-            throw new SecondaryForCredSharableUserException();
+            if (throwIfNotSupport) {
+                throw new SecondaryForCredSharableUserException();
+            }
+            return false;
         }
         return true;
     }
