@@ -309,6 +309,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     }
 
     @Test
+    fun showSecurityScreen_previousBiometricSecondFactorPin_clearsHardwareAuthTokens() {
+        underTest.showSecurityScreen(SecurityMode.BiometricSecondFactorPin)
+
+        underTest.showSecurityScreen(SecurityMode.PIN)
+
+        verify(keyguardUpdateMonitor).clearFingerprintRecognized()
+    }
+
+    @Test
     fun onResourcesUpdate_callsThroughOnRotationChange() {
         clearInvocations(view)
 
