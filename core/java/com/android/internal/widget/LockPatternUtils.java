@@ -452,7 +452,13 @@ public class LockPatternUtils {
             // Should only be called as part of an unlock process, not if the second factor was
             // being authenticated on its own (such as in Settings app).
             getTrustManager().unlockedByBiometricForUser(userId, FINGERPRINT);
+            reportSuccessfulBiometricUnlock(mIsFingerprintStrongBiometric, userId);
         }
+    }
+
+    private boolean mIsFingerprintStrongBiometric = false;
+    public void setFingerprintIsStrongBiometric(boolean isStrongBiometric) {
+        mIsFingerprintStrongBiometric = isStrongBiometric;
     }
 
     public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {

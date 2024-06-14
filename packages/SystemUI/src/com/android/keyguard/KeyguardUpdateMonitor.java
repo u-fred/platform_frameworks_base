@@ -841,6 +841,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 new BiometricAuthenticated(true, isStrongBiometric));
         // Update/refresh trust state only if user can skip bouncer
         if (getUserCanSkipBouncer(userId)) {
+            // This will be called by LockPatternUtils#reportSuccessfulPasswordAttempt after second
+            // factor succeeds.
             mTrustManager.unlockedByBiometricForUser(userId, FINGERPRINT);
         }
         // Don't send cancel if authentication succeeds
@@ -862,7 +864,11 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         mAssistantVisible = false;
 
         // Report unlock with strong or non-strong biometric
-        reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        if (!getBiometricSecondFactorEnabled(userId)) {
+            // This will be called by LockPatternUtils#reportSuccessfulPasswordAttempt after second
+            // factor succeeds.
+            reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        }
 
         Trace.endSection();
     }
@@ -2340,6 +2346,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                                 List<FingerprintSensorPropertiesInternal> sensors)
                                 throws RemoteException {
                             mFingerprintSensorProperties = sensors;
+                            // This isn't main thread but this should be fine.
+                            mLockPatternUtils.setFingerprintIsStrongBiometric(isFingerprintClass3());
                             updateFingerprintListeningState(BIOMETRIC_ACTION_UPDATE);
                             mLogger.d("FingerprintManager onAllAuthenticatorsRegistered");
                         }
