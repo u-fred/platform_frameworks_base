@@ -421,7 +421,7 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
                 .ifPresent(event -> UI_EVENT_LOGGER.log(event, getSessionId()));
 
         // TODO: Review this. Do we need to check if type is fingerpint?
-        if (mUpdateMonitor.getBiometricSecondFactorEnabled(userId)) {
+        if (isSecondFactorEnabled) {
             startWakeAndUnlock(MODE_SHOW_BOUNCER);
             return;
         }

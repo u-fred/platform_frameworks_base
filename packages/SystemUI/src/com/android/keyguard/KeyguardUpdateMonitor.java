@@ -853,7 +853,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
                 cb.onBiometricAuthenticated(userId, FINGERPRINT,
-                        isStrongBiometric, getBiometricSecondFactorEnabled(userId));
+                        isStrongBiometric, mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
             }
         }
 
@@ -863,8 +863,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         // Only authenticate fingerprint once when assistant is visible
         mAssistantVisible = false;
 
-        // Report unlock with strong or non-strong biometric
-        if (!getBiometricSecondFactorEnabled(userId)) {
+        if (getUserCanSkipBouncer(userId)) {
             // This will be called by LockPatternUtils#reportSuccessfulPasswordAttempt after second
             // factor succeeds.
             reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
@@ -1364,7 +1363,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
 
     public boolean getUserCanSkipBouncer(int userId) {
         return getUserHasTrust(userId) || (getUserUnlockedWithBiometric(userId) &&
-                !getBiometricSecondFactorEnabled(userId));
+                !mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
     }
 
     public boolean getUserHasTrust(int userId) {
@@ -1387,30 +1386,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     /**
      * Returns whether the user has authenticated with fingerprint.
      */
-    // TODO: Is this a duplicate?
-    // TODO: Replace all direct uses of mUserFingerprintAuthenticated outside of this class.
     public boolean getUserAuthenticatedWithFingerprint(int userId) {
         return mUserFingerprintAuthenticated.contains(userId);
-    }
-
-    /**
-     * Returns whether the user has biometric second factor enabled for fingerprint.
-     */
-    public boolean getBiometricSecondFactorEnabled(int userId) {
-        // TODO: Need to make sure case where user deletes primary unlock is handled properly. I
-        //  don't know if it would matter because it deletes biometric and therefore this would
-        //  never get called, but review it.
-        // Could potentially implement this with a callback that is called when the user modifies
-        // their biometric second factor settings, but this works for now.
-        // Settings.Secure.getIntForUser(mContext.getContentResolver(), BIOMETRIC_KEYGUARD_ENABLED,
-        // 1, mUserId) == 1
-        // mFingerprintManager.hasEnrolledTemplates()
-        return mLockPatternUtils.isBiometricSecondFactorEnabled(userId);
-    }
-
-    public boolean isDoingBiometricSecondFactorAuth(int userId) {
-        return getUserAuthenticatedWithFingerprint(userId) &&
-                getBiometricSecondFactorEnabled(userId);
     }
 
     /**
