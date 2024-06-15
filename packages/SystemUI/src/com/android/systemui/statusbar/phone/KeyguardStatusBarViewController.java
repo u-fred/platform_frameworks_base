@@ -194,9 +194,10 @@ public class KeyguardStatusBarViewController extends ViewController<KeyguardStat
                         BiometricSourceType biometricSourceType,
                         boolean isStrongBiometric,
                         boolean isSecondFactorEnabled) {
+                    // TODO: Review !isSecondFactorEnabled.
                     if (mFirstBypassAttempt
                             && mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowed(
-                                    isStrongBiometric)) {
+                                    isStrongBiometric) && !isSecondFactorEnabled) {
                         mDelayShowingKeyguardStatusBar = true;
                     }
                 }
