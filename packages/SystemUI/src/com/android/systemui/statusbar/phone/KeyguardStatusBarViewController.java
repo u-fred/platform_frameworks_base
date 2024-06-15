@@ -192,7 +192,8 @@ public class KeyguardStatusBarViewController extends ViewController<KeyguardStat
                 public void onBiometricAuthenticated(
                         int userId,
                         BiometricSourceType biometricSourceType,
-                        boolean isStrongBiometric) {
+                        boolean isStrongBiometric,
+                        boolean isSecondFactorEnabled) {
                     if (mFirstBypassAttempt
                             && mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowed(
                                     isStrongBiometric)) {

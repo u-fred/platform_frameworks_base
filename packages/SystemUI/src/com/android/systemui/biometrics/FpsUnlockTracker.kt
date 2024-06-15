@@ -64,8 +64,10 @@ constructor(
             override fun onBiometricAuthenticated(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
-                isStrongBiometric: Boolean
+                isStrongBiometric: Boolean,
+                isSecondFactorEnabled: Boolean
             ) {
+                // Doing this regardless of second factor enabled should be fine.
                 if (biometricSourceType == FINGERPRINT) {
                     fpsAuthenticated = true
                     onExitKeyguard()

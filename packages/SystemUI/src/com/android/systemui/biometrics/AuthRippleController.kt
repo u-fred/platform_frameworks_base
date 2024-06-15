@@ -283,9 +283,11 @@ class AuthRippleController @Inject constructor(
             override fun onBiometricAuthenticated(
                 userId: Int,
                 biometricSourceType: BiometricSourceType,
-                isStrongBiometric: Boolean
+                isStrongBiometric: Boolean,
+                isSecondFactorEnabled: Boolean
             ) {
-                if (biometricSourceType == BiometricSourceType.FINGERPRINT) {
+                if (biometricSourceType == BiometricSourceType.FINGERPRINT
+                        && !isSecondFactorEnabled) {
                     mView.fadeDwellRipple()
                 }
             }

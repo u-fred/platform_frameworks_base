@@ -99,9 +99,12 @@ class FalsingCollectorImpl implements FalsingCollector {
                 @Override
                 public void onBiometricAuthenticated(int userId,
                         BiometricSourceType biometricSourceType,
-                        boolean isStrongBiometric) {
+                        boolean isStrongBiometric,
+                        boolean isSecondFactorEnabled) {
                     if (userId == mUserInteractor.get().getSelectedUserId()
                             && biometricSourceType == BiometricSourceType.FACE) {
+                        // TODO: Will need to update this if we implement second factor for face
+                        //  properly.
                         mFalsingDataProvider.setJustUnlockedWithFace(true);
                     }
                 }

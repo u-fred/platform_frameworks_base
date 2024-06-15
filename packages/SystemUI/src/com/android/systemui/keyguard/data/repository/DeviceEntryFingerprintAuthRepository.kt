@@ -182,7 +182,10 @@ constructor(
                         userId: Int,
                         biometricSourceType: BiometricSourceType,
                         isStrongBiometric: Boolean,
+                        isSecondFactorEnabled: Boolean,
                     ) {
+                        // TODO: Will need to add second factor handling here once this Flow is
+                        //  used.
                         sendUpdateIfFingerprint(
                             biometricSourceType,
                             SuccessFingerprintAuthenticationStatus(

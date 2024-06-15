@@ -853,7 +853,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
                 cb.onBiometricAuthenticated(userId, FINGERPRINT,
-                        isStrongBiometric);
+                        isStrongBiometric, getBiometricSecondFactorEnabled(userId));
             }
         }
 
@@ -1127,7 +1127,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
             if (cb != null) {
                 cb.onBiometricAuthenticated(userId,
                         FACE,
-                        isStrongBiometric);
+                        isStrongBiometric,
+                        false);
             }
         }
 

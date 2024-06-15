@@ -156,8 +156,10 @@ constructor(
             override fun onBiometricAuthenticated(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
-                isStrongBiometric: Boolean
+                isStrongBiometric: Boolean,
+                isSecondFactorEnabled: Boolean,
             ) {
+                // TODO: Might have to update this when BouncerMessageInteractor is used.
                 repository.setMessage(defaultMessage)
             }
         }

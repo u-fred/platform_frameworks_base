@@ -39,6 +39,7 @@ import com.android.internal.logging.UiEventLogger;
 import com.android.internal.logging.UiEventLoggerImpl;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.internal.util.LatencyTracker;
+import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.keyguard.KeyguardViewController;
@@ -182,6 +183,8 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
     private long mLastFpFailureUptimeMillis;
     private int mNumConsecutiveFpFailures;
 
+    private final LockPatternUtils mLockPatternUtils;
+
     private static final class PendingAuthenticated {
         public final int userId;
         public final BiometricSourceType biometricSourceType;
@@ -286,7 +289,8 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
             VibratorHelper vibrator,
             SystemClock systemClock,
             Lazy<SelectedUserInteractor> selectedUserInteractor,
-            BiometricUnlockInteractor biometricUnlockInteractor
+            BiometricUnlockInteractor biometricUnlockInteractor,
+            LockPatternUtils lockPatternUtils
     ) {
         mPowerManager = powerManager;
         mUpdateMonitor = keyguardUpdateMonitor;
@@ -319,6 +323,8 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
         mSelectedUserInteractor = selectedUserInteractor;
 
         dumpManager.registerDumpable(this);
+
+        mLockPatternUtils = lockPatternUtils;
     }
 
     public void setKeyguardViewController(KeyguardViewController keyguardViewController) {
@@ -397,7 +403,7 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
 
     @Override
     public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
-            boolean isStrongBiometric) {
+            boolean isStrongBiometric, boolean isSecondFactorEnabled) {
         Trace.beginSection("BiometricUnlockController#onBiometricUnlocked");
         if (mUpdateMonitor.isGoingToSleep()) {
             mLogger.deferringAuthenticationDueToSleep(userId,
@@ -806,7 +812,9 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
                         // Post this to make sure it's executed after the device is fully locked.
                         mHandler.post(() -> onBiometricAuthenticated(pendingAuthenticated.userId,
                                 pendingAuthenticated.biometricSourceType,
-                                pendingAuthenticated.isStrongBiometric));
+                                pendingAuthenticated.isStrongBiometric,
+                                mLockPatternUtils.isBiometricSecondFactorEnabled(pendingAuthenticated.userId)
+                                ));
                         mPendingAuthenticated = null;
                     }
                     Trace.endSection();
