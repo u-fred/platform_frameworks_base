@@ -841,8 +841,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 new BiometricAuthenticated(true, isStrongBiometric));
         // Update/refresh trust state only if user can skip bouncer
         if (getUserCanSkipBouncer(userId)) {
-            // This will be called by LockPatternUtils#reportSuccessfulPasswordAttempt after second
-            // factor succeeds.
+            // Called by LockPatternUtils#reportSuccessfulPasswordAttempt after second factor
+            // succeeds.
             mTrustManager.unlockedByBiometricForUser(userId, FINGERPRINT);
         }
         // Don't send cancel if authentication succeeds
@@ -852,6 +852,9 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         for (int i = 0; i < mCallbacks.size(); i++) {
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
+                // isSecondFactorEnabled param is redundant but will help prevent silent bugs
+                // being introduced by future code and is now something that all callbacks should
+                // consider.
                 cb.onBiometricAuthenticated(userId, FINGERPRINT,
                         isStrongBiometric, mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
             }
@@ -863,9 +866,12 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         // Only authenticate fingerprint once when assistant is visible
         mAssistantVisible = false;
 
-        if (getUserCanSkipBouncer(userId)) {
-            // This will be called by LockPatternUtils#reportSuccessfulPasswordAttempt after second
-            // factor succeeds.
+        if (!mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            // This allows non-strong biometrics to be used, which we don' want to allow until the
+            // second factor has been completed. I think base code should only call this if
+            // getUserCanSkipBouncer() is true, but the outcome probably stays the same.
+            // Called by LockPatternUtils#reportSuccessfulPasswordAttempt after second factor
+            // succeeds.
             reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
         }
 
