@@ -1368,8 +1368,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     }
 
     public boolean getUserCanSkipBouncer(int userId) {
-        return getUserHasTrust(userId) || (getUserUnlockedWithBiometric(userId) &&
-                !mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
+        return getUserHasTrust(userId) || (getUserUnlockedWithBiometric(userId, true));
     }
 
     public boolean getUserHasTrust(int userId) {
@@ -1379,8 +1378,19 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
 
     /**
      * Returns whether the user is unlocked with biometrics.
+     *
+     * @param requireSecondFactorIfEnabled if user has a biometric second factor then require that
+     *                                     it has succeeded as well as biometrics.
      */
-    public boolean getUserUnlockedWithBiometric(int userId) {
+    public boolean getUserUnlockedWithBiometric(int userId, boolean requireSecondFactorIfEnabled) {
+        // This method is a sham because we don't track when second factor succeeds and so must
+        // always return false if it is a requirement. This is fine for all current uses of this
+        // method. If it becomes a problem, we can add mSecondFactorAuthenticated to KUM.
+        boolean isSecondFactorEnabled = mLockPatternUtils.isBiometricSecondFactorEnabled(userId);
+        if (requireSecondFactorIfEnabled && isSecondFactorEnabled) {
+            return false;
+        }
+
         BiometricAuthenticated fingerprint = mUserFingerprintAuthenticated.get(userId);
         boolean fingerprintAllowed = fingerprint != null && fingerprint.mAuthenticated
                 && isUnlockingWithBiometricAllowed(fingerprint.mIsStrongBiometric);
@@ -3892,7 +3902,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         pw.println("  getUserHasTrust()=" + getUserHasTrust(
                 mSelectedUserInteractor.getSelectedUserId()));
         pw.println("  getUserUnlockedWithBiometric()="
-                + getUserUnlockedWithBiometric(mSelectedUserInteractor.getSelectedUserId()));
+                + getUserUnlockedWithBiometric(mSelectedUserInteractor.getSelectedUserId(), false));
         pw.println("  SIM States:");
         for (SimData data : mSimDatas.values()) {
             pw.println("    " + data.toString());

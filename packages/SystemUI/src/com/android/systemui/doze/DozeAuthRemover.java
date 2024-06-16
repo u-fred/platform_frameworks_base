@@ -42,7 +42,7 @@ public class DozeAuthRemover implements DozeMachine.Part {
     public void transitionTo(DozeMachine.State oldState, DozeMachine.State newState) {
         if (newState == DozeMachine.State.DOZE || newState == DozeMachine.State.DOZE_AOD) {
             int currentUser = mSelectedUserInteractor.getSelectedUserId();
-            if (mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(currentUser)) {
+            if (mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(currentUser, false)) {
                 mKeyguardUpdateMonitor.clearFingerprintRecognized();
             }
         }
