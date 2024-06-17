@@ -1131,15 +1131,19 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 cb.onBiometricAuthenticated(userId,
                         FACE,
                         isStrongBiometric,
-                        false);
+                        mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
             }
         }
 
         // Only authenticate face once when assistant is visible
         mAssistantVisible = false;
 
-        // Report unlock with strong or non-strong biometric
-        reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        if (!mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            // This can enable non-strong biometrics, which shouldn't happen until after the second
+            // factor succeeds. Called by LockPatternUtils#reportSuccessfulPasswordAttempt after
+            // second factor succeeds.
+            reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        }
 
         Trace.endSection();
     }
