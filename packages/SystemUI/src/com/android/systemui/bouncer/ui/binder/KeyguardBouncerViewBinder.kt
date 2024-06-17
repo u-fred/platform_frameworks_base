@@ -129,22 +129,28 @@ object KeyguardBouncerViewBinder {
                                     securityContainerController.onBouncerVisibilityChanged(
                                         /* isVisible= */ true
                                     )
+                                    // This isn't great. As this is a callback within
+                                    // reinflateViewFlipper, there will be no other controllers in
+                                    // KeyguardSecurityViewFlipper.mChildren. If this is anything
+                                    // other than a no-op then the subsequent calls in this
+                                    // callback will erroneously create multiple new views and
+                                    // controllers for the new security mode.
+                                    // For biometric second factor, we set the security mode
+                                    // in KeyguardSecurityContainerController#onResume to ensure
+                                    // this is a no-op.
                                     securityContainerController.showPrimarySecurityScreen(
                                         /* turningOff= */ false
                                     )
-                                    // TODO: Everything that follows here should be a callback
-                                    //  passed to showPrimarySecurityScreen. Otherwise, when the
-                                    //  security screen is changed, multiple views get created and
-                                    //  none of these calls affect the visible view. For now this
-                                    //  is fixed in the ViewFlipper to reduce base code changes.
                                     securityContainerController.setInitialMessage()
                                     securityContainerController.appear()
                                     securityContainerController.onResume(
                                         KeyguardSecurityView.SCREEN_ON
                                     )
                                     bouncerLogger.bindingBouncerMessageView()
-                                    // TODO: This (and the entire callback) won't be called for the
-                                    //  secondary view. Does this matter?
+                                    // TODO: When Flags.REVAMPED_BOUNCER_MESSAGES is enabled, this
+                                    //  binding will need to be updated when the security mode
+                                    //  changes from BiometricSecondFactorPin to primary (after too
+                                    //  many failures).
                                     it.bindMessageView(
                                         bouncerMessageInteractor,
                                         messageAreaControllerFactory,
