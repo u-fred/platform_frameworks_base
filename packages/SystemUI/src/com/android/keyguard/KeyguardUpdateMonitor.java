@@ -2347,7 +2347,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                                 List<FingerprintSensorPropertiesInternal> sensors)
                                 throws RemoteException {
                             mFingerprintSensorProperties = sensors;
-                            // This isn't main thread but this should be fine.
                             mLockPatternUtils.setFingerprintIsStrongBiometric(isFingerprintClass3());
                             updateFingerprintListeningState(BIOMETRIC_ACTION_UPDATE);
                             mLogger.d("FingerprintManager onAllAuthenticatorsRegistered");
