@@ -855,8 +855,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 // isSecondFactorEnabled param is redundant but will help prevent silent bugs
                 // being introduced by future code and is now something that all callbacks should
                 // consider.
-                cb.onBiometricAuthenticated(userId, FINGERPRINT,
-                        isStrongBiometric, mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
+                cb.onBiometricAuthenticated(userId, FINGERPRINT, isStrongBiometric,
+                        mLockPatternUtils.isBiometricSecondFactorEnabled(userId));
             }
         }
 
