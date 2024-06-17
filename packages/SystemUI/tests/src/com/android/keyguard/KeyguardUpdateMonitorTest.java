@@ -26,7 +26,6 @@ import static android.hardware.biometrics.SensorProperties.STRENGTH_STRONG;
 import static android.hardware.fingerprint.FingerprintSensorProperties.TYPE_UDFPS_OPTICAL;
 import static android.telephony.SubscriptionManager.DATA_ROAMING_DISABLE;
 import static android.telephony.SubscriptionManager.NAME_SOURCE_CARRIER_ID;
-
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.SOME_AUTH_REQUIRED_AFTER_USER_REQUEST;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_USER_LOCKDOWN;
 import static com.android.keyguard.KeyguardUpdateMonitor.BIOMETRIC_STATE_CANCELLING_RESTARTING;
@@ -34,11 +33,8 @@ import static com.android.keyguard.KeyguardUpdateMonitor.DEFAULT_CANCEL_SIGNAL_T
 import static com.android.keyguard.KeyguardUpdateMonitor.HAL_POWER_PRESS_TIMEOUT;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_OPENED;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_UNKNOWN;
-
 import static com.google.common.truth.Truth.assertThat;
-
 import static junit.framework.Assert.assertEquals;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -337,6 +333,8 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         setupBiometrics(mKeyguardUpdateMonitor);
         mKeyguardUpdateMonitor.setFaceAuthInteractor(mFaceAuthInteractor);
         verify(mFaceAuthInteractor).registerListener(mFaceAuthenticationListener.capture());
+
+        when(mLockPatternUtils.isBiometricSecondFactorEnabled(anyInt())).thenReturn(false);
     }
 
     private void setupBiometrics(KeyguardUpdateMonitor keyguardUpdateMonitor)
@@ -371,8 +369,6 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mFingerprintManager).addAuthenticatorsRegisteredCallback(
                 fingerprintCaptor.capture());
         mFingerprintAuthenticatorsRegisteredCallback = fingerprintCaptor.getValue();
-        mFingerprintAuthenticatorsRegisteredCallback
-                .onAllAuthenticatorsRegistered(mFingerprintSensorProperties);
     }
 
     private void setupFingerprintAuth(boolean isClass3) throws RemoteException {
