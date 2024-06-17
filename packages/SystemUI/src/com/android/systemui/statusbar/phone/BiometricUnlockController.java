@@ -39,7 +39,6 @@ import com.android.internal.logging.UiEventLogger;
 import com.android.internal.logging.UiEventLoggerImpl;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.internal.util.LatencyTracker;
-import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.keyguard.KeyguardViewController;
@@ -62,8 +61,6 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 import com.android.systemui.util.time.SystemClock;
 
-import dagger.Lazy;
-
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -74,6 +71,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import dagger.Lazy;
 import kotlinx.coroutines.ExperimentalCoroutinesApi;
 
 /**
@@ -183,18 +181,18 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
     private long mLastFpFailureUptimeMillis;
     private int mNumConsecutiveFpFailures;
 
-    private final LockPatternUtils mLockPatternUtils;
-
     private static final class PendingAuthenticated {
         public final int userId;
         public final BiometricSourceType biometricSourceType;
         public final boolean isStrongBiometric;
+        public final boolean isSecondFactorEnabled;
 
         PendingAuthenticated(int userId, BiometricSourceType biometricSourceType,
-                boolean isStrongBiometric) {
+                boolean isStrongBiometric, boolean isSecondFactorEnabled) {
             this.userId = userId;
             this.biometricSourceType = biometricSourceType;
             this.isStrongBiometric = isStrongBiometric;
+            this.isSecondFactorEnabled = isSecondFactorEnabled;
         }
     }
 
@@ -289,8 +287,7 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
             VibratorHelper vibrator,
             SystemClock systemClock,
             Lazy<SelectedUserInteractor> selectedUserInteractor,
-            BiometricUnlockInteractor biometricUnlockInteractor,
-            LockPatternUtils lockPatternUtils
+            BiometricUnlockInteractor biometricUnlockInteractor
     ) {
         mPowerManager = powerManager;
         mUpdateMonitor = keyguardUpdateMonitor;
@@ -323,8 +320,6 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
         mSelectedUserInteractor = selectedUserInteractor;
 
         dumpManager.registerDumpable(this);
-
-        mLockPatternUtils = lockPatternUtils;
     }
 
     public void setKeyguardViewController(KeyguardViewController keyguardViewController) {
@@ -410,7 +405,7 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
                     biometricSourceType,
                     mPendingAuthenticated != null);
             mPendingAuthenticated = new PendingAuthenticated(userId, biometricSourceType,
-                    isStrongBiometric);
+                    isStrongBiometric, isSecondFactorEnabled);
             Trace.endSection();
             return;
         }
@@ -813,8 +808,8 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
                         mHandler.post(() -> onBiometricAuthenticated(pendingAuthenticated.userId,
                                 pendingAuthenticated.biometricSourceType,
                                 pendingAuthenticated.isStrongBiometric,
-                                mLockPatternUtils.isBiometricSecondFactorEnabled(pendingAuthenticated.userId)
-                                ));
+                                pendingAuthenticated.isSecondFactorEnabled
+                        ));
                         mPendingAuthenticated = null;
                     }
                     Trace.endSection();
