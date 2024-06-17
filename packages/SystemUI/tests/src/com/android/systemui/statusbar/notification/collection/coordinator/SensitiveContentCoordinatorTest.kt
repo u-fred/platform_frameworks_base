@@ -226,7 +226,7 @@ class SensitiveContentCoordinatorTest : SysuiTestCase() {
         whenever(lockscreenUserManager.userAllowsPrivateNotificationsInPublic(1)).thenReturn(false)
         whenever(dynamicPrivacyController.isDynamicallyUnlocked).thenReturn(true)
         whenever(statusBarStateController.getState()).thenReturn(StatusBarState.KEYGUARD)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometricAndIsBypassing(any(), eq(true)))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometricAndIsBypassing(any(), eq(false)))
                 .thenReturn(true)
 
         val entry = fakeNotification(2, true)
