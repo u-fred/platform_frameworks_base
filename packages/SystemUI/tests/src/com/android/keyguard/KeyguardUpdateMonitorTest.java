@@ -2085,6 +2085,12 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(callback).onBiometricEnrollmentStateChanged(BiometricSourceType.FACE);
     }
 
+    @Test
+    public void testClearFingerprintRecognized_success_clearsPendingAuthTokens() {
+        mKeyguardUpdateMonitor.clearFingerprintRecognized();
+        verify(mFingerprintManager).clearPendingAuthTokens();
+    }
+
     private void verifyFingerprintAuthenticateNeverCalled() {
         verify(mFingerprintManager, never()).authenticate(any(), any(), any(), any(), any());
         verify(mFingerprintManager, never()).authenticate(any(), any(), any(), any(), anyInt(),
