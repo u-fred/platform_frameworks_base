@@ -1085,6 +1085,18 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
     }
 
     @Test
+    public void testGetUserCanSkipBouncer_whenFingerprintAndSecondFactorEnabled_returnsFalse() {
+        int user = mSelectedUserInteractor.getSelectedUserId();
+        mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, true /* isClass3Biometric */);
+        when(mLockPatternUtils.isBiometricSecondFactorEnabled(user)).thenReturn(true);
+
+        assertThat(mKeyguardUpdateMonitor.getUserHasTrust(user)).isFalse();
+        assertThat(mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowed(true)).isTrue();
+
+        assertThat(mKeyguardUpdateMonitor.getUserCanSkipBouncer(user)).isFalse();
+    }
+
+    @Test
     public void testGetUserCanSkipBouncer_whenFingerprint_nonStrongAndDisallowed() {
         when(mStrongAuthTracker.isUnlockingWithBiometricAllowed(false /* isClass3Biometric */))
                 .thenReturn(false);
