@@ -867,11 +867,9 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         mAssistantVisible = false;
 
         if (!mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
-            // This allows non-strong biometrics to be used, which we don' want to allow until the
-            // second factor has been completed. I think base code should only call this if
-            // getUserCanSkipBouncer() is true, but the outcome probably stays the same.
-            // Called by LockPatternUtils#reportSuccessfulPasswordAttempt after second factor
-            // succeeds.
+            // This will enable non-strong biometrics, which shouldn't happen until after the second
+            // factor succeeds. Called by LockPatternUtils#reportSuccessfulPasswordAttempt after
+            // second factor succeeds.
             reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
         }
 
