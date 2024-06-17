@@ -255,11 +255,10 @@ constructor(
     fun onAuthIncorrectAttempt(primary: Boolean) {
         if (!featureFlags.isEnabled(REVAMPED_BOUNCER_MESSAGES)) return
 
-        val fingerprintAllowed : Boolean
-        if (primary) {
-            fingerprintAllowed = isFingerprintAuthCurrentlyAllowed.value
+        val fingerprintAllowed : Boolean = if (primary) {
+            isFingerprintAuthCurrentlyAllowed.value
         } else {
-            fingerprintAllowed = false
+            false
         }
         repository.setMessage(
             incorrectSecurityInput(currentSecurityMode, fingerprintAllowed)
