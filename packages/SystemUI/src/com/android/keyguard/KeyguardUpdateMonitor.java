@@ -2802,11 +2802,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                         && (!mKeyguardGoingAway || !mDeviceInteractive)
                         && mIsSystemUser
                         && biometricEnabledForUser
-                        && !isUserInLockdown(user)
-                        // Don't want to listen for fingerprint when being prompted for secondary
-                        // PIN.
-                        // TODO: Verify that contains is sufficient and don't need null check.
-                        && !mUserFingerprintAuthenticated.contains(user);
+                        && !isUserInLockdown(user);
         final boolean strongerAuthRequired = !isUnlockingWithFingerprintAllowed();
         final boolean isSideFps = isSfpsSupported() && isSfpsEnrolled();
         final boolean shouldListenBouncerState =
