@@ -40,7 +40,6 @@ import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.Utils;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
-import com.android.server.biometrics.sensors.fingerprint.aidl.FingerprintAuthenticationClient;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
@@ -259,14 +258,9 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
             // For BP, BiometricService will add the authToken to Keystore.
             if (!isBiometricPrompt() && mIsStrongBiometric) {
                 boolean isSecondFactorEnabled = false;
-                if (this instanceof com.android.server.biometrics.sensors.fingerprint.hidl.FingerprintAuthenticationClient || this instanceof FingerprintAuthenticationClient) {
                     isSecondFactorEnabled = new LockPatternUtils(getContext()).isBiometricSecondFactorEnabled(getTargetUserId());
-                }
                 shouldAddAuthToken = !isSecondFactorEnabled;
                 if (isSecondFactorEnabled) {
-                    // TODO: Double check that this is all happening in main thread.
-                    //  AidlResponseHandler#handleResponse posts to main thread so I think it's
-                    //  all good. Can test using Assert.isMainThread();
                     getBiometricContext().getAuthTokenStore().storePendingSecondFactorAuthToken(
                             getTargetUserId(), byteToken);
                 }
