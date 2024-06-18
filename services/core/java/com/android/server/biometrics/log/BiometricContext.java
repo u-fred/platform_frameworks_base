@@ -24,6 +24,7 @@ import android.hardware.biometrics.IBiometricContextListener;
 import android.hardware.biometrics.common.OperationContext;
 import android.view.Surface;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
 import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 
@@ -97,4 +98,7 @@ public interface BiometricContext {
 
     /** Obtains a BiometricAuthTokenStore. */
     BiometricAuthTokenStore getAuthTokenStore();
+
+    /** Obtains a LockPatternUtils. */
+    LockPatternUtils getLockPatternUtils();
 }

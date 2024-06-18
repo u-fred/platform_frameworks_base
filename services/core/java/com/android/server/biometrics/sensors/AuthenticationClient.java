@@ -34,7 +34,6 @@ import android.security.KeyStore;
 import android.util.EventLog;
 import android.util.Slog;
 
-import com.android.internal.widget.LockPatternUtils;
 import com.android.server.biometrics.BiometricsProto;
 import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.Utils;
@@ -257,8 +256,8 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
             boolean shouldAddAuthToken = false;
             // For BP, BiometricService will add the authToken to Keystore.
             if (!isBiometricPrompt() && mIsStrongBiometric) {
-                boolean isSecondFactorEnabled = false;
-                    isSecondFactorEnabled = new LockPatternUtils(getContext()).isBiometricSecondFactorEnabled(getTargetUserId());
+                boolean isSecondFactorEnabled = getBiometricContext().getLockPatternUtils()
+                        .isBiometricSecondFactorEnabled(getTargetUserId());
                 shouldAddAuthToken = !isSecondFactorEnabled;
                 if (isSecondFactorEnabled) {
                     getBiometricContext().getAuthTokenStore().storePendingSecondFactorAuthToken(

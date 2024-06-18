@@ -38,6 +38,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.statusbar.ISessionListener;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.widget.LockPatternUtils;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
 import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 
@@ -67,7 +68,8 @@ public final class BiometricContextProvider implements BiometricContext {
                             (WindowManager) context.getSystemService(Context.WINDOW_SERVICE),
                             IStatusBarService.Stub.asInterface(ServiceManager.getServiceOrThrow(
                                     Context.STATUS_BAR_SERVICE)), null /* handler */,
-                            new AuthSessionCoordinator(), new BiometricAuthTokenStore());
+                            new AuthSessionCoordinator(), new BiometricAuthTokenStore(),
+                            new LockPatternUtils(context));
                 } catch (ServiceNotFoundException e) {
                     throw new IllegalStateException("Failed to find required service", e);
                 }
@@ -90,6 +92,8 @@ public final class BiometricContextProvider implements BiometricContext {
     private int mDisplayState = AuthenticateOptions.DISPLAY_STATE_UNKNOWN;
     @NonNull
     private BiometricAuthTokenStore mAuthTokenStore;
+    @NonNull
+    private LockPatternUtils mLockPatternUtils;
 
     @VisibleForTesting
     final BroadcastReceiver mDockStateReceiver = new BroadcastReceiver() {
@@ -106,11 +110,13 @@ public final class BiometricContextProvider implements BiometricContext {
             @NonNull WindowManager windowManager,
             @NonNull IStatusBarService service, @Nullable Handler handler,
             @NonNull AuthSessionCoordinator authSessionCoordinator,
-            @NonNull BiometricAuthTokenStore authTokenStore) {
+            @NonNull BiometricAuthTokenStore authTokenStore,
+            @NonNull LockPatternUtils lockPatternUtils) {
         mWindowManager = windowManager;
         mAuthSessionCoordinator = authSessionCoordinator;
         mHandler = handler;
         mAuthTokenStore = authTokenStore;
+        mLockPatternUtils = lockPatternUtils;
 
         subscribeBiometricContextListener(service);
         subscribeDockState(context);
@@ -255,6 +261,9 @@ public final class BiometricContextProvider implements BiometricContext {
 
     @Override
     public BiometricAuthTokenStore getAuthTokenStore() { return mAuthTokenStore; }
+
+    @Override
+    public LockPatternUtils getLockPatternUtils() { return mLockPatternUtils; }
 
     @Override
     public String toString() {

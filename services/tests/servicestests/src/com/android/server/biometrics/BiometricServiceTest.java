@@ -93,6 +93,7 @@ import androidx.test.filters.SmallTest;
 import com.android.internal.R;
 import com.android.internal.statusbar.ISessionListener;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.widget.LockPatternUtils;
 import com.android.server.biometrics.log.BiometricContextProvider;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
 import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
@@ -230,7 +231,8 @@ public class BiometricServiceTest {
                         new DisplayInfo(), DEFAULT_DISPLAY_ADJUSTMENTS));
         mBiometricContextProvider = new BiometricContextProvider(mContext, mWindowManager,
                 mStatusBarService, null /* handler */,
-                mAuthSessionCoordinator, new BiometricAuthTokenStore());
+                mAuthSessionCoordinator, new BiometricAuthTokenStore(),
+                new LockPatternUtils(mContext));
         when(mInjector.getBiometricContext(any())).thenReturn(mBiometricContextProvider);
         when(mInjector.getKeystoreAuthorizationService()).thenReturn(mKeystoreAuthService);
         when(mInjector.getGateKeeperService()).thenReturn(mGateKeeperService);
