@@ -17,9 +17,7 @@
 package com.android.systemui.statusbar.phone;
 
 import static com.android.systemui.statusbar.phone.BiometricUnlockController.MODE_WAKE_AND_UNLOCK;
-
 import static com.google.common.truth.Truth.assertThat;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -43,7 +41,6 @@ import android.view.ViewRootImpl;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.util.LatencyTracker;
-import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.logging.BiometricUnlockLogger;
 import com.android.systemui.SysuiTestCase;
@@ -165,6 +162,16 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
         biometricUnlockController.addListener(mBiometricUnlockEventsListener);
 
         return biometricUnlockController;
+    }
+
+    @Test
+    public void onBiometricAuthenticated_fingerprintWithSecondFactorEnabled_showPrimaryBouncer() {
+        mBiometricUnlockController.onBiometricAuthenticated(UserHandle.USER_CURRENT,
+                BiometricSourceType.FINGERPRINT, true, true);
+        verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean());
+        verify(mStatusBarKeyguardViewManager, never()).notifyKeyguardAuthenticated(anyBoolean());
+        assertThat(mBiometricUnlockController.getMode())
+                .isEqualTo(BiometricUnlockController.MODE_SHOW_BOUNCER);
     }
 
     @Test
