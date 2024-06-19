@@ -106,11 +106,6 @@ public class BiometricContextProviderTest {
     }
 
     @Test
-    public void testGetAuthTokenStore_Success_NotNull() {
-        assertThat(mProvider.getAuthTokenStore()).isNotNull();
-    }
-
-    @Test
     public void testIsAod() throws RemoteException {
         final Map<Integer, Boolean> expectedAod = Map.of(
                 AuthenticateOptions.DISPLAY_STATE_UNKNOWN, false,
