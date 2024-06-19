@@ -452,6 +452,8 @@ public class LockPatternUtils {
             // Should only be called as part of an unlock process, not if the second factor was
             // being authenticated on its own (such as in Settings app).
             getTrustManager().unlockedByBiometricForUser(userId, FINGERPRINT);
+            // TODO: Log same as in base?
+            // TODO: Does it need to be done in separate therad like in base?
             reportSuccessfulBiometricUnlock(mIsFingerprintStrongBiometric, userId);
         }
     }
