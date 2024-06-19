@@ -100,7 +100,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         userRepository.setUserInfos(listOf(PRIMARY_USER))
         testScope = TestScope()
         allowTestableLooperAsMainThread()
-        whenever(securityModel.getSecurityMode(PRIMARY_USER_ID, true)).thenReturn(PIN)
+        whenever(securityModel.getSecurityMode(PRIMARY_USER_ID, false)).thenReturn(PIN)
         biometricSettingsRepository.setIsFingerprintAuthCurrentlyAllowed(true)
         overrideResource(kg_trust_agent_disabled, "Trust agent is unavailable")
     }
