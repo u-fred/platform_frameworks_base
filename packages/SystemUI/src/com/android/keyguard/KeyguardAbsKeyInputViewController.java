@@ -199,7 +199,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
-                getKeyguardSecurityCallback().dismiss(true, userId, getSecurityMode());
+                // bypassSecondaryLockscreen for secondary as it's not done on normal fingerprint
+                // unlock.
+                getKeyguardSecurityCallback().dismiss(true, userId,
+                        !mIsForPrimaryCredential, getSecurityMode());
             }
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
