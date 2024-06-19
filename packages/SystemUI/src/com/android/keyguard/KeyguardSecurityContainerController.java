@@ -535,14 +535,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         showPrimarySecurityScreen(false);
 
         if (mSceneContainerFlags.isEnabled()) {
-            // Need to verify this won't break with SecurityMode.BiometricSecondFactorPin.
-            // This breaks some tests.
-            if (true) {
-                String message = "mSceneContainerFlags.isEnabled(), update secondary handling";
-                Log.e(TAG, message);
-                throw new IllegalStateException(message);
-            }
-
             // When the scene framework says that the lockscreen has been dismissed, dismiss the
             // keyguard here, revealing the underlying app or launcher:
             mSceneTransitionCollectionJob = mJavaAdapter.get().alwaysCollectFlow(
@@ -975,16 +967,9 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         }
 
         if (mFeatureFlags.isEnabled(Flags.REFACTOR_KEYGUARD_DISMISS_INTENT)) {
-            //  Can't currently tell what the values set by these calls will be used for. Might
+            // TODO: Can't currently tell what the values set by these calls will be used for. Might
             //  need to set authenticatedWithPrimaryAuth to true even when doing biometric second
             //  factor as primary in this context refers to PIN/password/pattern.
-            if (true) {
-                String message =
-                        "REFACTOR_KEYGUARD_DISMISS_INTENT enabled, update secondary handling";
-                Log.e(TAG, message);
-                throw new IllegalStateException(message);
-            }
-
             if (authenticatedWithPrimaryAuth) {
                 mPrimaryBouncerInteractor.get()
                         .notifyKeyguardAuthenticatedPrimaryAuth(targetUserId);
