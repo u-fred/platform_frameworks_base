@@ -446,7 +446,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         mLocalService.registerLockSettingsStateListener(listener);
 
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(password, PRIMARY_USER_ID, 0 /* flags */)
+                mService.verifyCredential(password, true, PRIMARY_USER_ID, 0 /* flags */)
                         .getResponseCode());
 
         verify(listener).onAuthenticationSucceeded(PRIMARY_USER_ID);
@@ -463,7 +463,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         mLocalService.registerLockSettingsStateListener(listener);
 
         assertEquals(VerifyCredentialResponse.RESPONSE_ERROR,
-                mService.verifyCredential(badPassword, PRIMARY_USER_ID, 0 /* flags */)
+                mService.verifyCredential(badPassword, true, PRIMARY_USER_ID, 0 /* flags */)
                         .getResponseCode());
 
         verify(listener).onAuthenticationFailed(PRIMARY_USER_ID);
@@ -479,13 +479,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         mLocalService.registerLockSettingsStateListener(listener);
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(password, PRIMARY_USER_ID, 0 /* flags */)
+                mService.verifyCredential(password, true, PRIMARY_USER_ID, 0 /* flags */)
                         .getResponseCode());
         verify(listener).onAuthenticationSucceeded(PRIMARY_USER_ID);
 
         mLocalService.unregisterLockSettingsStateListener(listener);
         assertEquals(VerifyCredentialResponse.RESPONSE_ERROR,
-                mService.verifyCredential(badPassword, PRIMARY_USER_ID, 0 /* flags */)
+                mService.verifyCredential(badPassword, true, PRIMARY_USER_ID, 0 /* flags */)
                         .getResponseCode());
         verify(listener, never()).onAuthenticationFailed(PRIMARY_USER_ID);
     }
