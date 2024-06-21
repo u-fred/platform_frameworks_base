@@ -255,11 +255,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         @Override
         public void reportUnlockAttempt(int userId, boolean primary, boolean success,
                 int timeoutMs) {
-            if (!mLockPatternUtils.checkUserSupportsBiometricSecondFactorIfSecondary(
-                    userId, primary)) {
-                return;
-            }
-
             if (timeoutMs == 0 && !success) {
                 mBouncerMessageInteractor.onAuthIncorrectAttempt(primary);
             }
