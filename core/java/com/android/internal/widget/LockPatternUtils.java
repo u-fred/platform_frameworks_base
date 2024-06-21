@@ -1092,7 +1092,7 @@ public class LockPatternUtils {
      * @throws IllegalArgumentException If user does not support biometric second factor.
      */
     public boolean checkUserSupportsBiometricSecondFactor(int userId) {
-        return checkUserSupportsBiometricSecondFactorIfSecondary(userId, true);
+        return checkUserSupportsBiometricSecondFactor(userId, true);
     }
 
     public boolean checkUserSupportsBiometricSecondFactor(int userId, boolean throwIfNotSupport) {
