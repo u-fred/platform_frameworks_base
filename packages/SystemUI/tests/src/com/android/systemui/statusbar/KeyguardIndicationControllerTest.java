@@ -1513,7 +1513,7 @@ public class KeyguardIndicationControllerTest extends KeyguardIndicationControll
         when(mKeyguardUpdateMonitor.getUserCanSkipBouncer(getCurrentUser()))
                 .thenReturn(true);
         mController.getKeyguardCallback().onBiometricAuthenticated(0,
-                BiometricSourceType.FACE, false);
+                BiometricSourceType.FACE, false, false);
         verifyIndicationMessage(
                 INDICATION_TYPE_BIOMETRIC_MESSAGE,
                 mContext.getString(R.string.keyguard_face_successful_unlock));
