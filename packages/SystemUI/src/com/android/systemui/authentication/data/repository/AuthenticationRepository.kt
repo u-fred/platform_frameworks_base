@@ -207,6 +207,8 @@ constructor(
     override val isAutoConfirmFeatureEnabled: StateFlow<Boolean> =
         refreshingFlow(
             initialValue = false,
+            // TODO: Add primary arg to this call and create a second flow for secondary. Will need
+            //  to update
             getFreshValue = lockPatternUtils::isAutoPinConfirmEnabled,
         )
 
