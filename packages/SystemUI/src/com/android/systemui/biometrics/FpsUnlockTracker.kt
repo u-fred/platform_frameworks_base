@@ -67,10 +67,12 @@ constructor(
                 isStrongBiometric: Boolean,
                 isSecondFactorEnabled: Boolean
             ) {
-                // Doing this regardless of second factor enabled should be fine.
+                // TODO: Add additional tracking/logs for second factor case, or just leave as is?
                 if (biometricSourceType == FINGERPRINT) {
                     fpsAuthenticated = true
-                    onExitKeyguard()
+                    if (!isSecondFactorEnabled) {
+                        onExitKeyguard()
+                    }
                 }
             }
 
