@@ -123,7 +123,8 @@ class KeyguardTransitionScenariosTest : SysuiTestCase() {
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(PIN)
+        // All tests pass without this.
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(PIN)
 
         mSetFlagsRule.enableFlags(FLAG_COMMUNAL_HUB)
         featureFlags = FakeFeatureFlags()
