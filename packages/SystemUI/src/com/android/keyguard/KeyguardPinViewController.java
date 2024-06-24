@@ -214,6 +214,7 @@ public class KeyguardPinViewController
 
     @Override
     protected int getInitialMessageResId() {
+        // TODO: Would it be preferred to add this to the base method and use instanceof?
         if (mIsForPrimaryCredential) {
             return super.getInitialMessageResId();
         } else {
