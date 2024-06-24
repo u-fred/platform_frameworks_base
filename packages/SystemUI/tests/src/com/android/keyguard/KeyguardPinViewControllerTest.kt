@@ -85,7 +85,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
     @Mock
     private lateinit var keyguardMessageAreaController:
-            KeyguardMessageAreaController<BouncerKeyguardMessageArea>
+        KeyguardMessageAreaController<BouncerKeyguardMessageArea>
 
     @Mock private lateinit var mLatencyTracker: LatencyTracker
 
@@ -116,11 +116,12 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
             .thenReturn(keyguardMessageAreaController)
         `when`(mockKeyguardPinView.passwordTextViewId).thenReturn(R.id.pinEntry)
         `when`(mockKeyguardPinView.findViewById<PasswordTextView>(R.id.pinEntry))
-                .thenReturn(passwordTextView)
+            .thenReturn(passwordTextView)
         `when`(mockKeyguardPinView.resources).thenReturn(context.resources)
         `when`(mockKeyguardPinView.findViewById<NumPadButton>(R.id.delete_button))
-                .thenReturn(deleteButton)
+            .thenReturn(deleteButton)
         `when`(mockKeyguardPinView.findViewById<View>(R.id.key_enter)).thenReturn(enterButton)
+        `when`(mockKeyguardPinView.context).thenReturn(mContext)
         // For posture tests:
         `when`(mockKeyguardPinView.buttons).thenReturn(arrayOf())
         `when`(lockPatternUtils.getPinLength(anyInt(), eq(true))).thenReturn(6)
@@ -128,12 +129,12 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(passwordTextView.layoutParams).thenReturn(passwordTextViewLayoutParams)
 
         objectKeyguardPINView =
-                View.inflate(mContext, R.layout.keyguard_pin_view, null)
-                        .requireViewById(R.id.keyguard_pin_view) as KeyguardPINView
+            View.inflate(mContext, R.layout.keyguard_pin_view, null)
+                .requireViewById(R.id.keyguard_pin_view) as KeyguardPINView
     }
 
     private fun constructPinViewController(
-            mKeyguardPinView: KeyguardPINView
+        mKeyguardPinView: KeyguardPINView
     ): KeyguardPinViewController {
         return KeyguardPinViewController(
             mKeyguardPinView,
@@ -194,7 +195,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     private fun getPinTopGuideline(): Float {
         val cs = ConstraintSet()
         val container =
-                objectKeyguardPINView.requireViewById(R.id.pin_container) as ConstraintLayout
+            objectKeyguardPINView.requireViewById(R.id.pin_container) as ConstraintLayout
         cs.clone(container)
         return cs.getConstraint(R.id.pin_pad_top_guideline).layout.guidePercent
     }
@@ -210,7 +211,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         pinViewController.onViewAttached()
 
         verify(keyguardMessageAreaController)
-                .setMessage(context.resources.getString(R.string.keyguard_enter_your_pin), false)
+            .setMessage(context.resources.getString(R.string.keyguard_enter_your_pin), false)
     }
 
     @Test
@@ -321,7 +322,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         whenever(passwordTextView.text).thenReturn("000000")
         whenever(enterButton.visibility).thenReturn(View.INVISIBLE)
         whenever(mockKeyguardPinView.enteredCredential)
-                .thenReturn(LockscreenCredential.createPin("000000"))
+            .thenReturn(LockscreenCredential.createPin("000000"))
 
         val pinViewController = constructPinViewController(mockKeyguardPinView)
         pinViewController.onUserInput()
