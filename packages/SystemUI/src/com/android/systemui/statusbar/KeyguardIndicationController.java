@@ -1462,6 +1462,8 @@ public class KeyguardIndicationController {
             super.onBiometricAuthenticated(userId, biometricSourceType, isStrongBiometric,
                     isStrongBiometric);
             hideBiometricMessage();
+            // TODO: Will need to add face handling here when second factor for face implemented
+            //  properly.
             if (biometricSourceType == FACE) {
                 mFaceAcquiredMessageDeferral.reset();
                 if (!mKeyguardBypassController.canBypass()) {
