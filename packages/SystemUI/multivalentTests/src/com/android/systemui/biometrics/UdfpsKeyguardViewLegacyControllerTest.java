@@ -116,7 +116,7 @@ public class UdfpsKeyguardViewLegacyControllerTest extends
 
         // WHEN biometric is authenticated
         captureKeyguardStateControllerCallback();
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(true))).thenReturn(true);
         mKeyguardStateControllerCallback.onUnlockedChanged();
 
         // THEN pause auth
