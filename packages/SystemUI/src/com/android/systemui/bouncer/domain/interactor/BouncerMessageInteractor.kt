@@ -400,7 +400,6 @@ private fun incorrectSecurityInput(
     return if (fpAuthIsAllowed) {
         incorrectSecurityInputWithFingerprint(securityMode)
     } else
-        // TODO: SecurityMode.BiometricSecondFactorPin -> Pair(kg_wrong_pin_try_again, 0)
         when (securityMode) {
             SecurityMode.Pattern -> Pair(kg_wrong_pattern_try_again, 0)
             SecurityMode.Password -> Pair(kg_wrong_password_try_again, 0)
