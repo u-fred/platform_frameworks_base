@@ -1028,7 +1028,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
 
     @Test
     public void testShowBouncerOrKeyguard_needsFullScreen() {
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(
                 KeyguardSecurityModel.SecurityMode.SimPin);
         mStatusBarKeyguardViewManager.showBouncerOrKeyguard(false);
         verify(mCentralSurfaces).hideKeyguard();
@@ -1037,7 +1037,7 @@ public class StatusBarKeyguardViewManagerTest extends SysuiTestCase {
 
     @Test
     public void testShowBouncerOrKeyguard_needsFullScreen_bouncerAlreadyShowing() {
-        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(true))).thenReturn(
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(
                 KeyguardSecurityModel.SecurityMode.SimPin);
         when(mPrimaryBouncerInteractor.isFullyShowing()).thenReturn(true);
         mStatusBarKeyguardViewManager.showBouncerOrKeyguard(false);
