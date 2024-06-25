@@ -626,7 +626,7 @@ public class FingerprintAuthenticationClientTest {
         client.onAuthenticated(new Fingerprint("friendly", 1 /* fingerId */,
                 2 /* deviceId */), true /* authenticated */, new ArrayList<>());
 
-        verify(mBiometricAuthTokenStore).storePendingSecondFactorAuthToken(eq(USER_ID), any());
+        verify(mBiometricAuthTokenStore).storePendingAuthToken(eq(USER_ID), any());
     }
 
     @Test

@@ -259,7 +259,7 @@ public abstract class AuthenticationClient<T, O extends AuthenticateOptions>
                         .isBiometricSecondFactorEnabled(getTargetUserId());
                 shouldAddAuthToken = !isSecondFactorEnabled;
                 if (isSecondFactorEnabled) {
-                    getBiometricContext().getAuthTokenStore().storePendingSecondFactorAuthToken(
+                    getBiometricContext().getAuthTokenStore().storePendingAuthToken(
                             getTargetUserId(), byteToken);
                 }
             }
