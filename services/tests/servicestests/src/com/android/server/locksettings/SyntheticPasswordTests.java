@@ -69,7 +69,6 @@ import libcore.util.HexEncoding;
 /**
  * atest FrameworksServicesTests:SyntheticPasswordTests
  */
-// TODO: Some failures here.
 @SmallTest
 @Presubmit
 @RunWith(JUnitParamsRunner.class)
