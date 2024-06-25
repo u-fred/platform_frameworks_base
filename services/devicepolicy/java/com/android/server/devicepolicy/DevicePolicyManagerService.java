@@ -8323,20 +8323,26 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
 
         if (mInjector.securityLogIsLoggingEnabled()) {
+            // Future code might do something we need to be notified of.
             SecurityLog.writeEvent(SecurityLog.TAG_KEYGUARD_DISMISS_AUTH_ATTEMPT, /*result*/ 0,
                     /*method strength*/ 0);
         }
     }
 
     @Override
-    public void reportSuccessfulBiometricAttempt(int userHandle) {
+    public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, !isSecondFactorEnabled)) {
+            return;
+        }
 
-        if (mInjector.securityLogIsLoggingEnabled()) {
+        if (mInjector.securityLogIsLoggingEnabled() && !isSecondFactorEnabled) {
+            // TODO: Add this log to LockPatternUtils#reportSuccessfulPasswordAttempt if second
+            //  factor enabled?
             SecurityLog.writeEvent(SecurityLog.TAG_KEYGUARD_DISMISS_AUTH_ATTEMPT, /*result*/ 1,
                     /*method strength*/ 0);
         }

@@ -9192,10 +9192,10 @@ public class DevicePolicyManager {
       * @hide
       */
      @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-     public void reportSuccessfulBiometricAttempt(int userHandle) {
+     public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulBiometricAttempt(userHandle);
+                mService.reportSuccessfulBiometricAttempt(userHandle, isSecondFactorEnabled);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

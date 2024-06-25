@@ -5432,6 +5432,27 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void reportSuccessfulBiometricAttempt_SecondarFactorForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = UserHandle.getUid(userId, 19436);
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.reportSuccessfulBiometricAttempt(userId, true));
+    }
+
+    @Test
+    public void reportSuccessfulBiometricAttempt_SecondarFactorForSpecialUser_ThrowsException() {
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.reportSuccessfulBiometricAttempt(USER_FRP, true));
+    }
+
+    @Test
     public void testMaximumFailedPasswordAttemptsReachedManagedProfile() throws Exception {
         final int MANAGED_PROFILE_USER_ID = 15;
         final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
