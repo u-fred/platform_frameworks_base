@@ -24,8 +24,8 @@
     <!-- Instructions telling the user to enter their PIN password to unlock the keyguard [CHAR LIMIT=48] -->
     <string name="keyguard_enter_pin">Enter PIN</string>
 
-    <!-- Instructions telling the user to enter their biometric second factor PIN password to unlock the keyguard -->
-    <string name="keyguard_enter_biometric_second_factor_pin">Enter biometric second factor PIN</string>
+    <!-- Instructions telling the user to enter their biometric second factor PIN password to unlock the keyguard [CHAR LIMIT=30] -->
+    <string name="keyguard_enter_your_biometric_second_factor_pin">Enter your second factor PIN</string>
 
     <!-- Instructions telling the user to enter their pattern to unlock the keyguard [CHAR LIMIT=30] -->
     <string name="keyguard_enter_your_pattern">Enter your pattern</string>
@@ -137,10 +137,7 @@
     <string name="kg_wrong_pin_try_again">Wrong PIN. Try again.</string>
 
     <!-- Message shown when user enters wrong biometric second factor PIN -->
-    <string name="kg_wrong_biometric_second_factor_pin">Wrong biometric second factor PIN</string>
-
-    <!-- Message shown when user enters wrong biometric second factor PIN  [CHAR LIMIT=48] -->
-    <string name="kg_wrong_biometric_second_factor_pin_try_again">Wrong biometric second factor PIN. Try again.</string>
+    <string name="kg_wrong_biometric_second_factor_pin">Wrong second factor PIN</string>
 
     <!-- Message shown when user enters wrong PIN/password/pattern below the main message, for ex: "Wrong PIN. Try again" in line 1 and the following text in line 2.  [CHAR LIMIT=70] -->
     <string name="kg_wrong_input_try_fp_suggestion">Or unlock with fingerprint</string>

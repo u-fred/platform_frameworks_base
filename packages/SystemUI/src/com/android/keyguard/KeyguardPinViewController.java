@@ -218,7 +218,7 @@ public class KeyguardPinViewController
         if (mIsForPrimaryCredential) {
             return super.getInitialMessageResId();
         } else {
-            return R.string.keyguard_enter_biometric_second_factor_pin;
+            return R.string.keyguard_enter_your_biometric_second_factor_pin;
         }
     }
 }
