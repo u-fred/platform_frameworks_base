@@ -69,7 +69,8 @@ public final class BiometricContextProvider implements BiometricContext {
                             (WindowManager) context.getSystemService(Context.WINDOW_SERVICE),
                             IStatusBarService.Stub.asInterface(ServiceManager.getServiceOrThrow(
                                     Context.STATUS_BAR_SERVICE)), null /* handler */,
-                            new AuthSessionCoordinator(), new BiometricAuthTokenStore(),
+                            new AuthSessionCoordinator(),
+                            new BiometricAuthTokenStore(KeyStore.getInstance()),
                             new LockPatternUtils(context));
                 } catch (ServiceNotFoundException e) {
                     throw new IllegalStateException("Failed to find required service", e);

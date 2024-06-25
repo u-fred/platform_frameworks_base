@@ -192,6 +192,9 @@ public class BiometricServiceTest {
     @Mock
     private BiometricNotificationLogger mNotificationLogger;
 
+    @Mock
+    private KeyStore mKeyStore;
+
     BiometricContextProvider mBiometricContextProvider;
 
     @Before
@@ -243,7 +246,7 @@ public class BiometricServiceTest {
                         new DisplayInfo(), DEFAULT_DISPLAY_ADJUSTMENTS));
         mBiometricContextProvider = new BiometricContextProvider(mContext, mWindowManager,
                 mStatusBarService, null /* handler */,
-                mAuthSessionCoordinator, new BiometricAuthTokenStore(),
+                mAuthSessionCoordinator, new BiometricAuthTokenStore(mKeyStore),
                 new LockPatternUtils(mContext));
         when(mInjector.getBiometricContext(any())).thenReturn(mBiometricContextProvider);
         when(mInjector.getKeystoreAuthorizationService()).thenReturn(mKeystoreAuthService);
