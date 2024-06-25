@@ -62,6 +62,7 @@ import android.platform.test.annotations.RequiresFlagsEnabled;
 import android.platform.test.flag.junit.CheckFlagsRule;
 import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.platform.test.flag.junit.SetFlagsRule;
+import android.security.KeyStore;
 import android.testing.TestableContext;
 import android.util.SparseArray;
 
@@ -138,6 +139,8 @@ public class FingerprintAuthenticationClientTest {
     @Mock
     private BiometricAuthTokenStore mBiometricAuthTokenStore;
     @Mock
+    private KeyStore mKeyStore;
+    @Mock
     private BiometricManager mBiometricManager;
     @Mock
     private IUdfpsOverlayController mUdfpsOverlayController;
@@ -183,6 +186,7 @@ public class FingerprintAuthenticationClientTest {
                 i -> i.getArgument(0));
         when(mBiometricContext.getLockPatternUtils()).thenReturn(mLockPatternUtils);
         when(mBiometricContext.getAuthTokenStore()).thenReturn(mBiometricAuthTokenStore);
+        when(mBiometricContext.getKeyStore()).thenReturn(mKeyStore);
     }
 
     @Test
@@ -623,6 +627,20 @@ public class FingerprintAuthenticationClientTest {
                 2 /* deviceId */), true /* authenticated */, new ArrayList<>());
 
         verify(mBiometricAuthTokenStore).storePendingSecondFactorAuthToken(eq(USER_ID), any());
+    }
+
+    @Test
+    public void testOnAuthenticated_secondFactorDisabled_addsAuthToken() throws RemoteException {
+        final FingerprintAuthenticationClient client = createClient(1 /* version */,
+                true /* allowBackgroundAuthentication */, mClientMonitorCallbackConverter,
+                mLockoutTracker, 0);
+
+        when(mLockPatternUtils.isBiometricSecondFactorEnabled(anyInt())).thenReturn(false);
+
+        client.onAuthenticated(new Fingerprint("friendly", 1 /* fingerId */,
+                2 /* deviceId */), true /* authenticated */, new ArrayList<>());
+
+        verify(mKeyStore).addAuthToken(any());
     }
 
     @Test

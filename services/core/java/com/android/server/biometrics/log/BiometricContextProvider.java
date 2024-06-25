@@ -30,6 +30,7 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.ServiceManager.ServiceNotFoundException;
+import android.security.KeyStore;
 import android.util.Slog;
 import android.view.Display;
 import android.view.WindowManager;
@@ -291,6 +292,9 @@ public final class BiometricContextProvider implements BiometricContext {
 
     @Override
     public LockPatternUtils getLockPatternUtils() { return mLockPatternUtils; }
+
+    @Override
+    public KeyStore getKeyStore() { return KeyStore.getInstance(); }
 
     @Override
     public String toString() {

@@ -22,6 +22,7 @@ import android.content.Context;
 import android.hardware.biometrics.AuthenticateOptions;
 import android.hardware.biometrics.IBiometricContextListener;
 import android.hardware.biometrics.common.OperationContext;
+import android.security.KeyStore;
 import android.view.Surface;
 
 import com.android.internal.widget.LockPatternUtils;
@@ -124,4 +125,7 @@ public interface BiometricContext {
 
     /** Obtains a LockPatternUtils. */
     LockPatternUtils getLockPatternUtils();
+
+    /** Obtains the KeyStore. */
+    KeyStore getKeyStore();
 }
