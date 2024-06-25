@@ -1223,7 +1223,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         if (timeoutMs > 0) {
             mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, primary);
 
-                if (!com.android.systemui.Flags.revampedBouncerMessages()) {
+            if (!com.android.systemui.Flags.revampedBouncerMessages()) {
                 DialogInterface.OnClickListener onClick = null;
                 if (!primary) {
                     onClick =
@@ -1234,10 +1234,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 }
                 mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
                         mSecurityModel.getSecurityMode(userId, false), onClick);
-            } else {
-                String message = "REVAMPED_BOUNCER_MESSAGES enabled, update secondary handling";
-                Log.e(TAG, message);
-                throw new IllegalStateException(message);
             }
         }
     }
