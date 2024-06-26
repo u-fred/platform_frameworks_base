@@ -20,9 +20,7 @@ import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
-import android.content.Context;
 import android.content.res.ColorStateList;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
@@ -111,7 +109,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
                 mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential);
         if (shouldLockout(deadline)) {
-            handleAttemptLockout(deadline, true);
+            handleAttemptLockout(deadline);
         }
     }
 
@@ -147,15 +145,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     }
 
     // Prevent user from using the PIN/Password entry until scheduled deadline.
-    protected void handleAttemptLockout(long elapsedRealtimeDeadline, boolean viewJustAttached) {
+    protected void handleAttemptLockout(long elapsedRealtimeDeadline) {
         mView.setPasswordEntryEnabled(false);
         mView.setPasswordEntryInputEnabled(false);
         mLockedOut = true;
-        if (!mIsForPrimaryCredential && !viewJustAttached) {
-            // Secondary won't have a countdown here because after lockout we must use primary auth.
-            mMessageAreaController.setMessage(mView.getWrongPasswordStringId());
-            return;
-        }
         long elapsedRealtime = SystemClock.elapsedRealtime();
         long secondsInFuture = (long) Math.ceil(
                 (elapsedRealtimeDeadline - elapsedRealtime) / 1000.0);
@@ -205,7 +198,10 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                             userId, mIsForPrimaryCredential, timeoutMs);
-                    handleAttemptLockout(deadline, false);
+                    if (mIsForPrimaryCredential) {
+                        handleAttemptLockout(deadline);
+                    }
+
                 }
             }
             if (timeoutMs == 0) {

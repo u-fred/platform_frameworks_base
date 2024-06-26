@@ -298,7 +298,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     fun handleLockout_primaryReadsNumberOfErrorAttempts() {
         val pinViewController = constructPinViewController(mockKeyguardPinView)
 
-        pinViewController.handleAttemptLockout(0, /** ignored **/ true)
+        pinViewController.handleAttemptLockout(0)
 
         verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt(), eq(true))
     }
@@ -309,7 +309,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
         val pinViewController = constructPinViewController(mockKeyguardPinView)
 
-        pinViewController.handleAttemptLockout(0, /** ignored **/ true)
+        pinViewController.handleAttemptLockout(0)
 
         verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt(), eq(false))
     }
