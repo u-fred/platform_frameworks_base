@@ -1108,7 +1108,6 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         return !configDisabled || isTestHarness || fileOverride;
     }
 
-
     /**
      * Switches to the given security view unless it's already being shown, in which case
      * this is a no-op.
@@ -1126,10 +1125,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         SecurityMode previousSecurityMode = mCurrentSecurityMode;
         mCurrentSecurityMode = securityMode;
 
-        // Remove any stored HATs as early as possible. It will always be cleared in
-        // PrimaryBouncerInteractor#hide and in the callback after too many failed second factor
-        // attempts, but going to SimPin/SimPuk while on second factor screen will benefit from
-        // this.
+        // Remove any stored HATs as early as possible.
         if (previousSecurityMode == BiometricSecondFactorPin) {
             mUpdateMonitor.clearFingerprintRecognized();
         }
@@ -1227,13 +1223,13 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 DialogInterface.OnClickListener onClick = null;
                 if (!primary) {
                     onClick =
-                            (dialog, which) -> {
-                                mUpdateMonitor.clearFingerprintRecognized();
-                                showPrimarySecurityScreen(false);
-                            };
+                            // This will usually be a no-op because
+                            // onDevicePolicyManagerStateChanged will have fired, but keep it in
+                            // case.
+                            (dialog, which) -> showPrimarySecurityScreen(false);
                 }
                 mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
-                        mSecurityModel.getSecurityMode(userId, false), onClick);
+                        mCurrentSecurityMode, onClick);
             }
         }
     }
