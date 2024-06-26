@@ -253,7 +253,7 @@
     </string>
     <!-- Message shown in dialog when max number of attempts are reached for biometric second factor PIN screen of keyguard -->
     <string name="kg_too_many_failed_biometric_second_factor_pin_attempts_dialog_message">
-        You have incorrectly typed your biometric second factor PIN <xliff:g id="number">%1$d</xliff:g> times.
+        You have incorrectly typed your second factor PIN <xliff:g id="number">%1$d</xliff:g> times.
         \n\nMust use primary authentication now.
     </string>
     <!-- Message shown in dialog when max number of attempts are reached for password screen of keyguard -->
