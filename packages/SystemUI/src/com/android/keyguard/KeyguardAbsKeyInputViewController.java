@@ -189,13 +189,6 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         if (matched) {
             getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
                     true, 0);
-            if (!mIsForPrimaryCredential) {
-                FingerprintManager fm = (FingerprintManager) getContext().getSystemService(
-                        Context.FINGERPRINT_SERVICE);
-                if (fm != null) {
-                    fm.addPendingAuthTokenToKeyStore(userId);
-                }
-            }
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);

@@ -16,7 +16,6 @@
 
 package com.android.keyguard;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,8 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import android.content.Context;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.SystemClock;
 import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper.RunWithLooper;
@@ -221,19 +218,5 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
 
         mKeyguardAbsKeyInputViewController.handleAttemptLockout(0, false);
         verify(mKeyguardMessageAreaController).setMessage(wrongPasswordStringId);
-    }
-
-    @Test
-    public void onPasswordChecked_SecondaryMatched_AddsAuthTokenToKeyStore() {
-        FingerprintManager mockFingerprintManager = mock(FingerprintManager.class);
-        mContext.addMockSystemService(Context.FINGERPRINT_SERVICE, mockFingerprintManager);
-        when(mAbsKeyInputView.getContext()).thenReturn(mContext);
-
-        mSecurityMode = SecurityMode.BiometricSecondFactorPin;
-        mKeyguardAbsKeyInputViewController = createTestObject();
-
-        int userId = 0;
-        mKeyguardAbsKeyInputViewController.onPasswordChecked(userId, true, 0, true);
-        verify(mockFingerprintManager).addPendingAuthTokenToKeyStore(userId);
     }
 }

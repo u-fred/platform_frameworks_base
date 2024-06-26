@@ -42,6 +42,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
 import android.content.pm.UserProperties;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -461,6 +462,12 @@ public class LockPatternUtils {
             // TODO: Log same as in base?
             // TODO: Does it need to be done in separate therad like in base?
             reportSuccessfulBiometricUnlock(mIsFingerprintStrongBiometric, userId);
+
+            FingerprintManager fm = (FingerprintManager) mContext.getSystemService(
+                    Context.FINGERPRINT_SERVICE);
+            if (fm != null) {
+                fm.addPendingAuthTokenToKeyStore(userId);
+            }
         }
     }
 
