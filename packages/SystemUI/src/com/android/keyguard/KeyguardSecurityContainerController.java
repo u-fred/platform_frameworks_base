@@ -1222,11 +1222,15 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             if (!com.android.systemui.Flags.revampedBouncerMessages()) {
                 DialogInterface.OnClickListener onClick = null;
                 if (!primary) {
-                    onClick =
-                            // This will usually be a no-op because
-                            // onDevicePolicyManagerStateChanged will have fired, but keep it in
-                            // case.
-                            (dialog, which) -> showPrimarySecurityScreen(false);
+                    onClick = (dialog, which) -> {
+                        // This will usually be a no-op because
+                        // onDevicePolicyManagerStateChanged will have fired, but keep it in
+                        // case.
+                        // Clear fingerprints to force exit BiometricSecondFactorPin in case
+                        // where async strong auth update hasn't been processed yet.
+                        mUpdateMonitor.clearFingerprintRecognized();
+                        showPrimarySecurityScreen(false);
+                    };
                 }
                 mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
                         mCurrentSecurityMode, onClick);
