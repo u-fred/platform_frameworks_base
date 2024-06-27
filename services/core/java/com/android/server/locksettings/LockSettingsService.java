@@ -3618,7 +3618,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                             getLong(PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, 0,
                                     userId)));
 
-                if (isCredentialSharableWithParent(userId)) {
+                if (mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false)) {
                     keySuffix = getCurrentProtectorKeySuffix(false);
                     pw.println(TextUtils.formatSimple("Secondary LSKF-based SP protector ID: %016x",
                             getCurrentLskfBasedProtectorId(userId, false)));
@@ -3646,7 +3646,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             pw.println(TextUtils.formatSimple("Primary Metrics: %s",
                     getUserPasswordMetrics(userId, true) != null ? "known" : "unknown"));
 
-            if (isCredentialSharableWithParent(userId)) {
+            if (mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false)) {
                 pw.println("Secondary Quality: " + credentialTypeToPasswordQuality(
                         getCredentialTypeInternal(userId, false)));
                 pw.println("Secondary CredentialType: " + LockPatternUtils.credentialTypeToString(
