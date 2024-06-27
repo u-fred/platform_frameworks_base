@@ -558,21 +558,21 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
     private @WakeAndUnlockMode int calculateModeForFingerprint(boolean isStrongBiometric,
             boolean isSecondFactorEnabled) {
         final boolean unlockingAllowed =
-                mUpdateMonitor.isUnlockingWithBiometricAllowed(isStrongBiometric);
+                mUpdateMonitor.isUnlockingWithBiometricAllowed(isStrongBiometric) &&
+                !isSecondFactorEnabled;
         final boolean deviceInteractive = mUpdateMonitor.isDeviceInteractive();
         final boolean keyguardShowing = mKeyguardStateController.isShowing();
         final boolean deviceDreaming = mUpdateMonitor.isDreaming();
-
+        // TODO: Log isSecondFactorEnabled?
         logCalculateModeForFingerprint(unlockingAllowed, deviceInteractive,
                 keyguardShowing, deviceDreaming, isStrongBiometric);
-        if (isSecondFactorEnabled) {
-            return MODE_SHOW_BOUNCER;
-        }
         if (!deviceInteractive) {
             if (!keyguardShowing && !mScreenOffAnimationController.isKeyguardShowDelayed()) {
+                // We get here if primary auth is unset.
                 if (mKeyguardStateController.isUnlocked()) {
                     return MODE_WAKE_AND_UNLOCK;
                 }
+                // This is unreachable.
                 return MODE_ONLY_WAKE;
             } else if (mDozeScrimController.isPulsing() && unlockingAllowed) {
                 return MODE_WAKE_AND_UNLOCK_PULSING;
