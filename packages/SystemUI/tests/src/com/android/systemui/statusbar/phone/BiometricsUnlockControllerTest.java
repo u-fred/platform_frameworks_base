@@ -16,6 +16,7 @@
 
 package com.android.systemui.statusbar.phone;
 
+import static com.android.systemui.statusbar.phone.BiometricUnlockController.MODE_SHOW_BOUNCER;
 import static com.android.systemui.statusbar.phone.BiometricUnlockController.MODE_WAKE_AND_UNLOCK;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -165,9 +166,47 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
     }
 
     @Test
-    public void onBiometricAuthenticated_fingerprintWithSecondFactorEnabled_showPrimaryBouncer() {
+    public void onBiometricAuthenticated_fpWithSecondFactorEnabledNotInteractive_showsBouncer() {
+        when(mUpdateMonitor.isDeviceInteractive()).thenReturn(false);
+
+        // Keyguard should always be showing if second factor is enabled.
+        when(mKeyguardStateController.isShowing()).thenReturn(true);
+
+        // These values don't matter when second factor enabled.
+        when(mUpdateMonitor.isDreaming()).thenReturn(false);
+        when(mDozeScrimController.isPulsing()).thenReturn(true);
+        when(mKeyguardStateController.isMethodSecure()).thenReturn(true);
+
+        // Method under test.
         mBiometricUnlockController.onBiometricAuthenticated(UserHandle.USER_CURRENT,
                 BiometricSourceType.FINGERPRINT, true, true);
+
+        verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean());
+        verify(mStatusBarKeyguardViewManager, never()).notifyKeyguardAuthenticated(anyBoolean());
+        assertThat(mBiometricUnlockController.getMode())
+                .isEqualTo(BiometricUnlockController.MODE_SHOW_BOUNCER);
+
+    }
+
+    @Test
+    public void onBiometricAuthenticated_fpWithSecondFactorEnabledInteractive_showsBouncer() {
+        when(mUpdateMonitor.isDeviceInteractive()).thenReturn(true);
+
+        // Keyguard should always be showing if second factor is enabled.
+        when(mKeyguardStateController.isShowing()).thenReturn(true);
+
+        // These values don't matter when second factor enabled.
+        when(mUpdateMonitor.isDreaming()).thenReturn(false);
+        when(mDozeScrimController.isPulsing()).thenReturn(true);
+        when(mKeyguardStateController.isMethodSecure()).thenReturn(true);
+        when(mStatusBarKeyguardViewManager.primaryBouncerIsOrWillBeShowing()).thenReturn(false);
+
+        when(mStatusBarKeyguardViewManager.isBouncerShowing()).thenReturn(false);
+
+        // Method under test.
+        mBiometricUnlockController.onBiometricAuthenticated(UserHandle.USER_CURRENT,
+                BiometricSourceType.FINGERPRINT, true, true);
+
         verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean());
         verify(mStatusBarKeyguardViewManager, never()).notifyKeyguardAuthenticated(anyBoolean());
         assertThat(mBiometricUnlockController.getMode())
@@ -442,7 +481,7 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
     }
 
     @Test
-    public void onFinishedGoingToSleep_authenticatesWhenPendingWithSecondFactor() {
+    public void onFinishedGoingToSleep_pendingAuthWithSecondFactorEnabled_setsUserAuthWithFp() {
         when(mUpdateMonitor.isGoingToSleep()).thenReturn(true);
         mBiometricUnlockController.mWakefulnessObserver.onFinishedGoingToSleep();
         verify(mHandler, never()).post(any());
