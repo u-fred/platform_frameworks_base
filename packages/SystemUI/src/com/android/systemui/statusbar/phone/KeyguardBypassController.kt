@@ -258,6 +258,7 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
         if (pendingUnlock != null) {
             pw.println("  mPendingUnlock.pendingUnlockType: ${pendingUnlock!!.pendingUnlockType}")
             pw.println("  mPendingUnlock.isStrongBiometric: ${pendingUnlock!!.isStrongBiometric}")
+            pw.println("  mPendingUnlock.isSecondFactorEnabled: ${pendingUnlock!!.isSecondFactorEnabled}")
         } else {
             pw.println("  mPendingUnlock: $pendingUnlock")
         }
