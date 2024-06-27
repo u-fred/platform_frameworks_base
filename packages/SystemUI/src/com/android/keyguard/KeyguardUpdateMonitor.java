@@ -1446,6 +1446,11 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         return mUserFingerprintAuthenticated.contains(userId);
     }
 
+    public void setUserAuthenticatedWithFingerprint(int userId, boolean isStrongBiometric) {
+        mUserFingerprintAuthenticated.put(userId,
+                new BiometricAuthenticated(true, isStrongBiometric));
+    }
+
     /**
      * Returns whether the user is unlocked with face.
      * @deprecated Use {@link DeviceEntryFaceAuthInteractor#isAuthenticated()} instead

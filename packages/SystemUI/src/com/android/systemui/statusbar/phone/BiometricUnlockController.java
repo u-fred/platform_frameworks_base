@@ -800,11 +800,19 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
                         mLogger.finishedGoingToSleepWithPendingAuth();
                         PendingAuthenticated pendingAuthenticated = mPendingAuthenticated;
                         // Post this to make sure it's executed after the device is fully locked.
-                        mHandler.post(() -> onBiometricAuthenticated(pendingAuthenticated.userId,
+                        mHandler.post(() -> {
+                            // Needed for SecurityMode.BiometricSecondFactorPin.
+                            if (pendingAuthenticated.biometricSourceType ==
+                                    BiometricSourceType.FINGERPRINT) {
+                                mUpdateMonitor.setUserAuthenticatedWithFingerprint(
+                                        pendingAuthenticated.userId,
+                                        pendingAuthenticated.isStrongBiometric);
+                            }
+                            onBiometricAuthenticated(pendingAuthenticated.userId,
                                 pendingAuthenticated.biometricSourceType,
                                 pendingAuthenticated.isStrongBiometric,
-                                pendingAuthenticated.isSecondFactorEnabled
-                        ));
+                                pendingAuthenticated.isSecondFactorEnabled);
+                        });
                         mPendingAuthenticated = null;
                     }
                     Trace.endSection();

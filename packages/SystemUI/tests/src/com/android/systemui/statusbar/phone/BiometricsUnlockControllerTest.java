@@ -442,6 +442,21 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
     }
 
     @Test
+    public void onFinishedGoingToSleep_authenticatesWhenPendingWithSecondFactor() {
+        when(mUpdateMonitor.isGoingToSleep()).thenReturn(true);
+        mBiometricUnlockController.mWakefulnessObserver.onFinishedGoingToSleep();
+        verify(mHandler, never()).post(any());
+
+        ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
+        mBiometricUnlockController.onBiometricAuthenticated(1,
+                BiometricSourceType.FINGERPRINT, true, true);
+        mBiometricUnlockController.mWakefulnessObserver.onFinishedGoingToSleep();
+        verify(mHandler).post(captor.capture());
+        captor.getValue().run();
+        verify(mUpdateMonitor).setUserAuthenticatedWithFingerprint(1, true);
+    }
+
+    @Test
     public void onFPFailureNoHaptics_notInteractive_showLockScreen() {
         // GIVEN no vibrator and device is not interactive
         when(mVibratorHelper.hasVibrator()).thenReturn(false);
