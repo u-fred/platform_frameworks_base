@@ -35,7 +35,6 @@ import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 import static android.os.BatteryManager.BATTERY_STATUS_UNKNOWN;
 import static android.os.BatteryManager.CHARGING_POLICY_DEFAULT;
 import static android.telephony.SubscriptionManager.PROFILE_CLASS_PROVISIONING;
-
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.SOME_AUTH_REQUIRED_AFTER_ADAPTIVE_AUTH_REQUEST;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_BOOT;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_DPM_LOCK_NOW;
@@ -896,6 +895,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
             // This can enable non-strong biometrics, which shouldn't happen until after the second
             // factor succeeds. Called by LockPatternUtils#reportSuccessfulPasswordAttempt after
             // second factor succeeds.
+            // TODO: Should this be done if we can skip bouncer even if second factor is enabled?
             reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
         }
 
