@@ -455,14 +455,14 @@ public class LockPatternUtils {
         if (primary) {
             getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
         } else if (forUnlock) {
-            // This call was suppressed in KeyguardUpdateMonitor#onFingerprintAuthenticated.
+            // These two calls was suppressed in KeyguardUpdateMonitor#onFingerprintAuthenticated.
             // Should only be called as part of an unlock process, not if the second factor was
             // being authenticated on its own (such as in Settings app).
             getTrustManager().unlockedByBiometricForUser(userId, FINGERPRINT);
-            // TODO: Log same as in base?
-            // TODO: Does it need to be done in separate therad like in base?
+            // TODO: Log and do this in background same as in base?
             reportSuccessfulBiometricUnlock(mIsFingerprintStrongBiometric, userId);
 
+            // TODO: Test this method.
             FingerprintManager fm = (FingerprintManager) mContext.getSystemService(
                     Context.FINGERPRINT_SERVICE);
             if (fm != null) {
