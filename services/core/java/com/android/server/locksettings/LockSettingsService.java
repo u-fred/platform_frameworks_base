@@ -3254,6 +3254,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (primary) {
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
 
+            // TODO: Check second factor support through LPU?
             if (credential.isNone() && !isCredentialSharableWithParent(userId) &&
                     isUserSecure(userId, false)) {
                 setLockCredentialWithSpLocked(credential, false,
