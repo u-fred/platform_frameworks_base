@@ -43,6 +43,7 @@ import android.os.RemoteException;
 import android.platform.test.annotations.Presubmit;
 import android.platform.test.flag.junit.CheckFlagsRule;
 import android.platform.test.flag.junit.DeviceFlagsValueProvider;
+import android.security.KeyStore;
 import android.testing.TestableContext;
 import android.view.Display;
 import android.view.DisplayInfo;
@@ -54,6 +55,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.statusbar.ISessionListener;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.widget.LockPatternUtils;
+import com.android.server.biometrics.sensors.BiometricAuthTokenStore;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -87,6 +90,8 @@ public class BiometricContextProviderTest {
     private ISessionListener mSessionListener;
     @Mock
     private WindowManager mWindowManager;
+    @Mock
+    private KeyStore mKeyStore;
 
     private OperationContextExt mOpContext = new OperationContextExt(true);
     private IBiometricContextListener mListener;
@@ -99,7 +104,8 @@ public class BiometricContextProviderTest {
                         new DisplayInfo(), DEFAULT_DISPLAY_ADJUSTMENTS));
         mProvider = new BiometricContextProvider(mContext, mWindowManager,
                 mStatusBarService, null /* handler */,
-                null /* authSessionCoordinator */);
+                null /* authSessionCoordinator */, new BiometricAuthTokenStore(mKeyStore),
+                new LockPatternUtils(mContext));
         ArgumentCaptor<IBiometricContextListener> captor =
                 ArgumentCaptor.forClass(IBiometricContextListener.class);
         verify(mStatusBarService).setBiometicContextListener(captor.capture());
