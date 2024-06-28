@@ -60,6 +60,7 @@ public final class LockPatternChecker {
      */
     public static AsyncTask<?, ?, ?> verifyCredential(final LockPatternUtils utils,
             final LockscreenCredential credential,
+            final boolean primary,
             final int userId,
             final @LockPatternUtils.VerifyFlag int flags,
             final OnVerifyCallback callback) {
@@ -69,7 +70,7 @@ public final class LockPatternChecker {
                 new AsyncTask<Void, Void, VerifyCredentialResponse>() {
             @Override
             protected VerifyCredentialResponse doInBackground(Void... args) {
-                return utils.verifyCredential(credentialCopy, userId, flags);
+                return utils.verifyCredential(credentialCopy, primary, userId, flags);
             }
 
             @Override
@@ -97,6 +98,7 @@ public final class LockPatternChecker {
      */
     public static AsyncTask<?, ?, ?> checkCredential(final LockPatternUtils utils,
             final LockscreenCredential credential,
+            final boolean primary,
             final int userId,
             final OnCheckCallback callback) {
         // Create a copy of the credential since checking credential is asynchrounous.
@@ -107,7 +109,8 @@ public final class LockPatternChecker {
             @Override
             protected Boolean doInBackground(Void... args) {
                 try {
-                    return utils.checkCredential(credentialCopy, userId, callback::onEarlyMatched);
+                    return utils.checkCredential(credentialCopy, primary, userId,
+                            callback::onEarlyMatched);
                 } catch (RequestThrottledException ex) {
                     mThrottleTimeout = ex.getTimeoutMs();
                     return false;
