@@ -18,7 +18,6 @@ package com.android.keyguard;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
-
 import static com.android.internal.jank.InteractionJankMonitor.CUJ_LOCKSCREEN_PIN_APPEAR;
 import static com.android.internal.jank.InteractionJankMonitor.CUJ_LOCKSCREEN_PIN_DISAPPEAR;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_CLOSED;
@@ -271,7 +270,8 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
 
     @Override
     public int getWrongPasswordStringId() {
-        return R.string.kg_wrong_pin;
+        return isForPrimaryCredential() ? R.string.kg_wrong_pin :
+                R.string.kg_wrong_biometric_second_factor_pin;
     }
 
     @Override
@@ -344,5 +344,26 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
                 }
             }
         }
+    }
+
+    private boolean mIsForPrimaryCredential = true;
+
+    public void setIsForPrimaryCredential(boolean value) {
+        mIsForPrimaryCredential = value;
+    }
+
+    public boolean isForPrimaryCredential() {
+        return mIsForPrimaryCredential;
+    }
+
+    @Override
+    protected int getPromptReasonStringRes(int reason) {
+        // TODO: Would it be preferred to add this to the base method and use instanceof?
+        if (!mIsForPrimaryCredential) {
+            // Without this can end up displaying a strong auth prompt even when SecurityMode is
+            // BiometricSecondFactorPin. For example, when weak biometric has idle timed out.
+            return 0;
+        }
+        return super.getPromptReasonStringRes(reason);
     }
 }

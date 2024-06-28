@@ -107,6 +107,7 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -202,7 +203,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         whenever(messageAreaControllerFactory.create(any()))
             .thenReturn(keyguardMessageAreaController)
         whenever(keyguardPasswordView.windowInsetsController).thenReturn(windowInsetsController)
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(SecurityMode.PIN)
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(SecurityMode.PIN)
         whenever(keyguardStateController.canDismissLockScreen()).thenReturn(true)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(true)
 
@@ -318,6 +319,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
                 verify(viewFlipperController).getSecurityView(eq(mode), any(), any())
             }
         }
+    }
+
+    @Test
+    fun showSecurityScreen_previousBiometricSecondFactorPin_clearsHardwareAuthTokens() {
+        underTest.showSecurityScreen(SecurityMode.BiometricSecondFactorPin)
+
+        underTest.showSecurityScreen(SecurityMode.PIN)
+
+        verify(keyguardUpdateMonitor).clearFingerprintRecognized()
     }
 
     @Test
@@ -483,14 +493,14 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_DeviceNotSecure() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.None)
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(true)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(true)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
             TARGET_USER_ID,
@@ -525,15 +535,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_Swipe() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.None)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
             TARGET_USER_ID,
@@ -548,15 +558,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_Swipe_userNotSetup() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.None)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
@@ -573,15 +583,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_Password() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.Password)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
@@ -599,15 +609,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_SimPin() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
         // WHEN a request is made from the SimPin screens to show the next security method
-        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID))
+        whenever(keyguardSecurityModel.getSecurityMode(TARGET_USER_ID, false))
             .thenReturn(SecurityMode.SimPin)
         // WHEN security method is SWIPE
-        whenever(lockPatternUtils.isLockScreenDisabled(anyInt())).thenReturn(false)
+        whenever(lockPatternUtils.isLockScreenDisabled(anyInt(), eq(true))).thenReturn(false)
         whenever(deviceProvisionedController.isUserSetup(anyInt())).thenReturn(false)
         underTest.showNextSecurityScreenOrFinish(
             /* authenticated= */ true,
@@ -618,6 +628,24 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
 
         // THEN we will not show the password screen.
         verify(viewFlipperController).getSecurityView(eq(SecurityMode.SimPin), any(), any())
+    }
+
+    @Test
+    fun showNextSecurityScreenOrFinish_BiometricUnlockedWithSecondFactorEnabled_DoesNotFinish() {
+        whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+                .thenReturn(true)
+        whenever(lockPatternUtils.isBiometricSecondFactorEnabled(TARGET_USER_ID)).thenReturn(true)
+        underTest.showSecurityScreen(SecurityMode.PIN)
+
+        val finish = underTest.showNextSecurityScreenOrFinish(
+                /* authenticated= */ true,
+                TARGET_USER_ID,
+                /* bypassSecondaryLockScreen= */ true,
+                SecurityMode.SimPin
+        )
+
+        Assert.assertFalse(finish)
     }
 
     @Test
@@ -944,7 +972,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         verify(userSwitcherController)
             .addUserSwitchCallback(capture(userSwitchCallbackArgumentCaptor))
         userSwitchCallbackArgumentCaptor.value.onUserSwitched()
-        verify(viewFlipperController).asynchronouslyInflateView(any(), any(), any())
+        verify(viewFlipperController, times(2)).asynchronouslyInflateView(any(), any(), any())
     }
 
     private val registeredSwipeListener: KeyguardSecurityContainer.SwipeListener

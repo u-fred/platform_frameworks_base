@@ -48,7 +48,6 @@ import com.android.systemui.res.R
 import com.android.systemui.shared.system.SysUiStatsLog
 import com.android.systemui.statusbar.policy.KeyguardStateController
 import com.android.systemui.user.domain.interactor.SelectedUserInteractor
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,6 +56,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Encapsulates business logic for interacting with the lock-screen primary (pin/pattern/password)
@@ -224,6 +224,7 @@ constructor(
         repository.setPrimaryShow(false)
         repository.setPanelExpansion(EXPANSION_HIDDEN)
         primaryBouncerCallbackInteractor.dispatchVisibilityChanged(View.INVISIBLE)
+        keyguardUpdateMonitor.clearFingerprintRecognized()
         Trace.endSection()
     }
 
@@ -419,7 +420,7 @@ constructor(
     /** Returns whether the bouncer should be full screen. */
     private fun needsFullscreenBouncer(): Boolean {
         val mode: KeyguardSecurityModel.SecurityMode =
-            keyguardSecurityModel.getSecurityMode(selectedUserInteractor.getSelectedUserId())
+            keyguardSecurityModel.getSecurityMode(selectedUserInteractor.getSelectedUserId(), false)
         return mode == KeyguardSecurityModel.SecurityMode.SimPin ||
             mode == KeyguardSecurityModel.SecurityMode.SimPuk
     }
