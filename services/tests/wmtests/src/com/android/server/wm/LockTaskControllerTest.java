@@ -451,7 +451,7 @@ public class LockTaskControllerTest {
         Settings.Secure.clearProviderForTest();
 
         // AND no password is set
-        when(mLockPatternUtils.getKeyguardStoredPasswordQuality(anyInt()))
+        when(mLockPatternUtils.getKeyguardStoredPasswordQuality(anyInt(), eq(true)))
                 .thenReturn(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
 
         // AND there is a task record

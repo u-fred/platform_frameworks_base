@@ -86,6 +86,7 @@ class ScreenLockRule : TestRule {
         lockPatternUtils.setLockCredential(
                 LockscreenCredential.createPin(PIN),
                 LockscreenCredential.createNone(),
+                true,
                 context.userId
         )
         wait("screen lock set") { lockPatternUtils.isSecure(context.userId) }
@@ -101,6 +102,7 @@ class ScreenLockRule : TestRule {
         var lockCredentialUnset = lockPatternUtils.setLockCredential(
                 LockscreenCredential.createNone(),
                 LockscreenCredential.createPin(PIN),
+                true,
                 context.userId)
         Log.i(TAG, "Removing screen lock")
         assertWithMessage("Lock screen credential should be unset")
@@ -109,7 +111,7 @@ class ScreenLockRule : TestRule {
 
         lockPatternUtils.setLockScreenDisabled(true, context.userId)
         wait("screen lock un-set") {
-            lockPatternUtils.isLockScreenDisabled(context.userId)
+            lockPatternUtils.isLockScreenDisabled(context.userId, true)
         }
         wait("screen lock insecure") { !lockPatternUtils.isSecure(context.userId) }
     }
