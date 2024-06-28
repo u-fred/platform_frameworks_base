@@ -55,19 +55,20 @@ import static android.net.ConnectivityManager.PROFILE_NETWORK_PREFERENCE_ENTERPR
 import static android.net.ConnectivityManager.PROFILE_NETWORK_PREFERENCE_ENTERPRISE_NO_FALLBACK;
 import static android.net.InetAddresses.parseNumericAddress;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
-
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
+import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChangeCallback;
+import static com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
+import static com.android.internal.widget.LockPatternUtils.SecondaryForSpecialUserException;
+import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.server.SystemTimeZone.TIME_ZONE_CONFIDENCE_HIGH;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_PROFILE_OFF_DEADLINE;
 import static com.android.server.devicepolicy.DevicePolicyManagerService.ACTION_TURN_PROFILE_ON_NOTIFICATION;
 import static com.android.server.devicepolicy.DpmMockContext.CALLER_USER_HANDLE;
 import static com.android.server.testutils.TestUtils.assertExpectException;
-
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
@@ -81,6 +82,7 @@ import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.reset;
@@ -92,7 +94,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.testng.Assert.assertThrows;
-
 import static java.util.Collections.emptyList;
 
 import android.Manifest.permission;
@@ -165,6 +166,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.stubbing.Answer;
@@ -182,6 +184,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+
+
 /**
  * Tests for DevicePolicyManager( and DevicePolicyManagerService).
  *
@@ -192,6 +198,7 @@ import java.util.concurrent.TimeUnit;
  */
 @SmallTest
 @Presubmit
+@RunWith(JUnitParamsRunner.class)
 public class DevicePolicyManagerTest extends DpmTestBase {
 
     private static final String TAG = DevicePolicyManagerTest.class.getSimpleName();
@@ -1018,7 +1025,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Change the parent user's password.
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PASSWORD),
-                UserHandle.USER_SYSTEM);
+                UserHandle.USER_SYSTEM, true);
 
         // The managed profile owner should receive this broadcast.
         final Intent intent = new Intent(DeviceAdminReceiver.ACTION_PASSWORD_CHANGED);
@@ -1058,7 +1065,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Change the profile's password.
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PASSWORD),
-                MANAGED_PROFILE_USER_ID);
+                MANAGED_PROFILE_USER_ID, true);
 
         // Both the device owner and the managed profile owner should receive this broadcast.
         final Intent intent = new Intent(DeviceAdminReceiver.ACTION_PASSWORD_CHANGED);
@@ -5157,6 +5164,295 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void getCurrentFailedPasswordAttempts_SecondaryForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = UserHandle.getUid(userId, 19436);
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.getCurrentFailedPasswordAttempts(userId, false));
+    }
+
+    @Test
+    public void getCurrentFailedPasswordAttempts_SecondaryForSpecialUser_ThrowsException() {
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.getCurrentFailedPasswordAttempts(USER_FRP, false));
+    }
+
+    @Test
+    public void getCurrentFailedPasswordAttempts_SecondaryForNotExistUser_ReturnsZero() {
+        final int DOES_NOT_EXIST_USER_ID = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(DOES_NOT_EXIST_USER_ID, false))
+                .isEqualTo(0);
+    }
+
+    @Test
+    public void reportFailedPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        final int userId = 15;
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.reportFailedPasswordAttempt(userId, false));
+    }
+
+    @Test
+    public void reportFailedPasswordAttempt_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.reportFailedPasswordAttempt(USER_FRP, false));
+    }
+
+    @Test
+    public void reportFailedPasswordAttempt_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        final int userId = 15;
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        // Should not throw.
+        dpm.reportFailedPasswordAttempt(userId, false);
+
+    }
+
+    @Test
+    @Parameters({ "true", "false" })
+    public void reportFailedPasswordAttempt_Success_IncrementsGetCurrentFailedPasswordAttempts(
+            boolean primary) {
+        mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
+        final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
+        mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary))
+                .isEqualTo(0);
+
+        dpm.reportFailedPasswordAttempt(userId, primary);
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary))
+                .isEqualTo(1);
+    }
+
+    @Test
+    public void reportSuccessfulPasswordAttempt_SecondaryForCredSharableUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        final int userId = 15;
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.reportSuccessfulPasswordAttempt(userId, false));
+    }
+
+    @Test
+    public void reportSuccessfulPasswordAttempt_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.reportSuccessfulPasswordAttempt(USER_FRP, false));
+    }
+
+    @Test
+    public void reportSuccessfulPasswordAttempt_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+        final int userId = 15;
+
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        // Should not throw.
+        dpm.reportSuccessfulPasswordAttempt(userId, false);
+    }
+
+    @Test
+    @Parameters({ "true", "false" })
+    public void reportSuccessfulPassword_ZeroFailedAttemptCounter_DoesNotSave(boolean primary) {
+        mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
+        final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+        mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        reset(mServiceContext.spiedContext);
+
+        dpm.reportSuccessfulPasswordAttempt(userId, primary);
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        // Should not save.
+        verify(mServiceContext.spiedContext, times(0)).sendBroadcastAsUser(
+                MockUtils.checkIntentAction(
+                        DevicePolicyManager.ACTION_DEVICE_POLICY_MANAGER_STATE_CHANGED),
+                MockUtils.checkUserHandle(userId),
+                eq(null),
+                any(Bundle.class));
+    }
+
+    @Test
+    @Parameters({ "true", "false" })
+    public void reportSuccessfulPassword_NonZeroFailedAttemptCounter_ResetsCounterAndSaves(
+            boolean primary) {
+        mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
+        final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+        mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
+
+        dpm.reportFailedPasswordAttempt(userId, primary);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(1);
+        reset(mServiceContext.spiedContext);
+
+        dpm.reportSuccessfulPasswordAttempt(userId, primary);
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        // Should save.
+        verify(mServiceContext.spiedContext, times(1)).sendBroadcastAsUser(
+                MockUtils.checkIntentAction(
+                        DevicePolicyManager.ACTION_DEVICE_POLICY_MANAGER_STATE_CHANGED),
+                MockUtils.checkUserHandle(userId),
+                eq(null),
+                any(Bundle.class));
+    }
+
+    @Test
+    public void reportPasswordChanged_SecondaryForCredSharableUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        final int MANAGED_PROFILE_USER_ID = 15;
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(MANAGED_PROFILE_USER_ID);
+
+
+        assertExpectException(SecondaryForCredSharableUserException.class,
+                null,
+                () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
+                        MANAGED_PROFILE_USER_ID, false));
+    }
+
+    @Test
+    public void reportPasswordChanged_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForSpecialUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(USER_FRP);
+
+        assertExpectException(SecondaryForSpecialUserException.class,
+                null,
+                () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
+                        USER_FRP, false));
+    }
+
+    @Test
+    public void reportPasswordChanged_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        final int DOES_NOT_EXIST_USER_ID = 15;
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
+
+        // Should not throw.
+        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), DOES_NOT_EXIST_USER_ID,
+                false);
+    }
+
+    @Test
+    @Parameters({ "true", "false" })
+    public void reportPasswordChanged_Success_ResetsCounterAndSaves(boolean primary) {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+        final int userId = UserHandle.getUserId(mContext.binder.callingUid);
+        if (!primary) {
+            doReturn(true)
+                    .when(getServices().lockPatternUtils)
+                    .checkUserSupportsBiometricSecondFactor(userId);
+        }
+
+        // Only used when primary true.
+        when(getServices().lockSettingsInternal.getUserPasswordMetrics(userId))
+                .thenReturn(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
+
+        dpm.reportFailedPasswordAttempt(userId, primary);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(1);
+        reset(mServiceContext.spiedContext);
+
+        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), userId, primary);
+
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        // Should save.
+        verify(mServiceContext.spiedContext, times(1)).sendBroadcastAsUser(
+                MockUtils.checkIntentAction(
+                        DevicePolicyManager.ACTION_DEVICE_POLICY_MANAGER_STATE_CHANGED),
+                MockUtils.checkUserHandle(userId),
+                eq(null),
+                any(Bundle.class));
+    }
+
+    @Test
+    public void reportSuccessfulBiometricAttempt_SecondarFactorForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = UserHandle.getUid(userId, 19436);
+        mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.reportSuccessfulBiometricAttempt(userId, true));
+    }
+
+    @Test
+    public void reportSuccessfulBiometricAttempt_SecondarFactorForSpecialUser_ThrowsException() {
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.reportSuccessfulBiometricAttempt(USER_FRP, true));
+    }
+
+    @Test
     public void testMaximumFailedPasswordAttemptsReachedManagedProfile() throws Exception {
         final int MANAGED_PROFILE_USER_ID = 15;
         final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
@@ -5178,9 +5474,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
         // Failed password attempts on the parent user are taken into account, as there isn't a
         // separate work challenge.
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
 
         // The profile should be wiped even if DISALLOW_REMOVE_MANAGED_PROFILE is enabled, because
         // both the user restriction and the policy were set by the PO.
@@ -5212,9 +5508,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
         // Failed password attempts on the parent user are taken into account, as there isn't a
         // separate work challenge.
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
 
         // DISALLOW_REMOVE_MANAGED_PROFILE was set by the system, not the PO, so the profile is
         // not wiped.
@@ -5235,9 +5531,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
 
         // The device should be wiped even if DISALLOW_FACTORY_RESET is enabled, because both the
         // user restriction and the policy were set by the DO.
@@ -5256,9 +5552,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
 
         // DISALLOW_FACTORY_RESET was set by the system, not the DO, so the device is not wiped.
         verifyZeroInteractions(getServices().recoverySystem);
@@ -5295,9 +5591,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Failed password attempts on the parent user are taken into account, as there isn't a
         // separate work challenge.
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
 
         // For managed profile on an organization owned device, the whole device should be wiped.
         verifyRebootWipeUserData(/* wipeEuicc= */ false);
@@ -5337,9 +5633,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(UserHandle.USER_SYSTEM);
 
         // Simulate three failed attempts at solving the separate challenge.
-        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID);
-        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID);
-        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID);
+        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, true);
+        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, true);
+        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, true);
 
         // For managed profile on an organization owned device, the whole device should be wiped.
         verifyRebootWipeUserData(/* wipeEuicc= */ false);
@@ -5542,7 +5838,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         reset(mContext.spiedContext);
         // This should be ignored, as there is no lock screen.
-        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_NONE), userHandle);
+        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_NONE), userHandle, true);
 
         // No broadcast should be sent.
         verify(mContext.spiedContext, times(0)).sendBroadcastAsUser(
@@ -5915,7 +6211,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         when(getServices().lockSettingsInternal.getUserPasswordMetrics(userHandle))
                 .thenReturn(passwordMetrics);
-        dpm.reportPasswordChanged(passwordMetrics, userHandle);
+        dpm.reportPasswordChanged(passwordMetrics, userHandle, true);
 
         verify(mContext.spiedContext, times(1)).sendBroadcastAsUser(
                 MockUtils.checkIntentAction(

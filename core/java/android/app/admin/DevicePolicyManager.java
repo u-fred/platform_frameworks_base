@@ -64,7 +64,6 @@ import static android.app.admin.flags.Flags.FLAG_IS_MTE_POLICY_ENFORCED;
 import static android.content.Intent.LOCAL_FLAG_FROM_SYSTEM;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
-
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
 
 import android.Manifest.permission;
@@ -5866,6 +5865,7 @@ public class DevicePolicyManager {
         }
         return false;
     }
+
     /**
      * Retrieve the number of times the user has failed at entering a password since that last
      * successful password entry.
@@ -5902,10 +5902,24 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     public int getCurrentFailedPasswordAttempts(int userHandle) {
+        return getCurrentFailedPasswordAttempts(userHandle, true);
+    }
+
+    /**
+     * Retrieve the number of times the given user has failed at entering a
+     * password (primary or biometric second factor) since that last successful password entry.
+     *
+     * <p>The calling device admin must have requested
+     * {@link DeviceAdminInfo#USES_POLICY_WATCH_LOGIN} to be able to call this method; if it has
+     * not and it is not the system uid, a security exception will be thrown.
+     *
+     * @hide
+     */
+    public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
         if (mService != null) {
             try {
                 return mService.getCurrentFailedPasswordAttempts(
-                        mContext.getPackageName(), userHandle, mParentInstance);
+                        mContext.getPackageName(), primary, userHandle, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9103,10 +9117,11 @@ public class DevicePolicyManager {
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
+    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
+            boolean primary) {
         if (mService != null) {
             try {
-                mService.reportPasswordChanged(metrics, userId);
+                mService.reportPasswordChanged(metrics, userId, primary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9119,9 +9134,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportFailedPasswordAttempt(int userHandle) {
+        reportFailedPasswordAttempt(userHandle, true);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportFailedPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportFailedPasswordAttempt(userHandle, mParentInstance);
+                mService.reportFailedPasswordAttempt(userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9134,9 +9157,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle) {
+        reportSuccessfulPasswordAttempt(userHandle, true);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulPasswordAttempt(userHandle);
+                mService.reportSuccessfulPasswordAttempt(userHandle, primary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9157,14 +9188,14 @@ public class DevicePolicyManager {
         }
     }
 
-    /**
-     * @hide
-     */
-    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportSuccessfulBiometricAttempt(int userHandle) {
+     /**
+      * @hide
+      */
+     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+     public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulBiometricAttempt(userHandle);
+                mService.reportSuccessfulBiometricAttempt(userHandle, isSecondFactorEnabled);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
