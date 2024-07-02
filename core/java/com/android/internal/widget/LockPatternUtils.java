@@ -1614,8 +1614,8 @@ public class LockPatternUtils {
     /**
      * Whether the user is not allowed to set any credentials via PASSWORD_QUALITY_MANAGED.
      */
-    public boolean isCredentialsDisabledForUser(int userId) {
-        return getDevicePolicyManager().getPasswordQuality(/* admin= */ null, userId)
+    public boolean isCredentialsDisabledForUser(int userId, boolean primary) {
+        return getDevicePolicyManager().getPasswordQuality(/* admin= */ null, userId, primary)
                 == PASSWORD_QUALITY_MANAGED;
     }
 

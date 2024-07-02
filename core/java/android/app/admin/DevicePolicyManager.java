@@ -4710,15 +4710,20 @@ public class DevicePolicyManager {
      */
     @Deprecated
     public int getPasswordQuality(@Nullable ComponentName admin) {
-        return getPasswordQuality(admin, myUserId());
+        return getPasswordQuality(admin, myUserId(), true);
     }
 
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     public int getPasswordQuality(@Nullable ComponentName admin, int userHandle) {
+        return getPasswordQuality(admin, userHandle, true);
+    }
+
+    /** @hide */
+    public int getPasswordQuality(@Nullable ComponentName admin, int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                return mService.getPasswordQuality(admin, userHandle, mParentInstance);
+                return mService.getPasswordQuality(admin, userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

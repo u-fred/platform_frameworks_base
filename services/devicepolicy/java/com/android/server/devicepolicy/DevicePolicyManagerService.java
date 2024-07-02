@@ -4366,12 +4366,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         for (UserInfo userInfo : users) {
             final int currentUserId = userInfo.id;
             mPolicyCache.setPasswordQuality(currentUserId,
-                    getPasswordQuality(null, currentUserId, false));
+                    getPasswordQuality(null, currentUserId, true, false));
         }
     }
 
     @Override
-    public int getPasswordQuality(ComponentName who, int userHandle, boolean parent) {
+    public int getPasswordQuality(ComponentName who, int userHandle, boolean primary,
+            boolean parent) {
         if (!mHasFeature) {
             return PASSWORD_QUALITY_UNSPECIFIED;
         }
@@ -4383,9 +4384,16 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(
                 who == null || isCallingFromPackage(who.getPackageName(), caller.getUid())
                         || canQueryAdminPolicy(caller));
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+            return PASSWORD_QUALITY_UNSPECIFIED;
+        }
 
         synchronized (getLockObject()) {
             int mode = PASSWORD_QUALITY_UNSPECIFIED;
+
+            if (!primary) {
+                return mode;
+            }
 
             if (who != null) {
                 ActiveAdmin admin = getActiveAdminUncheckedLocked(who, userHandle, parent);

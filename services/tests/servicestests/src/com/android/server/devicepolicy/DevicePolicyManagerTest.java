@@ -2131,11 +2131,13 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(originalPasswordExpirationTimeout);
 
         if (isDeprecatedPasswordApisSupported()) {
-            int originalPasswordQuality = dpm.getPasswordQuality(admin1);
+            int originalPasswordQuality = dpm.getPasswordQuality(admin1,
+                    ((DevicePolicyManagerTestable)dpm).myUserId(), true);
             assertExpectException(SecurityException.class, /* messageRegex= */ null,
                     () -> dpm.setPasswordQuality(admin1,
                             DevicePolicyManager.PASSWORD_QUALITY_NUMERIC));
-            assertThat(dpm.getPasswordQuality(admin1)).isEqualTo(originalPasswordQuality);
+            assertThat(dpm.getPasswordQuality(admin1, ((DevicePolicyManagerTestable)dpm).myUserId(),
+                    true)).isEqualTo(originalPasswordQuality);
         }
     }
 
@@ -5453,6 +5455,37 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void getPasswordQuality_SecondarFactorForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = UserHandle.getUid(userId, 19436);
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.getPasswordQuality(null, userId, false));
+    }
+
+    @Test
+    public void getPasswordQuality_SecondaryFactorForSpecialUser_ThrowsException() {
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.getPasswordQuality(null, USER_FRP, false));
+    }
+
+    @Test
+    public void getPasswordQuality_SecondarySuccess_ReturnsUnspecified() throws Exception {
+        assumeDeprecatedPasswordApisSupported();
+
+        final int userId = 15;
+        mServiceContext.binder.callingUid = UserHandle.getUid(userId, 19436);
+
+        assertThat(dpm.getPasswordQuality(null, userId, false))
+                .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
+    }
+
+    @Test
     public void testMaximumFailedPasswordAttemptsReachedManagedProfile() throws Exception {
         final int MANAGED_PROFILE_USER_ID = 15;
         final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
@@ -5940,7 +5973,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 admin1.getPackageName(), managedProfileUserId);
 
         parentDpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
-        assertThat(parentDpm.getPasswordQuality(admin1))
+        assertThat(parentDpm.getPasswordQuality(admin1,
+                ((DevicePolicyManagerTestable)parentDpm).myUserId(), true))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
     }
 
@@ -6187,7 +6221,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .thenReturn(new UserInfo(UserHandle.USER_SYSTEM, "user system", 0));
 
         dpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
-        assertThat(parentDpm.getPasswordQuality(null))
+        assertThat(parentDpm.getPasswordQuality(null,
+                ((DevicePolicyManagerTestable)parentDpm).myUserId(), true))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
     }
 
@@ -6200,7 +6235,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         addManagedProfile(admin1, managedProfileAdminUid, admin1, VERSION_CODES.R);
 
         dpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
-        assertThat(parentDpm.getPasswordQuality(admin1))
+        assertThat(parentDpm.getPasswordQuality(admin1,
+                ((DevicePolicyManagerTestable)parentDpm).myUserId(), true))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
     }
 
@@ -7990,10 +8026,12 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Test that calling setRequiredPasswordComplexity resets password quality.
         dpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX);
-        assertThat(dpm.getPasswordQuality(admin1)).isEqualTo(
+        assertThat(dpm.getPasswordQuality(admin1, ((DevicePolicyManagerTestable)dpm).myUserId(),
+                true)).isEqualTo(
                 DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX);
         dpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_HIGH);
-        assertThat(dpm.getPasswordQuality(admin1)).isEqualTo(
+        assertThat(dpm.getPasswordQuality(admin1, ((DevicePolicyManagerTestable)dpm).myUserId(),
+                true)).isEqualTo(
                 DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
     }
 
