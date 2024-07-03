@@ -5587,6 +5587,57 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void getPasswordHistoryLength_SecondaryForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.getPasswordHistoryLength(null, userId, false));
+    }
+
+    @Test
+    public void getPasswordHistoryLength_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForSpecialUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(USER_FRP);
+
+        assertThrows(SecondaryForSpecialUserException.class,
+                () -> dpm.getPasswordHistoryLength(null, USER_FRP, false));
+    }
+
+    @Test
+    public void getPasswordHistoryLength_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        final int DOES_NOT_EXIST_USER_ID = 15;
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
+
+        assertThat(dpm.getPasswordHistoryLength(null, USER_FRP, false))
+                .isEqualTo(0);
+    }
+
+    @Test
+    public void getPasswordHistoryLength_SecondarySuccess_ReturnsZero() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doReturn(true)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThat(dpm.getPasswordHistoryLength(null, userId, false))
+                .isEqualTo(0);
+    }
+
+    @Test
     public void testMaximumFailedPasswordAttemptsReachedManagedProfile() throws Exception {
         final int MANAGED_PROFILE_USER_ID = 15;
         final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);

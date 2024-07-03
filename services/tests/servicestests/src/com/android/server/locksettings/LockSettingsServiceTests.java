@@ -23,6 +23,8 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PATTERN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
+import static com.android.internal.widget.LockPatternUtils.PASSWORD_HISTORY_KEY;
+import static com.android.internal.widget.LockPatternUtils.PASSWORD_HISTORY_KEY_SECONDARY;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.server.locksettings.SyntheticPasswordManager.NULL_PROTECTOR_ID;
@@ -510,29 +512,46 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void testPasswordHistoryDisabledByDefault() throws Exception {
         final int userId = PRIMARY_USER_ID;
-        checkPasswordHistoryLength(userId, 0);
+        checkPasswordHistoryLength(userId, true, 0);
         setCredential(userId, newPassword("1234"));
-        checkPasswordHistoryLength(userId, 0);
+        checkPasswordHistoryLength(userId, true, 0);
     }
 
     @Test
     public void testPasswordHistoryLengthHonored() throws Exception {
         final int userId = PRIMARY_USER_ID;
-        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId))).thenReturn(3);
-        checkPasswordHistoryLength(userId, 0);
+        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId), eq(true)))
+                .thenReturn(3);
+        checkPasswordHistoryLength(userId, true, 0);
 
         setCredential(userId, newPassword("pass1"));
-        checkPasswordHistoryLength(userId, 1);
+        checkPasswordHistoryLength(userId, true, 1);
 
         setCredential(userId, newPassword("pass2"), newPassword("pass1"));
-        checkPasswordHistoryLength(userId, 2);
+        checkPasswordHistoryLength(userId, true,2);
 
         setCredential(userId, newPassword("pass3"), newPassword("pass2"));
-        checkPasswordHistoryLength(userId, 3);
+        checkPasswordHistoryLength(userId, true, 3);
 
         // maximum length should have been reached
         setCredential(userId, newPassword("pass4"), newPassword("pass3"));
-        checkPasswordHistoryLength(userId, 3);
+        checkPasswordHistoryLength(userId, true, 3);
+    }
+
+    @Test
+    public void testPasswordHistoryLengthHonoredSecondary() throws Exception {
+        final int userId = PRIMARY_USER_ID;
+        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId), eq(false)))
+                .thenReturn(0);
+
+        LockscreenCredential primaryPassword = newPassword("password");
+
+        setCredential(userId, primaryPassword);
+        setCredential(userId, newPin("123456"), primaryPassword, false);
+        checkPasswordHistoryLength(userId, false, 0);
+
+        setCredential(userId, newPin("654321"), primaryPassword, false);
+        checkPasswordHistoryLength(userId, false, 0);
     }
 
     @Test(expected=NullPointerException.class)
@@ -1054,8 +1073,9 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertEquals(secondaryMetrics, mService.getUserPasswordMetrics(userId, false));
     }
 
-    private void checkPasswordHistoryLength(int userId, int expectedLen) {
-        String history = mService.getString(LockPatternUtils.PASSWORD_HISTORY_KEY, "", userId);
+    private void checkPasswordHistoryLength(int userId, boolean primary, int expectedLen) {
+        String key = primary ? PASSWORD_HISTORY_KEY : PASSWORD_HISTORY_KEY_SECONDARY;
+        String history = mService.getString(key, "", userId);
         String[] hashes = TextUtils.split(history, LockPatternUtils.PASSWORD_HISTORY_DELIMITER);
         assertEquals(expectedLen, hashes.length);
     }

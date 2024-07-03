@@ -1985,11 +1985,6 @@ public class LockSettingsService extends ILockSettings.Stub {
      */
     private void updatePasswordHistory(LockscreenCredential password, int userHandle,
             boolean primary) {
-        if (!primary) {
-            // Doesn't make sense to update secondary until admin supports setting a history length
-            // for it. Reusing the primary length value isn't ideal.
-            return;
-        }
         if (password.isNone()) {
             return;
         }
@@ -1998,12 +1993,14 @@ public class LockSettingsService extends ILockSettings.Stub {
             return;
         }
         // Add the password to the password history.
+        String key = primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
+                LockPatternUtils.PASSWORD_HISTORY_KEY_SECONDARY;
         String passwordHistory = getString(
-                LockPatternUtils.PASSWORD_HISTORY_KEY, /* defaultValue= */ null, userHandle);
+                key, /* defaultValue= */ null, userHandle);
         if (passwordHistory == null) {
             passwordHistory = "";
         }
-        int passwordHistoryLength = getRequestedPasswordHistoryLength(userHandle);
+        int passwordHistoryLength = getRequestedPasswordHistoryLength(userHandle, primary);
         if (passwordHistoryLength == 0) {
             passwordHistory = "";
         } else {
@@ -2031,7 +2028,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 passwordHistory = joiner.toString();
             }
         }
-        setString(LockPatternUtils.PASSWORD_HISTORY_KEY, passwordHistory, userHandle);
+        setString(key, passwordHistory, userHandle);
     }
 
     private String getSalt(int userId) {
@@ -2043,8 +2040,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         return Long.toHexString(salt);
     }
 
-    private int getRequestedPasswordHistoryLength(int userId) {
-        return mInjector.getDevicePolicyManager().getPasswordHistoryLength(null, userId);
+    private int getRequestedPasswordHistoryLength(int userId, boolean primary) {
+        return mInjector.getDevicePolicyManager().getPasswordHistoryLength(null, userId, primary);
     }
 
     private UserManager getUserManagerFromCache(int userId) {

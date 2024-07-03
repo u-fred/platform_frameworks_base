@@ -198,6 +198,8 @@ public class LockPatternUtils {
     public final static String LOCKSCREEN_WIDGETS_ENABLED = "lockscreen.widgets_enabled";
 
     public final static String PASSWORD_HISTORY_KEY = "lockscreen.passwordhistory";
+    public final static String PASSWORD_HISTORY_KEY_SECONDARY =
+            "lockscreen.passwordhistory_secondary";
 
     private static final String LOCK_SCREEN_OWNER_INFO = Settings.Secure.LOCK_SCREEN_OWNER_INFO;
     private static final String LOCK_SCREEN_OWNER_INFO_ENABLED =
@@ -389,8 +391,8 @@ public class LockPatternUtils {
         return getDevicePolicyManager().getPasswordMinimumMetrics(userId, primary, deviceWideOnly);
     }
 
-    private int getRequestedPasswordHistoryLength(int userId) {
-        return getDevicePolicyManager().getPasswordHistoryLength(null, userId);
+    private int getRequestedPasswordHistoryLength(int userId, boolean primary) {
+        return getDevicePolicyManager().getPasswordHistoryLength(null, userId, primary);
     }
 
     /**
@@ -660,20 +662,17 @@ public class LockPatternUtils {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return false;
         }
-        if (!primary) {
-            // Doesn't make sense to check secondary until admin supports setting a history length
-            // for it. Reusing the primary length value isn't ideal.
-            return false;
-        }
         if (passwordToCheck == null || passwordToCheck.length == 0) {
             Log.e(TAG, "checkPasswordHistory: empty password");
             return false;
         }
-        String passwordHistory = getString(PASSWORD_HISTORY_KEY, userId);
+        String key = primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
+                LockPatternUtils.PASSWORD_HISTORY_KEY_SECONDARY;
+        String passwordHistory = getString(key, userId);
         if (TextUtils.isEmpty(passwordHistory)) {
             return false;
         }
-        int passwordHistoryLength = getRequestedPasswordHistoryLength(userId);
+        int passwordHistoryLength = getRequestedPasswordHistoryLength(userId, primary);
         if(passwordHistoryLength == 0) {
             return false;
         }
