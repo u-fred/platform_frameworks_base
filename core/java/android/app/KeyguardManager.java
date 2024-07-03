@@ -971,7 +971,7 @@ public class KeyguardManager {
         Objects.requireNonNull(password, "Password cannot be null.");
         complexity = PasswordMetrics.sanitizeComplexityLevel(complexity);
         PasswordMetrics adminMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId());
+                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId(), true);
         try (LockscreenCredential credential = createLockscreenCredential(lockType, password)) {
             return PasswordMetrics.validateCredential(adminMetrics, complexity,
                     credential).size() == 0;
@@ -995,7 +995,7 @@ public class KeyguardManager {
         }
         complexity = PasswordMetrics.sanitizeComplexityLevel(complexity);
         PasswordMetrics adminMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId());
+                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId(), true);
         PasswordMetrics minMetrics =
                 PasswordMetrics.applyComplexity(adminMetrics, isPin, complexity);
         return minMetrics.length;
@@ -1219,7 +1219,7 @@ public class KeyguardManager {
         LockscreenCredential newCredential = createLockscreenCredential(
                 newLockType, newPassword);
         PasswordMetrics adminMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId());
+                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId(), true);
         List<PasswordValidationError> errors = PasswordMetrics.validateCredential(adminMetrics,
                 DevicePolicyManager.PASSWORD_COMPLEXITY_NONE, newCredential);
         if (!errors.isEmpty()) {

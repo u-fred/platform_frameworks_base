@@ -5486,6 +5486,54 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void getPasswordMinimumMetrics_SecondaryForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.getPasswordMinimumMetrics(userId, false, true));
+    }
+
+    @Test
+    public void getPasswordMinimumMetrics_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.getPasswordMinimumMetrics(USER_FRP, false, true));
+    }
+
+    @Test
+    public void getPasswordMinimumMetrics_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        final int DOES_NOT_EXIST_USER_ID = 15;
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
+
+        assertThat(dpm.getPasswordMinimumMetrics(DOES_NOT_EXIST_USER_ID, false, true))
+                .isEqualTo(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
+    }
+
+    @Test
+    public void getPasswordMinimumMetrics_SecondarySuccess_ReturnsCredentialTypeNoneMetrics() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doReturn(true)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThat(dpm.getPasswordMinimumMetrics(userId, false, true))
+                .isEqualTo(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
+    }
+
+    @Test
     public void testMaximumFailedPasswordAttemptsReachedManagedProfile() throws Exception {
         final int MANAGED_PROFILE_USER_ID = 15;
         final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
@@ -5948,11 +5996,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         parentDpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
 
         PasswordMetrics deviceMetrics =
-                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, true);
+                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, true, true);
         assertThat(deviceMetrics.credType).isEqualTo(LockPatternUtils.CREDENTIAL_TYPE_PATTERN);
 
         PasswordMetrics allMetrics =
-                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, false);
+                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, true, false);
         assertThat(allMetrics.credType).isEqualTo(LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         assertThat(allMetrics.length).isEqualTo(8);
         assertThat(allMetrics.letters).isEqualTo(1);

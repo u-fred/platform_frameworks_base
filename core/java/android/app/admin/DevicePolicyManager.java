@@ -5370,22 +5370,24 @@ public class DevicePolicyManager {
      *
      * @hide
      */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle) {
-        return getPasswordMinimumMetrics(userHandle, false);
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary) {
+        return getPasswordMinimumMetrics(userHandle, primary, false);
     }
 
     /**
      * Returns minimum PasswordMetrics that satisfies all admin policies.
-     * If requested, only consider device-wide admin policies and ignore policies set on the
-     * managed profile instance (as if the managed profile had separate work challenge).
+     *
+     * @param deviceWideOnly Only consider device-wide admin policies and ignore policies set on the
+     *                       managed profile instance (as if the managed profile had separate work
+     *                       challenge). This is ignored if primary is false.
      *
      * @hide
      */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary,
             boolean deviceWideOnly) {
         if (mService != null) {
             try {
-                return mService.getPasswordMinimumMetrics(userHandle, deviceWideOnly);
+                return mService.getPasswordMinimumMetrics(userHandle, primary, deviceWideOnly);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

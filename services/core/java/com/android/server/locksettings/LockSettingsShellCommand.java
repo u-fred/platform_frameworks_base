@@ -348,7 +348,7 @@ class LockSettingsShellCommand extends ShellCommand {
 
     private boolean isNewCredentialSufficient(LockscreenCredential credential) {
         final PasswordMetrics requiredMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mCurrentUserId);
+                mLockPatternUtils.getRequestedPasswordMetrics(mCurrentUserId, true);
         final int requiredComplexity =
                 mLockPatternUtils.getRequestedPasswordComplexity(mCurrentUserId);
         final List<PasswordValidationError> errors =

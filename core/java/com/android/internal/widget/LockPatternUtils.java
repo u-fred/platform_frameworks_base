@@ -374,17 +374,19 @@ public class LockPatternUtils {
     /**
      * Returns aggregated (legacy) password quality requirement on the target user from all admins.
      */
-    public PasswordMetrics getRequestedPasswordMetrics(int userId) {
-        return getRequestedPasswordMetrics(userId, false);
+    public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean primary) {
+        return getRequestedPasswordMetrics(userId, primary, false);
     }
 
     /**
-     * Returns aggregated (legacy) password quality requirement on the target user from all admins,
-     * optioanlly disregarding policies set on the managed profile as if the  profile had separate
-     * work challenge.
+     * Returns aggregated (legacy) password quality requirement on the target user from all admins.
+     *
+     * @param deviceWideOnly Disregard policies set on the managed profile as if the profile had
+     *                       separate work challenge. This is ignored if primary is false.
      */
-    public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean deviceWideOnly) {
-        return getDevicePolicyManager().getPasswordMinimumMetrics(userId, deviceWideOnly);
+    public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean primary,
+            boolean deviceWideOnly) {
+        return getDevicePolicyManager().getPasswordMinimumMetrics(userId, primary, deviceWideOnly);
     }
 
     private int getRequestedPasswordHistoryLength(int userId) {
