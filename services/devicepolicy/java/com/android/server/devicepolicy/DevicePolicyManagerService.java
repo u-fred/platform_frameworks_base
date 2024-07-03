@@ -8162,7 +8162,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
                 affectedUserIds.addAll(removeCaApprovalsIfNeeded(userId));
             } else {
-                // TODO: This might need to change to include some of the above, not sure yet.
                 policy.mFailedBiometricSecondFactorAttempts = 0;
                 // This could probably be moved to after the if, but keep it in both conditional
                 // paths just in case.
