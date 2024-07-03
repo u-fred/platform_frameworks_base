@@ -5801,26 +5801,26 @@ public class DevicePolicyManager {
      * @hide
      */
     @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId) {
-        return getAggregatedPasswordComplexityForUser(userId, false);
+    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary) {
+        return getAggregatedPasswordComplexityForUser(userId, primary, false);
     }
 
     /**
      * Returns the password complexity that applies to this user, aggregated from other users if
      * necessary (for example, if the DPC has set password complexity requirements on the parent
      * profile DPM instance of a managed profile user, they would apply to the primary user on the
-     * device). If {@code deviceWideOnly} is {@code true}, ignore policies set on the
-     * managed profile DPM instance (as if the managed profile had separate work challenge).
+     * device). If {@code deviceWideOnly} and {@code primary} is {@code true}, ignore policies set
+     * on the managed profile DPM instance (as if the managed profile had separate work challenge).
      * @hide
      */
     @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly) {
+    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary, boolean deviceWideOnly) {
         if (mService == null) {
             return PASSWORD_COMPLEXITY_NONE;
         }
 
         try {
-            return mService.getAggregatedPasswordComplexityForUser(userId, deviceWideOnly);
+            return mService.getAggregatedPasswordComplexityForUser(userId, primary, deviceWideOnly);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }

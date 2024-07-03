@@ -350,7 +350,7 @@ class LockSettingsShellCommand extends ShellCommand {
         final PasswordMetrics requiredMetrics =
                 mLockPatternUtils.getRequestedPasswordMetrics(mCurrentUserId, true);
         final int requiredComplexity =
-                mLockPatternUtils.getRequestedPasswordComplexity(mCurrentUserId);
+                mLockPatternUtils.getRequestedPasswordComplexity(mCurrentUserId, true);
         final List<PasswordValidationError> errors =
                 PasswordMetrics.validateCredential(requiredMetrics, requiredComplexity, credential);
         if (!errors.isEmpty()) {

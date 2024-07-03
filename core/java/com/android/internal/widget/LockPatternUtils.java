@@ -398,8 +398,9 @@ public class LockPatternUtils {
      * @param userId  The user to return the complexity for.
      * @return complexity level for the user.
      */
-    public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId) {
-        return getRequestedPasswordComplexity(userId, false);
+    public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
+            boolean primary) {
+        return getRequestedPasswordComplexity(userId, primary, false);
     }
 
     /**
@@ -407,12 +408,13 @@ public class LockPatternUtils {
      * managed profile as if the  profile had separate work challenge.
 
      * @param userId  The user to return the complexity for.
-     * @param deviceWideOnly  whether to ignore complexity set on the managed profile.
+     * @param deviceWideOnly  Whether to ignore complexity set on the managed profile. This is
+     *                        ignored if primary is false.
      * @return complexity level for the user.
      */
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
-            boolean deviceWideOnly) {
-        return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId,
+            boolean primary, boolean deviceWideOnly) {
+        return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId, primary,
                 deviceWideOnly);
     }
 
