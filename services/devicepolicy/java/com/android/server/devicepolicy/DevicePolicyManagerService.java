@@ -4384,16 +4384,12 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(
                 who == null || isCallingFromPackage(who.getPackageName(), caller.getUid())
                         || canQueryAdminPolicy(caller));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary) || !primary) {
             return PASSWORD_QUALITY_UNSPECIFIED;
         }
 
         synchronized (getLockObject()) {
             int mode = PASSWORD_QUALITY_UNSPECIFIED;
-
-            if (!primary) {
-                return mode;
-            }
 
             if (who != null) {
                 ActiveAdmin admin = getActiveAdminUncheckedLocked(who, userHandle, parent);
@@ -5172,15 +5168,11 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
         }
         Preconditions.checkArgumentNonnegative(userId, "Invalid userId");
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary) || !primary) {
+            return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
+        }
         if (deviceWideOnly) {
             Preconditions.checkArgument(!isManagedProfile(userId));
-        }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
-            return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
-        }
-
-        if (!primary) {
-            return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
         }
 
         ArrayList<PasswordMetrics> adminMetrics = new ArrayList<>();
@@ -8134,13 +8126,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(isSystemUid(caller));
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            return;
+        }
         // Managed Profile password can only be changed when it has a separate challenge.
         if (primary && !isSeparateProfileChallengeEnabled(userId)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userId), "You can "
                     + "not set the active password for a managed profile, userId = %d", userId);
-        }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
-            return;
         }
 
         DevicePolicyData policy = getUserData(userId);
@@ -8203,13 +8195,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+            return;
+        }
         if (primary && !isSeparateProfileChallengeEnabled(userHandle)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
                     "You can not report failed password attempt if separate profile challenge is "
                             + "not in place for a managed profile, userId = %d", userHandle);
-        }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
-            return;
         }
 
         boolean wipeData = false;
