@@ -5650,7 +5650,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getPasswordHistoryLength(null, USER_FRP, false))
+        assertThat(dpm.getPasswordHistoryLength(null, DOES_NOT_EXIST_USER_ID, false))
                 .isEqualTo(0);
     }
 
