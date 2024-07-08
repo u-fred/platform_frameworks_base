@@ -5668,6 +5668,58 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    public void getMaximumFailedPasswordsForWipe_SecondaryForCredSharableUser_ThrowsException() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForCredSharableUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThrows(SecondaryForCredSharableUserException.class,
+                () -> dpm.getMaximumFailedPasswordsForWipe(null, userId, false));
+    }
+
+    @Test
+    public void getMaximumFailedPasswordsForWipe_SecondaryForSpecialUser_ThrowsException() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doThrow(SecondaryForSpecialUserException.class)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(USER_FRP);
+
+        assertExpectException(IllegalArgumentException.class,
+                "Invalid userId",
+                () -> dpm.getMaximumFailedPasswordsForWipe(null, USER_FRP, false));
+    }
+
+    @Test
+    public void getMaximumFailedPasswordsForWipe_SecondaryForNotExistUser_Returns() {
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        final int DOES_NOT_EXIST_USER_ID = 15;
+        doReturn(false)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
+
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, DOES_NOT_EXIST_USER_ID, false))
+                .isEqualTo(0);
+    }
+
+    @Test
+    public void getMaximumFailedPasswordsForWipe_SecondarySuccess_ReturnsZero() {
+        final int userId = 15;
+        mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
+
+        doReturn(true)
+                .when(getServices().lockPatternUtils)
+                .checkUserSupportsBiometricSecondFactor(userId);
+
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, userId, false))
+                .isEqualTo(0);
+    }
+
+    @Test
     public void testMaximumFailedPasswordAttemptsReachedManagedProfile() throws Exception {
         final int MANAGED_PROFILE_USER_ID = 15;
         final int MANAGED_PROFILE_ADMIN_UID = UserHandle.getUid(MANAGED_PROFILE_USER_ID, 19436);
@@ -5799,7 +5851,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
 
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM)).isEqualTo(3);
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM, true)).isEqualTo(3);
         // Check that primary will be wiped as a result of failed primary user unlock attempts.
         assertThat(dpm.getProfileWithMinimumFailedPasswordsForWipe(UserHandle.USER_SYSTEM))
                 .isEqualTo(UserHandle.USER_SYSTEM);
@@ -5837,8 +5889,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
 
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM)).isEqualTo(0);
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, MANAGED_PROFILE_USER_ID))
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM, true)).isEqualTo(0);
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, MANAGED_PROFILE_USER_ID, true))
                 .isEqualTo(3);
         // Check that the policy is not affecting primary profile challenge.
         assertThat(dpm.getProfileWithMinimumFailedPasswordsForWipe(UserHandle.USER_SYSTEM))

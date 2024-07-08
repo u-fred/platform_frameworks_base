@@ -317,7 +317,7 @@ constructor(
 
     override suspend fun getMaxFailedUnlockAttemptsForWipe(): Int {
         return withContext(backgroundDispatcher) {
-            lockPatternUtils.getMaximumFailedPasswordsForWipe(selectedUserId)
+            lockPatternUtils.getMaximumFailedPasswordsForWipe(selectedUserId, true)
         }
     }
 

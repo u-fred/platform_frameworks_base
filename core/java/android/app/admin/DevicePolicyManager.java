@@ -6019,17 +6019,18 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin) {
-        return getMaximumFailedPasswordsForWipe(admin, myUserId());
+        return getMaximumFailedPasswordsForWipe(admin, myUserId(), true);
     }
 
     /** @hide per-user version */
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle) {
+    public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle,
+            boolean primary) {
         if (mService != null) {
             try {
                 return mService.getMaximumFailedPasswordsForWipe(
-                        admin, userHandle, mParentInstance);
+                        admin, userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

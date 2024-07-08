@@ -120,7 +120,7 @@ constructor(
         } else { // bad request, but not throttled
             val numAttempts = lockPatternUtils.getCurrentFailedPasswordAttempts(effectiveUserId,
                     true) + 1
-            val maxAttempts = lockPatternUtils.getMaximumFailedPasswordsForWipe(effectiveUserId)
+            val maxAttempts = lockPatternUtils.getMaximumFailedPasswordsForWipe(effectiveUserId, true)
             if (maxAttempts <= 0 || numAttempts <= 0) {
                 // use a generic message if there's no maximum number of attempts
                 emit(CredentialStatus.Fail.Error())

@@ -504,12 +504,15 @@ public class LockPatternUtils {
         return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId, primary);
     }
 
-    public int getMaximumFailedPasswordsForWipe(int userId) {
+    public int getMaximumFailedPasswordsForWipe(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            return 0;
+            if (primary) {
+                return 0;
+            }
+            throw new SecondaryForSpecialUserException();
         }
         return getDevicePolicyManager().getMaximumFailedPasswordsForWipe(
-                null /* componentName */, userId);
+                null /* componentName */, userId, primary);
     }
 
     /**

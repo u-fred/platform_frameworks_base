@@ -1184,7 +1184,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         if (primary) {
             final DevicePolicyManager dpm = mLockPatternUtils.getDevicePolicyManager();
             final int failedAttemptsBeforeWipe =
-                    dpm.getMaximumFailedPasswordsForWipe(null, userId);
+                    dpm.getMaximumFailedPasswordsForWipe(null, userId, true);
 
             final int remainingBeforeWipe = failedAttemptsBeforeWipe > 0
                     ? (failedAttemptsBeforeWipe - failedAttempts)
