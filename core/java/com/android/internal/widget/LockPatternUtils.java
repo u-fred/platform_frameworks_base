@@ -141,6 +141,10 @@ public class LockPatternUtils {
     })
     public @interface CredentialType {}
 
+    public enum CredentialPurpose {
+        PRIMARY, SECOND_FACTOR
+    }
+
     public static String credentialTypeToString(int credentialType) {
         switch (credentialType) {
             case CREDENTIAL_TYPE_NONE:
