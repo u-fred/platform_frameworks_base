@@ -42,7 +42,9 @@ public class KeyguardSecurityModel {
         Password, // Unlock by entering an alphanumeric password
         PIN, // Strictly numeric password
         SimPin, // Unlock by entering a sim pin.
-        SimPuk // Unlock by entering a sim puk
+        SimPuk, // Unlock by entering a sim puk
+        // TODO: Add BiometricSecondFactorPin BouncerMessageInteractor messages.
+        BiometricSecondFactorPin // Unlock by entering a second factor PIN.
     }
 
     private final boolean mIsPukScreenAvailable;
@@ -59,7 +61,11 @@ public class KeyguardSecurityModel {
         mKeyguardUpdateMonitor = keyguardUpdateMonitor;
     }
 
-    public SecurityMode getSecurityMode(int userId) {
+    /**
+     * @param primaryModesOnly If true then don't include biometric second factor modes (currently
+     *                         only BiometricSecondFactorPin).
+     */
+    public SecurityMode getSecurityMode(int userId, boolean primaryModesOnly) {
         if (mIsPukScreenAvailable && SubscriptionManager.isValidSubscriptionId(
                 mKeyguardUpdateMonitor.getNextSubIdForState(
                         TelephonyManager.SIM_STATE_PUK_REQUIRED))) {
@@ -72,8 +78,15 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
+        if (!primaryModesOnly &&
+                mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId) &&
+                mKeyguardUpdateMonitor.isUnlockingWithFingerprintAllowed() &&
+                mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+                return SecurityMode.BiometricSecondFactorPin;
+        }
+
         final int security = whitelistIpcs(() ->
-                mLockPatternUtils.getActivePasswordQuality(userId));
+                mLockPatternUtils.getActivePasswordQuality(userId, true));
         switch (security) {
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC:
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX:

@@ -64,7 +64,6 @@ import static android.app.admin.flags.Flags.FLAG_IS_MTE_POLICY_ENFORCED;
 import static android.content.Intent.LOCAL_FLAG_FROM_SYSTEM;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
-
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
 
 import android.Manifest.permission;
@@ -4711,15 +4710,20 @@ public class DevicePolicyManager {
      */
     @Deprecated
     public int getPasswordQuality(@Nullable ComponentName admin) {
-        return getPasswordQuality(admin, myUserId());
+        return getPasswordQuality(admin, myUserId(), true);
     }
 
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     public int getPasswordQuality(@Nullable ComponentName admin, int userHandle) {
+        return getPasswordQuality(admin, userHandle, true);
+    }
+
+    /** @hide */
+    public int getPasswordQuality(@Nullable ComponentName admin, int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                return mService.getPasswordQuality(admin, userHandle, mParentInstance);
+                return mService.getPasswordQuality(admin, userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5366,22 +5370,24 @@ public class DevicePolicyManager {
      *
      * @hide
      */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle) {
-        return getPasswordMinimumMetrics(userHandle, false);
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary) {
+        return getPasswordMinimumMetrics(userHandle, primary, false);
     }
 
     /**
      * Returns minimum PasswordMetrics that satisfies all admin policies.
-     * If requested, only consider device-wide admin policies and ignore policies set on the
-     * managed profile instance (as if the managed profile had separate work challenge).
+     *
+     * @param deviceWideOnly Only consider device-wide admin policies and ignore policies set on the
+     *                       managed profile instance (as if the managed profile had separate work
+     *                       challenge). This is ignored if primary is false.
      *
      * @hide
      */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary,
             boolean deviceWideOnly) {
         if (mService != null) {
             try {
-                return mService.getPasswordMinimumMetrics(userHandle, deviceWideOnly);
+                return mService.getPasswordMinimumMetrics(userHandle, primary, deviceWideOnly);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5545,16 +5551,18 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin) {
-        return getPasswordHistoryLength(admin, myUserId());
+        return getPasswordHistoryLength(admin, myUserId(), true);
     }
 
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle) {
+    public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle,
+            boolean primary) {
         if (mService != null) {
             try {
-                return mService.getPasswordHistoryLength(admin, userHandle, mParentInstance);
+                return mService.getPasswordHistoryLength(admin, userHandle, primary,
+                        mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5795,26 +5803,26 @@ public class DevicePolicyManager {
      * @hide
      */
     @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId) {
-        return getAggregatedPasswordComplexityForUser(userId, false);
+    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary) {
+        return getAggregatedPasswordComplexityForUser(userId, primary, false);
     }
 
     /**
      * Returns the password complexity that applies to this user, aggregated from other users if
      * necessary (for example, if the DPC has set password complexity requirements on the parent
      * profile DPM instance of a managed profile user, they would apply to the primary user on the
-     * device). If {@code deviceWideOnly} is {@code true}, ignore policies set on the
-     * managed profile DPM instance (as if the managed profile had separate work challenge).
+     * device). If {@code deviceWideOnly} and {@code primary} is {@code true}, ignore policies set
+     * on the managed profile DPM instance (as if the managed profile had separate work challenge).
      * @hide
      */
     @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly) {
+    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary, boolean deviceWideOnly) {
         if (mService == null) {
             return PASSWORD_COMPLEXITY_NONE;
         }
 
         try {
-            return mService.getAggregatedPasswordComplexityForUser(userId, deviceWideOnly);
+            return mService.getAggregatedPasswordComplexityForUser(userId, primary, deviceWideOnly);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -5866,6 +5874,7 @@ public class DevicePolicyManager {
         }
         return false;
     }
+
     /**
      * Retrieve the number of times the user has failed at entering a password since that last
      * successful password entry.
@@ -5902,10 +5911,24 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     public int getCurrentFailedPasswordAttempts(int userHandle) {
+        return getCurrentFailedPasswordAttempts(userHandle, true);
+    }
+
+    /**
+     * Retrieve the number of times the given user has failed at entering a
+     * password (primary or biometric second factor) since that last successful password entry.
+     *
+     * <p>The calling device admin must have requested
+     * {@link DeviceAdminInfo#USES_POLICY_WATCH_LOGIN} to be able to call this method; if it has
+     * not and it is not the system uid, a security exception will be thrown.
+     *
+     * @hide
+     */
+    public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
         if (mService != null) {
             try {
                 return mService.getCurrentFailedPasswordAttempts(
-                        mContext.getPackageName(), userHandle, mParentInstance);
+                        mContext.getPackageName(), primary, userHandle, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5996,17 +6019,18 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin) {
-        return getMaximumFailedPasswordsForWipe(admin, myUserId());
+        return getMaximumFailedPasswordsForWipe(admin, myUserId(), true);
     }
 
     /** @hide per-user version */
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle) {
+    public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle,
+            boolean primary) {
         if (mService != null) {
             try {
                 return mService.getMaximumFailedPasswordsForWipe(
-                        admin, userHandle, mParentInstance);
+                        admin, userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9103,10 +9127,11 @@ public class DevicePolicyManager {
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
+    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
+            boolean primary) {
         if (mService != null) {
             try {
-                mService.reportPasswordChanged(metrics, userId);
+                mService.reportPasswordChanged(metrics, userId, primary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9119,9 +9144,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportFailedPasswordAttempt(int userHandle) {
+        reportFailedPasswordAttempt(userHandle, true);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportFailedPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportFailedPasswordAttempt(userHandle, mParentInstance);
+                mService.reportFailedPasswordAttempt(userHandle, primary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9134,9 +9167,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle) {
+        reportSuccessfulPasswordAttempt(userHandle, true);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulPasswordAttempt(userHandle);
+                mService.reportSuccessfulPasswordAttempt(userHandle, primary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9157,14 +9198,14 @@ public class DevicePolicyManager {
         }
     }
 
-    /**
-     * @hide
-     */
-    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportSuccessfulBiometricAttempt(int userHandle) {
+     /**
+      * @hide
+      */
+     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+     public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulBiometricAttempt(userHandle);
+                mService.reportSuccessfulBiometricAttempt(userHandle, isSecondFactorEnabled);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

@@ -128,6 +128,7 @@ public class KeyguardPatternViewController
             mPendingLockCheck = LockPatternChecker.checkCredential(
                     mLockPatternUtils,
                     LockscreenCredential.createPattern(pattern),
+                    true,
                     userId,
                     new LockPatternChecker.OnCheckCallback() {
 
@@ -166,7 +167,7 @@ public class KeyguardPatternViewController
                 boolean isValidPattern) {
             boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
             if (matched) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, true,true, 0);
                 if (dismissKeyguard) {
                     mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Correct);
                     mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
@@ -175,10 +176,10 @@ public class KeyguardPatternViewController
             } else {
                 mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
                 if (isValidPattern) {
-                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, true,false, timeoutMs);
                     if (timeoutMs > 0) {
                         long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                                userId, timeoutMs);
+                                userId, true, timeoutMs);
                         handleAttemptLockout(deadline);
                     }
                 }
@@ -245,7 +246,7 @@ public class KeyguardPatternViewController
         mPostureController.addCallback(mPostureCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId());
+                mSelectedUserInteractor.getSelectedUserId(), true);
         if (deadline != 0) {
             handleAttemptLockout(deadline);
         }

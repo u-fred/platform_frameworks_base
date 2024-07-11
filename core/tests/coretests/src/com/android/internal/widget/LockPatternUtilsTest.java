@@ -92,7 +92,7 @@ public class LockPatternUtilsTest {
         when(context.getContentResolver()).thenReturn(cr);
         Settings.Global.putInt(cr, Settings.Global.DEVICE_DEMO_MODE, deviceDemoMode);
 
-        when(mLockSettings.getCredentialType(DEMO_USER_ID)).thenReturn(
+        when(mLockSettings.getCredentialType(DEMO_USER_ID, true)).thenReturn(
                 isSecure ? LockPatternUtils.CREDENTIAL_TYPE_PASSWORD
                          : LockPatternUtils.CREDENTIAL_TYPE_NONE);
         when(mLockSettings.getLong("lockscreen.password_type", PASSWORD_QUALITY_UNSPECIFIED,
@@ -135,25 +135,25 @@ public class LockPatternUtilsTest {
     @Test
     public void isLockScreenDisabled_isDemoUser_true() throws Exception {
         configureTest(false, true, 2);
-        assertTrue(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
+        assertTrue(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
     }
 
     @Test
     public void isLockScreenDisabled_isSecureAndDemoUser_false() throws Exception {
         configureTest(true, true, 2);
-        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
+        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
     }
 
     @Test
     public void isLockScreenDisabled_isNotDemoUser_false() throws Exception {
         configureTest(false, false, 2);
-        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
+        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
     }
 
     @Test
     public void isLockScreenDisabled_isNotInDemoMode_false() throws Exception {
         configureTest(false, true, 0);
-        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
+        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
     }
 
     @Test

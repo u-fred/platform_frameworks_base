@@ -43,8 +43,6 @@ import com.android.systemui.util.kotlin.onSubscriberAdded
 import com.android.systemui.util.time.SystemClock
 import dagger.Binds
 import dagger.Module
-import java.util.function.Function
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -59,6 +57,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.function.Function
+import javax.inject.Inject
 
 /** Defines interface for classes that can access authentication-related application state. */
 interface AuthenticationRepository {
@@ -207,6 +207,8 @@ constructor(
     override val isAutoConfirmFeatureEnabled: StateFlow<Boolean> =
         refreshingFlow(
             initialValue = false,
+            // TODO: Add primary arg to this call and create a second flow for secondary. Will need
+            //  to update
             getFreshValue = lockPatternUtils::isAutoPinConfirmEnabled,
         )
 
@@ -238,7 +240,7 @@ constructor(
     override val isPinEnhancedPrivacyEnabled: StateFlow<Boolean> =
         refreshingFlow(
             initialValue = true,
-            getFreshValue = { userId -> lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) },
+            getFreshValue = { userId -> lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, true) },
         )
 
     private val _failedAuthenticationAttempts = MutableStateFlow(0)
@@ -247,7 +249,7 @@ constructor(
 
     override val lockoutEndTimestamp: Long?
         get() =
-            lockPatternUtils.getLockoutAttemptDeadline(selectedUserId).takeIf {
+            lockPatternUtils.getLockoutAttemptDeadline(selectedUserId, true).takeIf {
                 clock.elapsedRealtime() < it
             }
 
@@ -271,7 +273,7 @@ constructor(
     ): AuthenticationResultModel {
         return withContext(backgroundDispatcher) {
             try {
-                val matched = lockPatternUtils.checkCredential(credential, selectedUserId) {}
+                val matched = lockPatternUtils.checkCredential(credential, true, selectedUserId) {}
                 AuthenticationResultModel(isSuccessful = matched, lockoutDurationMs = 0)
             } catch (ex: LockPatternUtils.RequestThrottledException) {
                 AuthenticationResultModel(isSuccessful = false, lockoutDurationMs = ex.timeoutMs)
@@ -283,38 +285,39 @@ constructor(
         getAuthenticationMethod(selectedUserId)
 
     override suspend fun getPinLength(): Int {
-        return withContext(backgroundDispatcher) { lockPatternUtils.getPinLength(selectedUserId) }
+        return withContext(backgroundDispatcher) { lockPatternUtils.getPinLength(selectedUserId,
+                true) }
     }
 
     override suspend fun reportAuthenticationAttempt(isSuccessful: Boolean) {
         withContext(backgroundDispatcher) {
             if (isSuccessful) {
-                lockPatternUtils.reportSuccessfulPasswordAttempt(selectedUserId)
+                lockPatternUtils.reportSuccessfulPasswordAttempt(selectedUserId, true, true)
                 _hasLockoutOccurred.value = false
             } else {
-                lockPatternUtils.reportFailedPasswordAttempt(selectedUserId)
+                lockPatternUtils.reportFailedPasswordAttempt(selectedUserId, true)
             }
             _failedAuthenticationAttempts.value = getFailedAuthenticationAttemptCount()
         }
     }
 
     override suspend fun reportLockoutStarted(durationMs: Int) {
-        lockPatternUtils.setLockoutAttemptDeadline(selectedUserId, durationMs)
+        lockPatternUtils.setLockoutAttemptDeadline(selectedUserId, true, durationMs)
         withContext(backgroundDispatcher) {
-            lockPatternUtils.reportPasswordLockout(durationMs, selectedUserId)
+            lockPatternUtils.reportPasswordLockout(durationMs, selectedUserId, true)
         }
         _hasLockoutOccurred.value = true
     }
 
     private suspend fun getFailedAuthenticationAttemptCount(): Int {
         return withContext(backgroundDispatcher) {
-            lockPatternUtils.getCurrentFailedPasswordAttempts(selectedUserId)
+            lockPatternUtils.getCurrentFailedPasswordAttempts(selectedUserId, true)
         }
     }
 
     override suspend fun getMaxFailedUnlockAttemptsForWipe(): Int {
         return withContext(backgroundDispatcher) {
-            lockPatternUtils.getMaximumFailedPasswordsForWipe(selectedUserId)
+            lockPatternUtils.getMaximumFailedPasswordsForWipe(selectedUserId, true)
         }
     }
 
@@ -370,6 +373,8 @@ constructor(
     private suspend fun getAuthenticationMethod(@UserIdInt userId: Int): AuthenticationMethodModel {
         return withContext(backgroundDispatcher) {
             when (getSecurityMode.apply(userId)) {
+                // TODO: AuthenticationMethodModel.BiometricSecondFactorPin?
+                KeyguardSecurityModel.SecurityMode.BiometricSecondFactorPin,
                 KeyguardSecurityModel.SecurityMode.PIN -> Pin
                 KeyguardSecurityModel.SecurityMode.SimPin,
                 KeyguardSecurityModel.SecurityMode.SimPuk -> Sim

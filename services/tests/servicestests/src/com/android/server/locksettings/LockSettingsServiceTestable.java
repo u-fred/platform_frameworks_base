@@ -151,6 +151,12 @@ public class LockSettingsServiceTestable extends LockSettingsService {
         public boolean isMainUserPermanentAdmin() {
             return mIsMainUserPermanentAdmin;
         }
+
+        @Override
+        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lss,
+                LockSettingsStorage sm, SyntheticPasswordManager spm) {
+            return mock(DuressPasswordHelper.class);
+        }
     }
 
     protected LockSettingsServiceTestable(
@@ -204,11 +210,13 @@ public class LockSettingsServiceTestable extends LockSettingsService {
     void initKeystoreSuperKeys(int userId, SyntheticPassword sp, boolean allowExisting) {
     }
 
+    /*
     @Override
     protected boolean isCredentialSharableWithParent(int userId) {
         UserInfo userInfo = mUserManager.getUserInfo(userId);
         return userInfo.isCloneProfile() || userInfo.isManagedProfile();
     }
+     */
 
     void clearAuthSecret() {
         synchronized (mHeadlessAuthSecretLock) {

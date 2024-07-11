@@ -535,7 +535,7 @@ class KeyguardRepositoryImplTest : SysuiTestCase() {
                     BiometricSourceType.FINGERPRINT,
                 )
                 .onEach { biometricSourceType ->
-                    captor.value.onBiometricAuthenticated(0, biometricSourceType, false)
+                    captor.value.onBiometricAuthenticated(0, biometricSourceType, false, false)
                     runCurrent()
                 }
 

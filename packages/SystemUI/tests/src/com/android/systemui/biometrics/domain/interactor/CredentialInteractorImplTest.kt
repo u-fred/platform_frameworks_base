@@ -55,7 +55,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
     @Before
     fun setup() {
         whenever(devicePolicyManager.resources).thenReturn(devicePolicyResourcesManager)
-        whenever(lockPatternUtils.getMaximumFailedPasswordsForWipe(anyInt()))
+        whenever(lockPatternUtils.getMaximumFailedPasswordsForWipe(anyInt(), eq(true)))
             .thenReturn(MAX_ATTEMPTS)
         whenever(userManager.getUserInfo(eq(USER_ID))).thenReturn(UserInfo(USER_ID, "", 0))
         whenever(devicePolicyManager.getProfileWithMinimumFailedPasswordsForWipe(eq(USER_ID)))
@@ -117,13 +117,13 @@ class CredentialInteractorImplTest : SysuiTestCase() {
 
     private fun pinCredential(result: VerifyCredentialResponse) = runTest {
         val usedAttempts = 1
-        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID)))
+        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), eq(true)))
             .thenReturn(usedAttempts)
-        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt())).thenReturn(result)
+        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt())).thenReturn(result)
         whenever(lockPatternUtils.verifyGatekeeperPasswordHandle(anyLong(), anyLong(), eq(USER_ID)))
             .thenReturn(result)
-        whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), anyInt())).thenAnswer {
-            systemClock.elapsedRealtime() + (it.arguments[1] as Int)
+        whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), eq(true), anyInt())).thenAnswer {
+            systemClock.elapsedRealtime() + (it.arguments[2] as Int)
         }
 
         // wrap in an async block so the test can advance the clock if throttling credential
@@ -157,22 +157,22 @@ class CredentialInteractorImplTest : SysuiTestCase() {
                 assertThat(statusList.filterIsInstance(CredentialStatus.Fail.Throttled::class.java))
                     .hasSize(statusList.size)
 
-                verify(lockPatternUtils).setLockoutAttemptDeadline(eq(USER_ID), eq(result.timeout))
+                verify(lockPatternUtils).setLockoutAttemptDeadline(eq(USER_ID), eq(true), eq(result.timeout))
             } else { // failed
                 assertThat(failedResult.error)
                     .matches(Regex("(.*)try again(.*)", RegexOption.IGNORE_CASE).toPattern())
                 assertThat(statusList).isEmpty()
 
-                verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID))
+                verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
             }
         }
     }
 
     @Test
     fun pinCredentialWhenBadAndFinalAttempt() = runTest {
-        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt()))
+        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt()))
             .thenReturn(badCredential())
-        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID)))
+        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), eq(true)))
             .thenReturn(MAX_ATTEMPTS - 2)
 
         val statusList = mutableListOf<CredentialStatus>()
@@ -186,14 +186,14 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         assertThat(result.urgentMessage).isNotEmpty()
         assertThat(statusList).isEmpty()
 
-        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID))
+        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
     }
 
     @Test
     fun pinCredentialWhenBadAndNoMoreAttempts() = runTest {
-        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt()))
+        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt()))
             .thenReturn(badCredential())
-        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID)))
+        whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID), eq(true)))
             .thenReturn(MAX_ATTEMPTS - 1)
         whenever(devicePolicyResourcesManager.getString(any(), any())).thenReturn("wipe")
 
@@ -208,7 +208,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         assertThat(result.urgentMessage).isNotEmpty()
         assertThat(statusList).isEmpty()
 
-        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID))
+        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
     }
 }
 

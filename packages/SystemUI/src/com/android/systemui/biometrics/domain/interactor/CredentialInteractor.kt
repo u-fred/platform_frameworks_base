@@ -75,6 +75,7 @@ constructor(
         val response =
             lockPatternUtils.verifyCredential(
                 credential,
+                true,
                 effectiveUserId,
                 LockPatternUtils.VERIFY_FLAG_REQUEST_GK_PW_HANDLE
             )
@@ -100,7 +101,7 @@ constructor(
             // if requests are being throttled, update the error message every
             // second until the temporary lock has expired
             val deadline: Long =
-                lockPatternUtils.setLockoutAttemptDeadline(effectiveUserId, response.timeout)
+                lockPatternUtils.setLockoutAttemptDeadline(effectiveUserId, true, response.timeout)
             val interval = LockPatternUtils.FAILED_ATTEMPT_COUNTDOWN_INTERVAL_MS
             var remaining = deadline - systemClock.elapsedRealtime()
             while (remaining > 0) {
@@ -117,8 +118,9 @@ constructor(
             }
             emit(CredentialStatus.Fail.Error(""))
         } else { // bad request, but not throttled
-            val numAttempts = lockPatternUtils.getCurrentFailedPasswordAttempts(effectiveUserId) + 1
-            val maxAttempts = lockPatternUtils.getMaximumFailedPasswordsForWipe(effectiveUserId)
+            val numAttempts = lockPatternUtils.getCurrentFailedPasswordAttempts(effectiveUserId,
+                    true) + 1
+            val maxAttempts = lockPatternUtils.getMaximumFailedPasswordsForWipe(effectiveUserId, true)
             if (maxAttempts <= 0 || numAttempts <= 0) {
                 // use a generic message if there's no maximum number of attempts
                 emit(CredentialStatus.Fail.Error())
@@ -136,7 +138,7 @@ constructor(
                     )
                 )
             }
-            lockPatternUtils.reportFailedPasswordAttempt(effectiveUserId)
+            lockPatternUtils.reportFailedPasswordAttempt(effectiveUserId, true)
         }
     }
 

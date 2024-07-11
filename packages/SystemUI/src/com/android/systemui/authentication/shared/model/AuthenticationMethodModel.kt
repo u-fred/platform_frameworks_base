@@ -39,4 +39,8 @@ sealed class AuthenticationMethodModel(
     data object Pattern : AuthenticationMethodModel(isSecure = true)
 
     data object Sim : AuthenticationMethodModel(isSecure = true)
+
+    // TODO: ?
+    // data object BiometricSecondFactorPin : AuthenticationMethodModel(isSecure = true)
+
 }

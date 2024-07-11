@@ -258,7 +258,8 @@ class LockSettingsShellCommand extends ShellCommand {
             return LockscreenCredential.createNone();
         }
         if (mLockPatternUtils.isLockPasswordEnabled(mCurrentUserId)) {
-            final int quality = mLockPatternUtils.getKeyguardStoredPasswordQuality(mCurrentUserId);
+            final int quality = mLockPatternUtils.getKeyguardStoredPasswordQuality(mCurrentUserId,
+                    true);
             if (LockPatternUtils.isQualityAlphabeticPassword(quality)) {
                 return LockscreenCredential.createPassword(mOld);
             } else {
@@ -281,7 +282,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(pattern)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(pattern, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(pattern, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Pattern set to '" + mNew + "'");
         return true;
     }
@@ -291,7 +292,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(password)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(password, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(password, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Password set to '" + mNew + "'");
         return true;
     }
@@ -301,7 +302,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(pin)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(pin, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(pin, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Pin set to '" + mNew + "'");
         return true;
     }
@@ -340,16 +341,16 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(none)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(none, getOldCredential(), mCurrentUserId);
+        mLockPatternUtils.setLockCredential(none, getOldCredential(), true, mCurrentUserId);
         getOutPrintWriter().println("Lock credential cleared");
         return true;
     }
 
     private boolean isNewCredentialSufficient(LockscreenCredential credential) {
         final PasswordMetrics requiredMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mCurrentUserId);
+                mLockPatternUtils.getRequestedPasswordMetrics(mCurrentUserId, true);
         final int requiredComplexity =
-                mLockPatternUtils.getRequestedPasswordComplexity(mCurrentUserId);
+                mLockPatternUtils.getRequestedPasswordComplexity(mCurrentUserId, true);
         final List<PasswordValidationError> errors =
                 PasswordMetrics.validateCredential(requiredMetrics, requiredComplexity, credential);
         if (!errors.isEmpty()) {
@@ -367,7 +368,7 @@ class LockSettingsShellCommand extends ShellCommand {
     }
 
     private void runGetDisabled() {
-        boolean isLockScreenDisabled = mLockPatternUtils.isLockScreenDisabled(mCurrentUserId);
+        boolean isLockScreenDisabled = mLockPatternUtils.isLockScreenDisabled(mCurrentUserId, true);
         getOutPrintWriter().println(isLockScreenDisabled);
     }
 
@@ -379,16 +380,17 @@ class LockSettingsShellCommand extends ShellCommand {
             }
 
             try {
-                final boolean result = mLockPatternUtils.checkCredential(getOldCredential(),
+                final boolean result = mLockPatternUtils.checkCredential(getOldCredential(), true,
                         mCurrentUserId, null);
                 if (!result) {
                     if (!mLockPatternUtils.isManagedProfileWithUnifiedChallenge(mCurrentUserId)) {
-                        mLockPatternUtils.reportFailedPasswordAttempt(mCurrentUserId);
+                        mLockPatternUtils.reportFailedPasswordAttempt(mCurrentUserId, true);
                     }
                     getOutPrintWriter().println("Old password '" + mOld + "' didn't match");
                 } else {
                     // Resets the counter for failed password attempts to 0.
-                    mLockPatternUtils.reportSuccessfulPasswordAttempt(mCurrentUserId);
+                    mLockPatternUtils.reportSuccessfulPasswordAttempt(mCurrentUserId, true,
+                            /** ignored **/ true);
                 }
                 return result;
             } catch (RequestThrottledException e) {

@@ -61,8 +61,6 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 import com.android.systemui.util.time.SystemClock;
 
-import dagger.Lazy;
-
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -73,6 +71,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import dagger.Lazy;
 import kotlinx.coroutines.ExperimentalCoroutinesApi;
 
 /**
@@ -186,12 +185,14 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
         public final int userId;
         public final BiometricSourceType biometricSourceType;
         public final boolean isStrongBiometric;
+        public final boolean isSecondFactorEnabled;
 
         PendingAuthenticated(int userId, BiometricSourceType biometricSourceType,
-                boolean isStrongBiometric) {
+                boolean isStrongBiometric, boolean isSecondFactorEnabled) {
             this.userId = userId;
             this.biometricSourceType = biometricSourceType;
             this.isStrongBiometric = isStrongBiometric;
+            this.isSecondFactorEnabled = isSecondFactorEnabled;
         }
     }
 
@@ -397,14 +398,14 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
 
     @Override
     public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
-            boolean isStrongBiometric) {
+            boolean isStrongBiometric, boolean isSecondFactorEnabled) {
         Trace.beginSection("BiometricUnlockController#onBiometricUnlocked");
         if (mUpdateMonitor.isGoingToSleep()) {
             mLogger.deferringAuthenticationDueToSleep(userId,
                     biometricSourceType,
                     mPendingAuthenticated != null);
             mPendingAuthenticated = new PendingAuthenticated(userId, biometricSourceType,
-                    isStrongBiometric);
+                    isStrongBiometric, isSecondFactorEnabled);
             Trace.endSection();
             return;
         }
@@ -417,10 +418,10 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
         boolean unlockAllowed =
                 mKeyguardStateController.isOccluded()
                         || mKeyguardBypassController.onBiometricAuthenticated(
-                                biometricSourceType, isStrongBiometric);
+                                biometricSourceType, isStrongBiometric, isSecondFactorEnabled);
         if (unlockAllowed) {
             mKeyguardViewMediator.userActivity();
-            startWakeAndUnlock(biometricSourceType, isStrongBiometric);
+            startWakeAndUnlock(biometricSourceType, isStrongBiometric, isSecondFactorEnabled);
         } else {
             mLogger.d("onBiometricUnlocked aborted by bypass controller");
         }
@@ -432,8 +433,8 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
      * @param isStrongBiometric
      */
     public void startWakeAndUnlock(BiometricSourceType biometricSourceType,
-                                   boolean isStrongBiometric) {
-        int mode = calculateMode(biometricSourceType, isStrongBiometric);
+                                   boolean isStrongBiometric, boolean isSecondFactorEnabled) {
+        int mode = calculateMode(biometricSourceType, isStrongBiometric, isSecondFactorEnabled);
         if (mode == MODE_WAKE_AND_UNLOCK
                 || mode == MODE_WAKE_AND_UNLOCK_PULSING || mode == MODE_UNLOCK_COLLAPSING
                 || mode == MODE_WAKE_AND_UNLOCK_FROM_DREAM || mode == MODE_DISMISS_BOUNCER) {
@@ -545,29 +546,33 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
     }
 
     private @WakeAndUnlockMode int calculateMode(BiometricSourceType biometricSourceType,
-            boolean isStrongBiometric) {
+            boolean isStrongBiometric, boolean isSecondFactorEnabled) {
         if (biometricSourceType == BiometricSourceType.FACE
                 || biometricSourceType == BiometricSourceType.IRIS) {
             return calculateModeForPassiveAuth(isStrongBiometric);
         } else {
-            return calculateModeForFingerprint(isStrongBiometric);
+            return calculateModeForFingerprint(isStrongBiometric, isSecondFactorEnabled);
         }
     }
 
-    private @WakeAndUnlockMode int calculateModeForFingerprint(boolean isStrongBiometric) {
+    private @WakeAndUnlockMode int calculateModeForFingerprint(boolean isStrongBiometric,
+            boolean isSecondFactorEnabled) {
         final boolean unlockingAllowed =
-                mUpdateMonitor.isUnlockingWithBiometricAllowed(isStrongBiometric);
+                mUpdateMonitor.isUnlockingWithBiometricAllowed(isStrongBiometric) &&
+                !isSecondFactorEnabled;
         final boolean deviceInteractive = mUpdateMonitor.isDeviceInteractive();
         final boolean keyguardShowing = mKeyguardStateController.isShowing();
         final boolean deviceDreaming = mUpdateMonitor.isDreaming();
-
+        // TODO: Log isSecondFactorEnabled?
         logCalculateModeForFingerprint(unlockingAllowed, deviceInteractive,
                 keyguardShowing, deviceDreaming, isStrongBiometric);
         if (!deviceInteractive) {
             if (!keyguardShowing && !mScreenOffAnimationController.isKeyguardShowDelayed()) {
+                // We get here if primary auth is unset.
                 if (mKeyguardStateController.isUnlocked()) {
                     return MODE_WAKE_AND_UNLOCK;
                 }
+                // This is unreachable.
                 return MODE_ONLY_WAKE;
             } else if (mDozeScrimController.isPulsing() && unlockingAllowed) {
                 return MODE_WAKE_AND_UNLOCK_PULSING;
@@ -795,9 +800,19 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
                         mLogger.finishedGoingToSleepWithPendingAuth();
                         PendingAuthenticated pendingAuthenticated = mPendingAuthenticated;
                         // Post this to make sure it's executed after the device is fully locked.
-                        mHandler.post(() -> onBiometricAuthenticated(pendingAuthenticated.userId,
+                        mHandler.post(() -> {
+                            // Needed for SecurityMode.BiometricSecondFactorPin.
+                            if (pendingAuthenticated.biometricSourceType ==
+                                    BiometricSourceType.FINGERPRINT) {
+                                mUpdateMonitor.setUserAuthenticatedWithFingerprint(
+                                        pendingAuthenticated.userId,
+                                        pendingAuthenticated.isStrongBiometric);
+                            }
+                            onBiometricAuthenticated(pendingAuthenticated.userId,
                                 pendingAuthenticated.biometricSourceType,
-                                pendingAuthenticated.isStrongBiometric));
+                                pendingAuthenticated.isStrongBiometric,
+                                pendingAuthenticated.isSecondFactorEnabled);
+                        });
                         mPendingAuthenticated = null;
                     }
                     Trace.endSection();

@@ -64,11 +64,16 @@ constructor(
             override fun onBiometricAuthenticated(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
-                isStrongBiometric: Boolean
+                isStrongBiometric: Boolean,
+                isSecondFactorEnabled: Boolean
             ) {
                 if (biometricSourceType == FINGERPRINT) {
                     fpsAuthenticated = true
-                    onExitKeyguard()
+                    if (!isSecondFactorEnabled) {
+                        // The base code is assuming a fingerprint auth means Keyguard is being
+                        // exited, which is not always true.
+                        onExitKeyguard()
+                    }
                 }
             }
 

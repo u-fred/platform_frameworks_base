@@ -20,7 +20,6 @@ import static android.app.admin.DevicePolicyResources.Strings.SystemUi.KEYGUARD_
 import static android.view.WindowInsets.Type.ime;
 import static android.view.WindowInsets.Type.systemBars;
 import static android.view.WindowInsetsAnimation.Callback.DISPATCH_MODE_STOP;
-
 import static androidx.constraintlayout.widget.ConstraintSet.BOTTOM;
 import static androidx.constraintlayout.widget.ConstraintSet.CHAIN_SPREAD;
 import static androidx.constraintlayout.widget.ConstraintSet.END;
@@ -31,10 +30,8 @@ import static androidx.constraintlayout.widget.ConstraintSet.RIGHT;
 import static androidx.constraintlayout.widget.ConstraintSet.START;
 import static androidx.constraintlayout.widget.ConstraintSet.TOP;
 import static androidx.constraintlayout.widget.ConstraintSet.WRAP_CONTENT;
-
 import static com.android.app.animation.InterpolatorsAndroidX.DECELERATE_QUINT;
 import static com.android.systemui.plugins.FalsingManager.LOW_PENALTY;
-
 import static java.lang.Integer.max;
 
 import android.animation.Animator;
@@ -46,6 +43,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -633,6 +631,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
      * Enables/disables swipe up to retry on the bouncer.
      */
     private void updateBiometricRetry(SecurityMode securityMode, boolean faceAuthEnabled) {
+        // TODO: Do we want to allow biometric retry for SecurityMode.BiometricSecondFactorPin?
         mSwipeUpToRetry = faceAuthEnabled
                 && securityMode != SecurityMode.SimPin
                 && securityMode != SecurityMode.SimPuk
@@ -686,7 +685,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
         mViewMediatorCallback = viewMediatorCallback;
     }
 
-    private void showDialog(String title, String message) {
+    private void showDialog(String title, String message, DialogInterface.OnClickListener onClick) {
         if (mAlertDialog != null) {
             mAlertDialog.dismiss();
         }
@@ -695,7 +694,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                 .setTitle(title)
                 .setMessage(message)
                 .setCancelable(false)
-                .setNeutralButton(R.string.ok, null)
+                .setNeutralButton(R.string.ok, onClick)
                 .create();
         if (!(mContext instanceof Activity)) {
             mAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
@@ -703,8 +702,9 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
         mAlertDialog.show();
     }
 
-    void showTimeoutDialog(int userId, int timeoutMs, LockPatternUtils lockPatternUtils,
-            SecurityMode securityMode) {
+    void showTimeoutDialog(int userId, boolean primary, int timeoutMs,
+            LockPatternUtils lockPatternUtils, SecurityMode securityMode,
+            DialogInterface.OnClickListener onClick) {
         int timeoutInSeconds = timeoutMs / 1000;
         int messageId = 0;
 
@@ -718,6 +718,8 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
             case Password:
                 messageId = R.string.kg_too_many_failed_password_attempts_dialog_message;
                 break;
+            case BiometricSecondFactorPin:
+                messageId = R.string.kg_too_many_failed_biometric_second_factor_pin_attempts_dialog_message;
             // These don't have timeout dialogs.
             case Invalid:
             case None:
@@ -728,9 +730,9 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
 
         if (messageId != 0) {
             final String message = mContext.getString(messageId,
-                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId),
+                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary),
                     timeoutInSeconds);
-            showDialog(null, message);
+            showDialog(null, message, onClick);
         }
     }
 
@@ -770,7 +772,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                         attempts, remaining);
                 break;
         }
-        showDialog(null, message);
+        showDialog(null, message, null);
     }
 
     void showWipeDialog(int attempts, int userType) {
@@ -792,7 +794,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
                         attempts);
                 break;
         }
-        showDialog(null, message);
+        showDialog(null, message, null);
     }
 
     public void reset() {

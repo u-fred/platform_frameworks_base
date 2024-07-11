@@ -184,6 +184,8 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             "power_button_instantly_locks";
     private static final String KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY =
             "pin_enhanced_privacy";
+    private static final String KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY =
+            "pin_enhanced_privacy_secondary";
 
     // Name of the temporary file we use during full backup/restore.  This is
     // stored in the full-backup tarfile as well, so should not be changed.
@@ -733,9 +735,15 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                 out.writeUTF(KEY_LOCK_SETTINGS_POWER_BUTTON_INSTANTLY_LOCKS);
                 out.writeUTF(powerButtonInstantlyLocks ? "1" : "0");
             }
-            if (lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId)) {
+            if (lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId, true)) {
                 out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY);
-                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) ? "1" : "0");
+                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, true) ? "1" : "0");
+            }
+            // TODO: This backup/restore is untested.
+            if (lockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false) &&
+                    lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId, false)) {
+                out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY);
+                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, false) ? "1" : "0");
             }
             // End marker
             out.writeUTF("");
@@ -1010,7 +1018,12 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                         lockPatternUtils.setPowerButtonInstantlyLocks("1".equals(value), userId);
                         break;
                     case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY:
-                        lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId);
+                        lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId,
+                                true);
+                        break;
+                    case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY:
+                        lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId,
+                                false);
                         break;
                 }
             }

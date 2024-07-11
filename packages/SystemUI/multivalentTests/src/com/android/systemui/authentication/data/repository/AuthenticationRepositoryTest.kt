@@ -124,9 +124,10 @@ class AuthenticationRepositoryTest : SysuiTestCase() {
 
     @Test
     fun isAutoConfirmFeatureEnabled() =
+        // TODO: Fix this test by adding primary arg to the flow in AuthenticationRepositoryImpl.
         testScope.runTest {
-            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[0].id)).thenReturn(true)
-            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[1].id)).thenReturn(false)
+            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[0].id, true)).thenReturn(true)
+            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[1].id, true)).thenReturn(false)
 
             val values by collectValues(underTest.isAutoConfirmFeatureEnabled)
             assertThat(values.first()).isFalse()
@@ -153,9 +154,9 @@ class AuthenticationRepositoryTest : SysuiTestCase() {
     @Test
     fun isPinEnhancedPrivacyEnabled() =
         testScope.runTest {
-            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[0].id))
+            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[0].id, true))
                 .thenReturn(false)
-            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[1].id))
+            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[1].id, true))
                 .thenReturn(true)
 
             val values by collectValues(underTest.isPinEnhancedPrivacyEnabled)
@@ -170,9 +171,9 @@ class AuthenticationRepositoryTest : SysuiTestCase() {
     fun lockoutEndTimestamp() =
         testScope.runTest {
             val lockoutEndMs = clock.elapsedRealtime() + 30.seconds.inWholeMilliseconds
-            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[0].id))
+            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[0].id, true))
                 .thenReturn(lockoutEndMs)
-            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[1].id)).thenReturn(0)
+            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[1].id, true)).thenReturn(0)
 
             // Switch to a user who is not locked-out.
             userRepository.setSelectedUserInfo(USER_INFOS[1])

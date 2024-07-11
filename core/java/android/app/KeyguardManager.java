@@ -971,7 +971,7 @@ public class KeyguardManager {
         Objects.requireNonNull(password, "Password cannot be null.");
         complexity = PasswordMetrics.sanitizeComplexityLevel(complexity);
         PasswordMetrics adminMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId());
+                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId(), true);
         try (LockscreenCredential credential = createLockscreenCredential(lockType, password)) {
             return PasswordMetrics.validateCredential(adminMetrics, complexity,
                     credential).size() == 0;
@@ -995,7 +995,7 @@ public class KeyguardManager {
         }
         complexity = PasswordMetrics.sanitizeComplexityLevel(complexity);
         PasswordMetrics adminMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId());
+                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId(), true);
         PasswordMetrics minMetrics =
                 PasswordMetrics.applyComplexity(adminMetrics, isPin, complexity);
         return minMetrics.length;
@@ -1038,6 +1038,7 @@ public class KeyguardManager {
             success = mLockPatternUtils.setLockCredential(
                     credential,
                     /* savedPassword= */ LockscreenCredential.createNone(),
+                    true,
                     userId);
         } catch (Exception e) {
             Log.e(TAG, "Save lock exception", e);
@@ -1218,14 +1219,14 @@ public class KeyguardManager {
         LockscreenCredential newCredential = createLockscreenCredential(
                 newLockType, newPassword);
         PasswordMetrics adminMetrics =
-                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId());
+                mLockPatternUtils.getRequestedPasswordMetrics(mContext.getUserId(), true);
         List<PasswordValidationError> errors = PasswordMetrics.validateCredential(adminMetrics,
                 DevicePolicyManager.PASSWORD_COMPLEXITY_NONE, newCredential);
         if (!errors.isEmpty()) {
             Log.e(TAG, "New credential is not valid: " + errors.get(0));
             return false;
         }
-        return mLockPatternUtils.setLockCredential(newCredential, currentCredential, userId);
+        return mLockPatternUtils.setLockCredential(newCredential, currentCredential, true, userId);
     }
 
     /**
@@ -1247,7 +1248,7 @@ public class KeyguardManager {
         final LockscreenCredential credential = createLockscreenCredential(
                 lockType, password);
         final VerifyCredentialResponse response = mLockPatternUtils.verifyCredential(
-                credential, mContext.getUserId(), /* flags= */ 0);
+                credential, true, mContext.getUserId(), /* flags= */ 0);
         if (response == null) {
             return false;
         }

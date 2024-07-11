@@ -64,7 +64,7 @@ import java.util.function.Supplier;
  * {@link android.hardware.biometrics.fingerprint.V2_1} and
  * {@link android.hardware.biometrics.fingerprint.V2_2} HIDL interfaces.
  */
-class FingerprintAuthenticationClient
+public class FingerprintAuthenticationClient
         extends AuthenticationClient<IBiometricsFingerprint, FingerprintAuthenticateOptions>
         implements Udfps {
 

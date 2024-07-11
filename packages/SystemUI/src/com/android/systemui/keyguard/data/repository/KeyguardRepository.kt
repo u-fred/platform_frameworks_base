@@ -629,8 +629,11 @@ constructor(
                 override fun onBiometricAuthenticated(
                     userId: Int,
                     biometricSourceType: BiometricSourceType?,
-                    isStrongBiometric: Boolean
+                    isStrongBiometric: Boolean,
+                    isSecondFactorEnabled: Boolean
                 ) {
+                    // TODO: Will need to add second factor handling here once this Flow is
+                    //  used.
                     trySendWithFailureLogging(
                         BiometricUnlockSource.fromBiometricSourceType(biometricSourceType),
                         TAG,

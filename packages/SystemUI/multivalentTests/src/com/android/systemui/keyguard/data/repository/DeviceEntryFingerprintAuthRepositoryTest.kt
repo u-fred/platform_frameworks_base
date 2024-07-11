@@ -193,6 +193,7 @@ class DeviceEntryFingerprintAuthRepositoryTest : SysuiTestCase() {
                 0,
                 BiometricSourceType.FINGERPRINT,
                 true,
+                false,
             )
 
             val status = authenticationStatus as SuccessFingerprintAuthenticationStatus
@@ -311,6 +312,7 @@ class DeviceEntryFingerprintAuthRepositoryTest : SysuiTestCase() {
                 0,
                 BiometricSourceType.FACE,
                 true,
+                false,
             )
             assertThat(authenticationStatus).isNull()
 
