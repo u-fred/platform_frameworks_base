@@ -1399,6 +1399,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         return getFaceAuthInteractor() != null && getFaceAuthInteractor().isAuthenticated();
     }
 
+    // TODO: Add arg to this?
     public boolean getUserCanSkipBouncer(int userId) {
         return getUserHasTrust(userId) || getUserUnlockedWithBiometric(userId, false)
                 || forceIsDismissibleIsKeepingDeviceUnlocked();
