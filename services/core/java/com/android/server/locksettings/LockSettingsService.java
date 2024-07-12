@@ -33,6 +33,7 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.UserHandle.USER_ALL;
 import static android.os.UserHandle.USER_SYSTEM;
 
+import static com.android.internal.widget.LockPatternUtils.CredentialPurpose.PRIMARY;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
@@ -144,6 +145,7 @@ import com.android.internal.widget.ILockSettings;
 import com.android.internal.widget.IWeakEscrowTokenActivatedListener;
 import com.android.internal.widget.IWeakEscrowTokenRemovedListener;
 import com.android.internal.widget.LockPatternUtils;
+import com.android.internal.widget.LockPatternUtils.CredentialPurpose;
 import com.android.internal.widget.LockSettingsInternal;
 import com.android.internal.widget.LockSettingsStateListener;
 import com.android.internal.widget.LockscreenCredential;
@@ -1248,6 +1250,11 @@ public class LockSettingsService extends ILockSettings.Stub {
         return mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId);
     }
 
+    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId,
+            CredentialPurpose purpose) {
+        return checkUserSupportsBiometricSecondFactorIfSecondary(userId, purpose == PRIMARY);
+    }
+
     private final void checkWritePermission() {
         mContext.enforceCallingOrSelfPermission(PERMISSION, "LockSettingsWrite");
     }
@@ -1405,18 +1412,18 @@ public class LockSettingsService extends ILockSettings.Stub {
      *      B. PIN_LENGTH_UNAVAILABLE if pin length is not stored/available
      */
     @Override
-    public int getPinLength(int userId, boolean primary) {
+    public int getPinLength(int userId, CredentialPurpose purpose) {
         checkPasswordHavePermission();
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, purpose)) {
             return PIN_LENGTH_UNAVAILABLE;
         }
 
-        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
+        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, purpose);
         if (passwordMetrics != null && passwordMetrics.credType == CREDENTIAL_TYPE_PIN) {
             return passwordMetrics.length;
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, purpose);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return PIN_LENGTH_UNAVAILABLE;
@@ -2601,6 +2608,10 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
+    PasswordMetrics getUserPasswordMetrics(int userHandle, CredentialPurpose purpose) {
+        return getUserPasswordMetrics(userHandle, purpose == PRIMARY);
+    }
+
     private @Nullable PasswordMetrics loadPasswordMetrics(SyntheticPassword sp, int userHandle) {
         synchronized (mSpManager) {
             if (!isUserSecure(userHandle, true)) {
@@ -3093,6 +3104,10 @@ public class LockSettingsService extends ILockSettings.Stub {
             return "";
         }
         return "-secondary";
+    }
+
+    long getCurrentLskfBasedProtectorId(int userId, CredentialPurpose purpose) {
+        return getCurrentLskfBasedProtectorId(userId, purpose == PRIMARY);
     }
 
     @VisibleForTesting

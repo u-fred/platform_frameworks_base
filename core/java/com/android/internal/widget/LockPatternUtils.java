@@ -733,7 +733,7 @@ public class LockPatternUtils {
      */
     public int getPinLength(int userId, boolean primary) {
         try {
-            return getLockSettings().getPinLength(userId, primary);
+            return getLockSettings().getPinLength(userId, primary ? PRIMARY : SECONDARY);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not fetch PIN length " + e);
             return PIN_LENGTH_UNAVAILABLE;
