@@ -56,7 +56,7 @@ import android.telephony.data.ApnSetting;
 import com.android.internal.infra.AndroidFuture;
 import android.app.admin.DevicePolicyState;
 import android.app.admin.EnforcingAdmin;
-import com.android.internal.widget.LockPatternUtils.AuthType;
+import com.android.internal.widget.LockPatternUtils.LockDomain;
 
 import java.util.List;
 

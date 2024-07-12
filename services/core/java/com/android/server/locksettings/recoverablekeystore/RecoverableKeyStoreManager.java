@@ -26,7 +26,7 @@ import static android.security.keystore.recovery.RecoveryController.ERROR_NO_SNA
 import static android.security.keystore.recovery.RecoveryController.ERROR_SERVICE_INTERNAL_ERROR;
 import static android.security.keystore.recovery.RecoveryController.ERROR_SESSION_EXPIRED;
 
-import static com.android.internal.widget.LockPatternUtils.AuthType.PRIMARY;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
 
 import android.Manifest;
 import android.annotation.NonNull;
@@ -1020,7 +1020,7 @@ public class RecoverableKeyStoreManager {
         int savedCredentialType;
         final long token = Binder.clearCallingIdentity();
         try {
-            savedCredentialType = lockSettingsService.getCredentialType(userId, PRIMARY);
+            savedCredentialType = lockSettingsService.getCredentialType(userId, Primary);
         } finally {
             Binder.restoreCallingIdentity(token);
         }
@@ -1080,7 +1080,7 @@ public class RecoverableKeyStoreManager {
         int savedCredentialType;
         final long token = Binder.clearCallingIdentity();
         try {
-            savedCredentialType = lockSettingsService.getCredentialType(userId, PRIMARY);
+            savedCredentialType = lockSettingsService.getCredentialType(userId, Primary);
             int keyguardCredentialsType = lockPatternUtilsToKeyguardType(savedCredentialType);
             try (LockscreenCredential credential =
                     createLockscreenCredential(keyguardCredentialsType, decryptedCredentials)) {

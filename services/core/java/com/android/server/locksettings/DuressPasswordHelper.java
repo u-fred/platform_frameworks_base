@@ -11,7 +11,7 @@ import com.android.internal.widget.VerifyCredentialResponse;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.android.internal.widget.LockPatternUtils.AuthType.PRIMARY;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
@@ -59,7 +59,7 @@ public class DuressPasswordHelper {
 
         int userId = UserHandle.USER_SYSTEM;
 
-        if (lockSettingsService.getCredentialType(userId, PRIMARY) == CREDENTIAL_TYPE_NONE) {
+        if (lockSettingsService.getCredentialType(userId, Primary) == CREDENTIAL_TYPE_NONE) {
             if (!ownerCredential.isNone()) {
                 throw new IllegalArgumentException("!ownerCredential.isNone()");
             }

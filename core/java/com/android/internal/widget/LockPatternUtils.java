@@ -24,8 +24,8 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 
-import static com.android.internal.widget.LockPatternUtils.AuthType.PRIMARY;
-import static com.android.internal.widget.LockPatternUtils.AuthType.SECONDARY;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Secondary;
 
 import android.annotation.IntDef;
 import android.annotation.NonNull;
@@ -146,8 +146,8 @@ public class LockPatternUtils {
     })
     public @interface CredentialType {}
 
-    public enum AuthType implements Parcelable {
-        PRIMARY, SECONDARY;
+    public enum LockDomain implements Parcelable {
+        Primary, Secondary;
 
         @Override
         public int describeContents() {
@@ -156,17 +156,17 @@ public class LockPatternUtils {
 
         @Override
         public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
-            dest.writeString(name());
+            dest.writeInt(ordinal());
         }
 
-        public static final Parcelable.Creator<AuthType> CREATOR
-                = new Parcelable.Creator<AuthType>() {
-            public AuthType createFromParcel(Parcel in) {
-                return AuthType.valueOf(in.readString());
+        public static final Parcelable.Creator<LockDomain> CREATOR
+                = new Parcelable.Creator<>() {
+            public LockDomain createFromParcel(Parcel in) {
+                return LockDomain.values()[in.readInt()];
             }
 
-            public AuthType[] newArray(int size) {
-                return new AuthType[size];
+            public LockDomain[] newArray(int size) {
+                return new LockDomain[size];
             }
         };
     }
@@ -733,7 +733,7 @@ public class LockPatternUtils {
      */
     public int getPinLength(int userId, boolean primary) {
         try {
-            return getLockSettings().getPinLength(userId, primary ? PRIMARY : SECONDARY);
+            return getLockSettings().getPinLength(userId, primary ? Primary : Secondary);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not fetch PIN length " + e);
             return PIN_LENGTH_UNAVAILABLE;
@@ -752,7 +752,7 @@ public class LockPatternUtils {
      */
     public boolean refreshStoredPinLength(int userId, boolean primary) {
         try {
-            return getLockSettings().refreshStoredPinLength(userId, primary ? PRIMARY : SECONDARY);
+            return getLockSettings().refreshStoredPinLength(userId, primary ? Primary : Secondary);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not store PIN length on disk " + e);
             return false;
@@ -1237,7 +1237,7 @@ public class LockPatternUtils {
         public Integer apply(Integer userHandle) {
             try {
                 return getLockSettings().getCredentialType(userHandle, isPrimaryCredential ?
-                        PRIMARY : SECONDARY);
+                        Primary : Secondary);
             } catch (RemoteException re) {
                 Log.e(TAG, "failed to get credential type", re);
                 return CREDENTIAL_TYPE_NONE;

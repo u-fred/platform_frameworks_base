@@ -33,8 +33,8 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.UserHandle.USER_ALL;
 import static android.os.UserHandle.USER_SYSTEM;
 
-import static com.android.internal.widget.LockPatternUtils.AuthType.PRIMARY;
-import static com.android.internal.widget.LockPatternUtils.AuthType.SECONDARY;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
@@ -146,7 +146,7 @@ import com.android.internal.widget.ILockSettings;
 import com.android.internal.widget.IWeakEscrowTokenActivatedListener;
 import com.android.internal.widget.IWeakEscrowTokenRemovedListener;
 import com.android.internal.widget.LockPatternUtils;
-import com.android.internal.widget.LockPatternUtils.AuthType;
+import com.android.internal.widget.LockPatternUtils.LockDomain;
 import com.android.internal.widget.LockSettingsInternal;
 import com.android.internal.widget.LockSettingsStateListener;
 import com.android.internal.widget.LockscreenCredential;
@@ -1252,8 +1252,8 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId,
-            AuthType authType) {
-        return checkUserSupportsBiometricSecondFactorIfSecondary(userId, authType == PRIMARY);
+            LockDomain lockDomain) {
+        return checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain == Primary);
     }
 
     private final void checkWritePermission() {
@@ -1413,18 +1413,18 @@ public class LockSettingsService extends ILockSettings.Stub {
      *      B. PIN_LENGTH_UNAVAILABLE if pin length is not stored/available
      */
     @Override
-    public int getPinLength(int userId, AuthType authType) {
+    public int getPinLength(int userId, LockDomain LockDomain) {
         checkPasswordHavePermission();
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, authType)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, LockDomain)) {
             return PIN_LENGTH_UNAVAILABLE;
         }
 
-        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, authType);
+        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, LockDomain);
         if (passwordMetrics != null && passwordMetrics.credType == CREDENTIAL_TYPE_PIN) {
             return passwordMetrics.length;
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId, authType);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, LockDomain);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return PIN_LENGTH_UNAVAILABLE;
@@ -1434,24 +1434,24 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     /**
-     * {@link LockPatternUtils#refreshStoredPinLength(int, AuthType)}
+     * {@link LockPatternUtils#refreshStoredPinLength(int, LockDomain)}
      * @param userId user id of the user whose pin length we want to save
-     * @param authType whether to refresh the primary or biometric second factor PIN
+     * @param lockDomain whether to refresh the primary or biometric second factor PIN
      * @return true/false depending on whether PIN length has been saved or not
      */
     @Override
-    public boolean refreshStoredPinLength(int userId, AuthType authType) {
+    public boolean refreshStoredPinLength(int userId, LockDomain lockDomain) {
         checkPasswordHavePermission();
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, authType)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return false;
         }
 
         synchronized (mSpManager) {
-            PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, authType);
+            PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, lockDomain);
             if (passwordMetrics != null) {
-                final long protectorId = getCurrentLskfBasedProtectorId(userId, authType);
+                final long protectorId = getCurrentLskfBasedProtectorId(userId, lockDomain);
                 return mSpManager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId,
-                        authType);
+                        lockDomain);
             } else {
                 Log.w(TAG, "PasswordMetrics is not available");
                 return false;
@@ -1464,12 +1464,12 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link com.android.internal.widget.LockPatternUtils#invalidateCredentialTypeCache}
      * must be called.
      * @param userId The id of the user whose credential type to return.
-     * @param authType Whether to get the primary or biometric second factor credential type.
+     * @param lockDomain Whether to get the primary or biometric second factor credential type.
      */
     @Override
-    public int getCredentialType(int userId, AuthType authType) {
+    public int getCredentialType(int userId, LockDomain lockDomain) {
         checkPasswordHavePermission();
-        return getCredentialTypeInternal(userId, authType);
+        return getCredentialTypeInternal(userId, lockDomain);
     }
 
     /**
@@ -1477,15 +1477,15 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
-    private int getCredentialTypeInternal(int userId, AuthType authType) {
-        if (isSpecialUserId(userId) && authType == PRIMARY) {
+    private int getCredentialTypeInternal(int userId, LockDomain lockDomain) {
+        if (isSpecialUserId(userId) && lockDomain == Primary) {
                 return mSpManager.getSpecialUserCredentialType(userId);
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, authType == PRIMARY)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain == Primary)) {
             return CREDENTIAL_TYPE_NONE;
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId, authType == PRIMARY);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, lockDomain == Primary);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return CREDENTIAL_TYPE_NONE;
@@ -1499,7 +1499,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     private boolean isUserSecure(int userId, boolean primary) {
-        return getCredentialTypeInternal(userId, primary ? PRIMARY : SECONDARY) != CREDENTIAL_TYPE_NONE;
+        return getCredentialTypeInternal(userId, primary ? Primary : Secondary) != CREDENTIAL_TYPE_NONE;
     }
 
     @VisibleForTesting /** Note: this method is overridden in unit tests */
@@ -2606,8 +2606,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    PasswordMetrics getUserPasswordMetrics(int userHandle, AuthType purpose) {
-        return getUserPasswordMetrics(userHandle, purpose == PRIMARY);
+    PasswordMetrics getUserPasswordMetrics(int userHandle, LockDomain lockDomain) {
+        return getUserPasswordMetrics(userHandle, lockDomain == Primary);
     }
 
     private @Nullable PasswordMetrics loadPasswordMetrics(SyntheticPassword sp, int userHandle) {
@@ -3104,8 +3104,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         return "-secondary";
     }
 
-    long getCurrentLskfBasedProtectorId(int userId, AuthType authType) {
-        return getCurrentLskfBasedProtectorId(userId, authType == PRIMARY);
+    long getCurrentLskfBasedProtectorId(int userId, LockDomain lockDomain) {
+        return getCurrentLskfBasedProtectorId(userId, lockDomain == Primary);
     }
 
     @VisibleForTesting
@@ -3225,8 +3225,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         Slogf.i(TAG, "Changing lockscreen credential of user %d; newCredentialType=%s;" +
                         " primary=%b\n", userId, LockPatternUtils.credentialTypeToString(
                                 credential.getType()), primary);
-        final int savedCredentialType = getCredentialTypeInternal(userId, primary ? PRIMARY :
-                SECONDARY);
+        final int savedCredentialType = getCredentialTypeInternal(userId, primary ? Primary :
+                Secondary);
         final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, primary);
         final long newProtectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
                 credential, primary, sp, userId);
@@ -3653,7 +3653,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // observe it from the keyguard directly.
             pw.println("Primary Quality: " + getKeyguardStoredQuality(userId));
             pw.println("Primary CredentialType: " + LockPatternUtils.credentialTypeToString(
-                    getCredentialTypeInternal(userId, PRIMARY)));
+                    getCredentialTypeInternal(userId, Primary)));
             pw.println("Primary SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(
                     userId));
             pw.println(TextUtils.formatSimple("Primary Metrics: %s",
@@ -3661,9 +3661,9 @@ public class LockSettingsService extends ILockSettings.Stub {
 
             if (mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false)) {
                 pw.println("Secondary Quality: " + credentialTypeToPasswordQuality(
-                        getCredentialTypeInternal(userId, SECONDARY)));
+                        getCredentialTypeInternal(userId, Secondary)));
                 pw.println("Secondary CredentialType: " + LockPatternUtils.credentialTypeToString(
-                        getCredentialTypeInternal(userId, SECONDARY)));
+                        getCredentialTypeInternal(userId, Secondary)));
                 pw.println(TextUtils.formatSimple("Secondary Metrics: %s",
                         getUserPasswordMetrics(userId, false) != null ? "known" : "unknown"));
             }

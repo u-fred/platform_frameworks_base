@@ -1,3 +1,3 @@
 package com.android.internal.widget;
 
-parcelable LockPatternUtils.AuthType;
+parcelable LockPatternUtils.LockDomain;

@@ -3,15 +3,15 @@ package com.android.internal.widget;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.PasswordMetrics;
 
-import com.android.internal.widget.LockPatternUtils.AuthType;
+import com.android.internal.widget.LockPatternUtils.LockDomain;
 
 public class WrappedLockPatternUtils {
     private final LockPatternUtils mInner;
-    private final AuthType mAuthType;
+    private final LockDomain mLockDomain;
 
-    public WrappedLockPatternUtils(LockPatternUtils inner, AuthType authType) {
+    public WrappedLockPatternUtils(LockPatternUtils inner, LockDomain lockDomain) {
         mInner = inner;
-        mAuthType = authType;
+        mLockDomain = lockDomain;
     }
 
     public boolean hasSecureLockScreen() {
@@ -19,18 +19,18 @@ public class WrappedLockPatternUtils {
     }
 
     public boolean isCredentialsDisabledForUser(int userId) {
-        return mInner.isCredentialsDisabledForUser(userId, mAuthType == AuthType.PRIMARY);
+        return mInner.isCredentialsDisabledForUser(userId, mLockDomain == LockDomain.Primary);
     }
 
     public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean deviceWideOnly) {
         return mInner.getRequestedPasswordMetrics(userId,
-                mAuthType == AuthType.PRIMARY, deviceWideOnly);
+                mLockDomain == LockDomain.Primary, deviceWideOnly);
     }
 
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
             boolean deviceWideOnly) {
         return mInner.getRequestedPasswordComplexity(userId,
-                mAuthType == AuthType.PRIMARY, deviceWideOnly);
+                mLockDomain == LockDomain.Primary, deviceWideOnly);
     }
 
 }
