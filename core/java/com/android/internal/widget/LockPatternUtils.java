@@ -406,19 +406,30 @@ public class LockPatternUtils {
     /**
      * Returns aggregated (legacy) password quality requirement on the target user from all admins.
      */
-    public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean primary) {
-        return getRequestedPasswordMetrics(userId, primary, false);
+    public PasswordMetrics getRequestedPasswordMetrics(int userId) {
+        return getRequestedPasswordMetrics(userId, Primary);
+    }
+
+    public PasswordMetrics getRequestedPasswordMetrics(int userId, LockDomain lockDomain) {
+        return getRequestedPasswordMetrics(userId, lockDomain, false);
     }
 
     /**
-     * Returns aggregated (legacy) password quality requirement on the target user from all admins.
-     *
-     * @param deviceWideOnly Disregard policies set on the managed profile as if the profile had
-     *                       separate work challenge. This is ignored if primary is false.
+     * Returns aggregated (legacy) password quality requirement on the target user from all admins,
+     * optioanlly disregarding policies set on the managed profile as if the  profile had separate
+     * work challenge.
      */
-    public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean primary,
+    public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean deviceWideOnly) {
+        return getRequestedPasswordMetrics(userId, Primary, deviceWideOnly);
+    }
+
+    /**
+     * @param deviceWideOnly ignored if lockDomain is Secondary.
+     */
+    public PasswordMetrics getRequestedPasswordMetrics(int userId, LockDomain lockDomain,
             boolean deviceWideOnly) {
-        return getDevicePolicyManager().getPasswordMinimumMetrics(userId, primary, deviceWideOnly);
+        return getDevicePolicyManager().getPasswordMinimumMetrics(userId, lockDomain == Primary,
+                deviceWideOnly);
     }
 
     private int getRequestedPasswordHistoryLength(int userId, boolean primary) {

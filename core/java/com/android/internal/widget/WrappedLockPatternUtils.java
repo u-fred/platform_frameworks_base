@@ -22,9 +22,12 @@ public class WrappedLockPatternUtils {
         return mInner.isCredentialsDisabledForUser(userId, mLockDomain == LockDomain.Primary);
     }
 
+    public PasswordMetrics getRequestedPasswordMetrics(int userId) {
+        return mInner.getRequestedPasswordMetrics(userId, mLockDomain);
+    }
+
     public PasswordMetrics getRequestedPasswordMetrics(int userId, boolean deviceWideOnly) {
-        return mInner.getRequestedPasswordMetrics(userId,
-                mLockDomain == LockDomain.Primary, deviceWideOnly);
+        return mInner.getRequestedPasswordMetrics(userId, mLockDomain, deviceWideOnly);
     }
 
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
