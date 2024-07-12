@@ -1433,25 +1433,24 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     /**
-     * {@link LockPatternUtils#refreshStoredPinLength(int)}
+     * {@link LockPatternUtils#refreshStoredPinLength(int, CredentialPurpose)}
      * @param userId user id of the user whose pin length we want to save
-     * @param primary Whether to refresh the primary or biometric second factor credential. Must be
-     *               true if userId is a user that can share credentials with parent.
+     * @param purpose whether to refresh the primary or biometric second factor PIN
      * @return true/false depending on whether PIN length has been saved or not
      */
     @Override
-    public boolean refreshStoredPinLength(int userId, boolean primary) {
+    public boolean refreshStoredPinLength(int userId, CredentialPurpose purpose) {
         checkPasswordHavePermission();
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, purpose)) {
             return false;
         }
 
         synchronized (mSpManager) {
-            PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, primary);
+            PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, purpose);
             if (passwordMetrics != null) {
-                final long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
+                final long protectorId = getCurrentLskfBasedProtectorId(userId, purpose);
                 return mSpManager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId,
-                        primary);
+                        purpose);
             } else {
                 Log.w(TAG, "PasswordMetrics is not available");
                 return false;

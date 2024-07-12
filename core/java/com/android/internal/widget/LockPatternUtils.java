@@ -752,7 +752,7 @@ public class LockPatternUtils {
      */
     public boolean refreshStoredPinLength(int userId, boolean primary) {
         try {
-            return getLockSettings().refreshStoredPinLength(userId, primary);
+            return getLockSettings().refreshStoredPinLength(userId, primary ? PRIMARY : SECONDARY);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not store PIN length on disk " + e);
             return false;

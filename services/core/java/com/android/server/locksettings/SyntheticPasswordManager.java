@@ -19,6 +19,7 @@ package com.android.server.locksettings;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
+import static com.android.internal.widget.LockPatternUtils.CredentialPurpose.PRIMARY;
 import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChangeCallback;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
@@ -58,6 +59,7 @@ import com.android.internal.util.Preconditions;
 import com.android.internal.widget.ICheckCredentialProgressCallback;
 import com.android.internal.widget.IWeakEscrowTokenRemovedListener;
 import com.android.internal.widget.LockPatternUtils;
+import com.android.internal.widget.LockPatternUtils.CredentialPurpose;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 import com.android.server.locksettings.LockSettingsStorage.PersistentData;
@@ -1544,6 +1546,11 @@ class SyntheticPasswordManager {
             syncState(userId); // Not strictly needed as the upgrade can be re-done, but be safe.
         }
         return result;
+    }
+
+    public boolean refreshPinLengthOnDisk(PasswordMetrics passwordMetrics,
+            long protectorId, int userId, CredentialPurpose purpose) {
+        return refreshPinLengthOnDisk(passwordMetrics, protectorId, userId, purpose == PRIMARY);
     }
 
     /**
