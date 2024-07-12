@@ -28,7 +28,7 @@ import android.security.keystore.recovery.RecoveryCertPath;
 import com.android.internal.widget.ICheckCredentialProgressCallback;
 import com.android.internal.widget.IWeakEscrowTokenActivatedListener;
 import com.android.internal.widget.IWeakEscrowTokenRemovedListener;
-import com.android.internal.widget.LockPatternUtils.CredentialPurpose;
+import com.android.internal.widget.LockPatternUtils.AuthType;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 
@@ -57,8 +57,8 @@ interface ILockSettings {
     VerifyCredentialResponse verifyGatekeeperPasswordHandle(long gatekeeperPasswordHandle, long challenge, int userId);
     void removeGatekeeperPasswordHandle(long gatekeeperPasswordHandle);
     int getCredentialType(int userId, boolean primary);
-    int getPinLength(int userId, in CredentialPurpose purpose);
-    boolean refreshStoredPinLength(int userId, in CredentialPurpose purpose);
+    int getPinLength(int userId, in AuthType authType);
+    boolean refreshStoredPinLength(int userId, in AuthType authType);
     byte[] getHashFactor(in LockscreenCredential currentCredential, int userId);
     void setSeparateProfileChallengeEnabled(int userId, boolean enabled, in LockscreenCredential managedUserPassword);
     boolean getSeparateProfileChallengeEnabled(int userId);

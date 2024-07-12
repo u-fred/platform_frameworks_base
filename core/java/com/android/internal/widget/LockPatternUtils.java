@@ -24,8 +24,8 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 
-import static com.android.internal.widget.LockPatternUtils.CredentialPurpose.PRIMARY;
-import static com.android.internal.widget.LockPatternUtils.CredentialPurpose.SECONDARY;
+import static com.android.internal.widget.LockPatternUtils.AuthType.PRIMARY;
+import static com.android.internal.widget.LockPatternUtils.AuthType.SECONDARY;
 
 import android.annotation.IntDef;
 import android.annotation.NonNull;
@@ -146,7 +146,7 @@ public class LockPatternUtils {
     })
     public @interface CredentialType {}
 
-    public enum CredentialPurpose implements Parcelable {
+    public enum AuthType implements Parcelable {
         PRIMARY, SECONDARY;
 
         @Override
@@ -159,14 +159,14 @@ public class LockPatternUtils {
             dest.writeString(name());
         }
 
-        public static final Parcelable.Creator<CredentialPurpose> CREATOR
-                = new Parcelable.Creator<CredentialPurpose>() {
-            public CredentialPurpose createFromParcel(Parcel in) {
-                return CredentialPurpose.valueOf(in.readString());
+        public static final Parcelable.Creator<AuthType> CREATOR
+                = new Parcelable.Creator<AuthType>() {
+            public AuthType createFromParcel(Parcel in) {
+                return AuthType.valueOf(in.readString());
             }
 
-            public CredentialPurpose[] newArray(int size) {
-                return new CredentialPurpose[size];
+            public AuthType[] newArray(int size) {
+                return new AuthType[size];
             }
         };
     }

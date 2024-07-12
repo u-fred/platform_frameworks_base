@@ -1,3 +1,3 @@
 package com.android.internal.widget;
 
-parcelable LockPatternUtils.CredentialPurpose;
+parcelable LockPatternUtils.AuthType;
