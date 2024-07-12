@@ -1236,7 +1236,8 @@ public class LockPatternUtils {
         @Override
         public Integer apply(Integer userHandle) {
             try {
-                return getLockSettings().getCredentialType(userHandle, isPrimaryCredential);
+                return getLockSettings().getCredentialType(userHandle, isPrimaryCredential ?
+                        PRIMARY : SECONDARY);
             } catch (RemoteException re) {
                 Log.e(TAG, "failed to get credential type", re);
                 return CREDENTIAL_TYPE_NONE;
