@@ -24,6 +24,9 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 
+import static com.android.internal.widget.LockPatternUtils.CredentialPurpose.PRIMARY;
+import static com.android.internal.widget.LockPatternUtils.CredentialPurpose.SECONDARY;
+
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
@@ -47,6 +50,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
@@ -141,8 +146,29 @@ public class LockPatternUtils {
     })
     public @interface CredentialType {}
 
-    public enum CredentialPurpose {
-        PRIMARY, SECOND_FACTOR
+    public enum CredentialPurpose implements Parcelable {
+        PRIMARY, SECONDARY;
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
+            dest.writeString(name());
+        }
+
+        public static final Parcelable.Creator<CredentialPurpose> CREATOR
+                = new Parcelable.Creator<CredentialPurpose>() {
+            public CredentialPurpose createFromParcel(Parcel in) {
+                return CredentialPurpose.valueOf(in.readString());
+            }
+
+            public CredentialPurpose[] newArray(int size) {
+                return new CredentialPurpose[size];
+            }
+        };
     }
 
     public static String credentialTypeToString(int credentialType) {
