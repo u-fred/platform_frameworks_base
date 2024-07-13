@@ -5853,7 +5853,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
 
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM, true)).isEqualTo(3);
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM)).isEqualTo(3);
         // Check that primary will be wiped as a result of failed primary user unlock attempts.
         assertThat(dpm.getProfileWithMinimumFailedPasswordsForWipe(UserHandle.USER_SYSTEM))
                 .isEqualTo(UserHandle.USER_SYSTEM);
@@ -5891,8 +5891,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
 
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM, true)).isEqualTo(0);
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, MANAGED_PROFILE_USER_ID, true))
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, UserHandle.USER_SYSTEM)).isEqualTo(0);
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, MANAGED_PROFILE_USER_ID))
                 .isEqualTo(3);
         // Check that the policy is not affecting primary profile challenge.
         assertThat(dpm.getProfileWithMinimumFailedPasswordsForWipe(UserHandle.USER_SYSTEM))

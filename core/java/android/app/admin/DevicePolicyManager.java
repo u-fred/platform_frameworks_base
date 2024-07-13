@@ -6055,6 +6055,12 @@ public class DevicePolicyManager {
     /** @hide per-user version */
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle) {
+        return getMaximumFailedPasswordsForWipe(admin, userHandle, true);
+    }
+
+    /** @hide */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle,
             boolean primary) {
         if (mService != null) {
