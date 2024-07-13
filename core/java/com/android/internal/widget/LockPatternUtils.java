@@ -565,6 +565,10 @@ public class LockPatternUtils {
         return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId, primary);
     }
 
+    public int getMaximumFailedPasswordsForWipe(int userId) {
+        return getMaximumFailedPasswordsForWipe(userId, true);
+    }
+
     public int getMaximumFailedPasswordsForWipe(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             if (primary) {
