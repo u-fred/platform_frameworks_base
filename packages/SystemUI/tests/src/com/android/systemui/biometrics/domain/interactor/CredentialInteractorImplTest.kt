@@ -122,7 +122,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt())).thenReturn(result)
         whenever(lockPatternUtils.verifyGatekeeperPasswordHandle(anyLong(), anyLong(), eq(USER_ID)))
             .thenReturn(result)
-        whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), eq(true), anyInt())).thenAnswer {
+        whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), anyInt())).thenAnswer {
             systemClock.elapsedRealtime() + (it.arguments[2] as Int)
         }
 
@@ -157,7 +157,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
                 assertThat(statusList.filterIsInstance(CredentialStatus.Fail.Throttled::class.java))
                     .hasSize(statusList.size)
 
-                verify(lockPatternUtils).setLockoutAttemptDeadline(eq(USER_ID), eq(true), eq(result.timeout))
+                verify(lockPatternUtils).setLockoutAttemptDeadline(eq(USER_ID), eq(result.timeout))
             } else { // failed
                 assertThat(failedResult.error)
                     .matches(Regex("(.*)try again(.*)", RegexOption.IGNORE_CASE).toPattern())
