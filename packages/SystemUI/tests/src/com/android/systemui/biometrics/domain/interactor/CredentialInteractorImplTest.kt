@@ -55,7 +55,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
     @Before
     fun setup() {
         whenever(devicePolicyManager.resources).thenReturn(devicePolicyResourcesManager)
-        whenever(lockPatternUtils.getMaximumFailedPasswordsForWipe(anyInt(), eq(true)))
+        whenever(lockPatternUtils.getMaximumFailedPasswordsForWipe(anyInt()))
             .thenReturn(MAX_ATTEMPTS)
         whenever(userManager.getUserInfo(eq(USER_ID))).thenReturn(UserInfo(USER_ID, "", 0))
         whenever(devicePolicyManager.getProfileWithMinimumFailedPasswordsForWipe(eq(USER_ID)))
