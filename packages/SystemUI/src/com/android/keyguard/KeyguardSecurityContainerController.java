@@ -935,7 +935,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                     SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId,
                             false);
                     boolean isLockscreenDisabled = mLockPatternUtils.isLockScreenDisabled(
-                            mSelectedUserInteractor.getSelectedUserId(), true)
+                            mSelectedUserInteractor.getSelectedUserId())
                             || !mDeviceProvisionedController.isUserSetup(targetUserId);
 
                     if (securityMode == SecurityMode.None && isLockscreenDisabled) {

@@ -858,17 +858,18 @@ public class LockPatternUtils {
         setBoolean(DISABLE_LOCKSCREEN_KEY, disable, userId);
     }
 
-    @UnsupportedAppUsage
-    public boolean isLockScreenDisabled(int userId) {
-        return isLockScreenDisabled(userId, true);
-    }
-
     /**
      * Determine if LockScreen is disabled for the current user. This is used to decide whether
      * LockScreen is shown after reboot or after screen timeout / short press on power.
      *
      * @return true if lock screen is disabled
      */
+    @UnsupportedAppUsage
+    public boolean isLockScreenDisabled(int userId) {
+        return isLockScreenDisabled(userId, true);
+    }
+
+
     public boolean isLockScreenDisabled(int userId, boolean primary) {
         if (isSecure(userId, primary)) {
             return false;

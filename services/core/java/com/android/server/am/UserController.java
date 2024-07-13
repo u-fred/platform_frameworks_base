@@ -3091,7 +3091,7 @@ class UserController implements Handler.Callback {
     }
 
     boolean isLockScreenDisabled(@UserIdInt int userId) {
-        return mLockPatternUtils.isLockScreenDisabled(userId, true);
+        return mLockPatternUtils.isLockScreenDisabled(userId);
     }
 
     void setSwitchingFromSystemUserMessage(String switchingFromSystemUserMessage) {

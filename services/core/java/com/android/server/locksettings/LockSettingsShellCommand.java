@@ -368,7 +368,7 @@ class LockSettingsShellCommand extends ShellCommand {
     }
 
     private void runGetDisabled() {
-        boolean isLockScreenDisabled = mLockPatternUtils.isLockScreenDisabled(mCurrentUserId, true);
+        boolean isLockScreenDisabled = mLockPatternUtils.isLockScreenDisabled(mCurrentUserId);
         getOutPrintWriter().println(isLockScreenDisabled);
     }
 

@@ -1519,7 +1519,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
         if (isKeyguardServiceEnabled()) {
             setShowingLocked(!shouldWaitForProvisioning()
                     && !mLockPatternUtils.isLockScreenDisabled(
-                            mSelectedUserInteractor.getSelectedUserId(), true),
+                            mSelectedUserInteractor.getSelectedUserId()),
                     true /* forceCallbacks */);
         } else {
             // The system's keyguard is disabled or missing.
@@ -1651,7 +1651,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
                             && !lockImmediately)) {
                 doKeyguardLaterLocked(timeout);
                 mLockLater = true;
-            } else if (!mLockPatternUtils.isLockScreenDisabled(currentUser, true)) {
+            } else if (!mLockPatternUtils.isLockScreenDisabled(currentUser)) {
                 setPendingLock(true);
             }
 
@@ -1927,7 +1927,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
 
     private void maybeSendUserPresentBroadcast() {
         if (mSystemReady && mLockPatternUtils.isLockScreenDisabled(
-                mSelectedUserInteractor.getSelectedUserId(), true)) {
+                mSelectedUserInteractor.getSelectedUserId())) {
             // Lock screen is disabled because the user has set the preference to "None".
             // In this case, send out ACTION_USER_PRESENT here instead of in
             // handleKeyguardDone()
@@ -2288,7 +2288,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
         }
 
         boolean forceShow = options != null && options.getBoolean(OPTION_FORCE_SHOW, false);
-        if (mLockPatternUtils.isLockScreenDisabled(mSelectedUserInteractor.getSelectedUserId(), true)
+        if (mLockPatternUtils.isLockScreenDisabled(mSelectedUserInteractor.getSelectedUserId())
                 && !lockedOrMissing && !forceShow) {
             if (DEBUG) Log.d(TAG, "doKeyguard: not showing because lockscreen is off");
             return;
