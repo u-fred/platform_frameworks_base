@@ -154,9 +154,9 @@ class AuthenticationRepositoryTest : SysuiTestCase() {
     @Test
     fun isPinEnhancedPrivacyEnabled() =
         testScope.runTest {
-            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[0].id, true))
+            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[0].id))
                 .thenReturn(false)
-            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[1].id, true))
+            whenever(lockPatternUtils.isPinEnhancedPrivacyEnabled(USER_INFOS[1].id))
                 .thenReturn(true)
 
             val values by collectValues(underTest.isPinEnhancedPrivacyEnabled)
