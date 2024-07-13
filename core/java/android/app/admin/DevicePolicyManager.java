@@ -5575,6 +5575,8 @@ public class DevicePolicyManager {
         return getPasswordHistoryLength(admin, userHandle, true);
     }
 
+    /** @hide */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle,
             boolean primary) {
         if (mService != null) {
@@ -5840,6 +5842,8 @@ public class DevicePolicyManager {
 
     /**
      * @param deviceWideOnly ignored if LockDomain is not Primary.
+     *
+     * @hide
      */
     @PasswordComplexity
     public int getAggregatedPasswordComplexityForUser(int userId, LockDomain lockDomain,
@@ -5941,6 +5945,7 @@ public class DevicePolicyManager {
         return getCurrentFailedPasswordAttempts(userHandle, true);
     }
 
+    /** @hide */
     public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
         if (mService != null) {
             try {
@@ -9241,7 +9246,7 @@ public class DevicePolicyManager {
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-     public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
+    public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
         if (mService != null) {
             try {
                 mService.reportSuccessfulBiometricAttempt(userHandle, isSecondFactorEnabled);
