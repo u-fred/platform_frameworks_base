@@ -124,7 +124,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(mockKeyguardPinView.context).thenReturn(mContext)
         // For posture tests:
         `when`(mockKeyguardPinView.buttons).thenReturn(arrayOf())
-        `when`(lockPatternUtils.getPinLength(anyInt(), eq(true))).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
         `when`(featureFlags.isEnabled(Flags.LOCKSCREEN_ENABLE_LANDSCAPE)).thenReturn(false)
         `when`(passwordTextView.layoutParams).thenReturn(passwordTextViewLayoutParams)
 
@@ -227,7 +227,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     @Test
     fun testOnViewAttached_primaryWithAutoPinConfirmationFailedPasswordAttemptsLessThan5() {
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        `when`(lockPatternUtils.getPinLength(anyInt(), eq(true))).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(true))).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt())).thenReturn(3)
         `when`(passwordTextView.text).thenReturn("")
@@ -262,7 +262,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     @Test
     fun testOnViewAttached_primaryWithAutoPinConfirmationFailedPasswordAttemptsMoreThan5() {
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        `when`(lockPatternUtils.getPinLength(anyInt(), eq(true))).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(true))).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt())).thenReturn(6)
         `when`(passwordTextView.text).thenReturn("")
@@ -317,7 +317,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     @Test
     fun onUserInput_primaryAutoConfirmation_attemptsUnlock() {
         whenever(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        whenever(lockPatternUtils.getPinLength(anyInt(), eq(true))).thenReturn(6)
+        whenever(lockPatternUtils.getPinLength(anyInt())).thenReturn(6)
         whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(true))).thenReturn(true)
         whenever(passwordTextView.text).thenReturn("000000")
         whenever(enterButton.visibility).thenReturn(View.INVISIBLE)
