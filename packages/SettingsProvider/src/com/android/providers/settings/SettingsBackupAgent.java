@@ -735,7 +735,7 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                 out.writeUTF(KEY_LOCK_SETTINGS_POWER_BUTTON_INSTANTLY_LOCKS);
                 out.writeUTF(powerButtonInstantlyLocks ? "1" : "0");
             }
-            if (lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId, true)) {
+            if (lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId)) {
                 out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY);
                 out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) ? "1" : "0");
             }

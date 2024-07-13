@@ -1429,6 +1429,10 @@ public class LockPatternUtils {
     /**
      * @return Whether enhanced pin privacy was ever chosen.
      */
+    public boolean isPinEnhancedPrivacyEverChosen(int userId) {
+        return isPinEnhancedPrivacyEverChosen(userId, true);
+    }
+
     public boolean isPinEnhancedPrivacyEverChosen(int userId, boolean primary) {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return false;
