@@ -304,7 +304,7 @@ constructor(
     override suspend fun reportLockoutStarted(durationMs: Int) {
         lockPatternUtils.setLockoutAttemptDeadline(selectedUserId, true, durationMs)
         withContext(backgroundDispatcher) {
-            lockPatternUtils.reportPasswordLockout(durationMs, selectedUserId, true)
+            lockPatternUtils.reportPasswordLockout(durationMs, selectedUserId)
         }
         _hasLockoutOccurred.value = true
     }

@@ -536,6 +536,9 @@ public class LockPatternUtils {
         mIsFingerprintStrongBiometric = isStrongBiometric;
     }
 
+    public void reportPasswordLockout(int timeoutMs, int userId) {
+        reportPasswordLockout(timeoutMs, userId, true);
+    }
     public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
