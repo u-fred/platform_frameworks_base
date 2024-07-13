@@ -187,7 +187,7 @@ class KeyguardPatternViewControllerTest : SysuiTestCase() {
         mKeyguardPatternViewController.onViewAttached()
         verify(mKeyguardMessageAreaController)
             .setMessage(context.resources.getString(R.string.keyguard_enter_your_pattern), false)
-        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(true))
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt())
     }
 
     @Test

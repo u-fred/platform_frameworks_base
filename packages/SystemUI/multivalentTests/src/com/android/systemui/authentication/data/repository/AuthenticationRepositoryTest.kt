@@ -171,9 +171,9 @@ class AuthenticationRepositoryTest : SysuiTestCase() {
     fun lockoutEndTimestamp() =
         testScope.runTest {
             val lockoutEndMs = clock.elapsedRealtime() + 30.seconds.inWholeMilliseconds
-            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[0].id, true))
+            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[0].id))
                 .thenReturn(lockoutEndMs)
-            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[1].id, true)).thenReturn(0)
+            whenever(lockPatternUtils.getLockoutAttemptDeadline(USER_INFOS[1].id)).thenReturn(0)
 
             // Switch to a user who is not locked-out.
             userRepository.setSelectedUserInfo(USER_INFOS[1])
