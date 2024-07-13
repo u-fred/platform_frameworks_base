@@ -91,8 +91,8 @@ class DeviceEntryRepositoryTest : SysuiTestCase() {
     @Test
     fun isLockscreenEnabled() =
         testScope.runTest {
-            whenever(lockPatternUtils.isLockScreenDisabled(USER_INFOS[0].id, true)).thenReturn(false)
-            whenever(lockPatternUtils.isLockScreenDisabled(USER_INFOS[1].id, true)).thenReturn(true)
+            whenever(lockPatternUtils.isLockScreenDisabled(USER_INFOS[0].id)).thenReturn(false)
+            whenever(lockPatternUtils.isLockScreenDisabled(USER_INFOS[1].id)).thenReturn(true)
 
             userRepository.setSelectedUserInfo(USER_INFOS[0])
             assertThat(underTest.isLockscreenEnabled()).isTrue()

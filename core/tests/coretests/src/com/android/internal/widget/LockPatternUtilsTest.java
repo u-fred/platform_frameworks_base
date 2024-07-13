@@ -135,25 +135,25 @@ public class LockPatternUtilsTest {
     @Test
     public void isLockScreenDisabled_isDemoUser_true() throws Exception {
         configureTest(false, true, 2);
-        assertTrue(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
+        assertTrue(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
     }
 
     @Test
     public void isLockScreenDisabled_isSecureAndDemoUser_false() throws Exception {
         configureTest(true, true, 2);
-        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
+        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
     }
 
     @Test
     public void isLockScreenDisabled_isNotDemoUser_false() throws Exception {
         configureTest(false, false, 2);
-        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
+        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
     }
 
     @Test
     public void isLockScreenDisabled_isNotInDemoMode_false() throws Exception {
         configureTest(false, true, 0);
-        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID, true));
+        assertFalse(mLockPatternUtils.isLockScreenDisabled(DEMO_USER_ID));
     }
 
     @Test

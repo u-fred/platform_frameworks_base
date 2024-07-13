@@ -876,7 +876,6 @@ public class LockPatternUtils {
         return isLockScreenDisabled(userId, true);
     }
 
-
     public boolean isLockScreenDisabled(int userId, boolean primary) {
         if (isSecure(userId, primary)) {
             return false;
