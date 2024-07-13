@@ -23,7 +23,6 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COM
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
-
 import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.LockDomain.Secondary;
 
@@ -68,6 +67,7 @@ import android.util.SparseLongArray;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.LocalServices;
+
 import com.google.android.collect.Lists;
 
 import java.lang.annotation.Retention;
