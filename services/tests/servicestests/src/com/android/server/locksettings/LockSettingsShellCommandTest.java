@@ -307,7 +307,7 @@ public class LockSettingsShellCommandTest {
                 .thenReturn(true);
         when(mLockPatternUtils.getRequestedPasswordMetrics(mUserId))
                 .thenReturn(metricsForAdminQuality(PASSWORD_QUALITY_UNSPECIFIED));
-        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId, true))
+        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId))
                 .thenReturn(PASSWORD_COMPLEXITY_MEDIUM);
 
         assertEquals(-1, mCommand.exec(new Binder(), in, out, err,
@@ -329,7 +329,7 @@ public class LockSettingsShellCommandTest {
                 .thenReturn(true);
         when(mLockPatternUtils.getRequestedPasswordMetrics(mUserId))
                 .thenReturn(metricsForAdminQuality(PASSWORD_QUALITY_UNSPECIFIED));
-        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId, true))
+        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId))
                 .thenReturn(PASSWORD_COMPLEXITY_MEDIUM);
 
         assertEquals(0, mCommand.exec(new Binder(), in, out, err,
@@ -353,7 +353,7 @@ public class LockSettingsShellCommandTest {
                 mUserId, null)).thenReturn(true);
         when(mLockPatternUtils.getRequestedPasswordMetrics(mUserId))
                 .thenReturn(metricsForAdminQuality(PASSWORD_QUALITY_UNSPECIFIED));
-        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId, true))
+        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId))
                 .thenReturn(PASSWORD_COMPLEXITY_HIGH);
 
         assertEquals(-1, mCommand.exec(new Binder(), in, out, err,
@@ -373,7 +373,7 @@ public class LockSettingsShellCommandTest {
                 mUserId, null)).thenReturn(true);
         when(mLockPatternUtils.getRequestedPasswordMetrics(mUserId))
                 .thenReturn(metricsForAdminQuality(PASSWORD_QUALITY_UNSPECIFIED));
-        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId, true))
+        when(mLockPatternUtils.getRequestedPasswordComplexity(mUserId))
                 .thenReturn(PASSWORD_COMPLEXITY_LOW);
 
         assertEquals(0, mCommand.exec(new Binder(), in, out, err,
