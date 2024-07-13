@@ -146,6 +146,13 @@ public class LockPatternUtils {
     })
     public @interface CredentialType {}
 
+    // Using this type as an argument for methods that require secondary handling is safer and
+    // allows us to rebase more quickly.
+    // Consider that if we add secondary handling to a method by overloading with a boolean
+    // isPrimary, then upstream could add a conflicting overload.
+    // Also consider that if we have foo(bool) and its overload foo(bool, bool), adding an
+    // additional bool argument to differentiate primary/secondary could result in future callers
+    // calling the wrong method.
     public enum LockDomain implements Parcelable {
         Primary, Secondary;
 
