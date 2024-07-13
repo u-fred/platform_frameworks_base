@@ -5825,11 +5825,6 @@ public class DevicePolicyManager {
         return getAggregatedPasswordComplexityForUser(userId, Primary, false);
     }
 
-    @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId, LockDomain lockDomain) {
-        return getAggregatedPasswordComplexityForUser(userId, lockDomain, false);
-    }
-
     /**
      * Returns the password complexity that applies to this user, aggregated from other users if
      * necessary (for example, if the DPC has set password complexity requirements on the parent
