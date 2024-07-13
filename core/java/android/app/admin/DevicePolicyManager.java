@@ -5377,14 +5377,6 @@ public class DevicePolicyManager {
     }
 
     /**
-     * @hide
-     */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
-            LockDomain lockDomain) {
-        return getPasswordMinimumMetrics(userHandle, lockDomain, false);
-    }
-
-    /**
      * Returns minimum PasswordMetrics that satisfies all admin policies.
      * If requested, only consider device-wide admin policies and ignore policies set on the
      * managed profile instance (as if the managed profile had separate work challenge).
