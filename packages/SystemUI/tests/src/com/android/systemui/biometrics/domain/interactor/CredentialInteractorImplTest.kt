@@ -119,7 +119,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         val usedAttempts = 1
         whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID)))
             .thenReturn(usedAttempts)
-        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt())).thenReturn(result)
+        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt())).thenReturn(result)
         whenever(lockPatternUtils.verifyGatekeeperPasswordHandle(anyLong(), anyLong(), eq(USER_ID)))
             .thenReturn(result)
         whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), eq(true), anyInt())).thenAnswer {
@@ -170,7 +170,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
 
     @Test
     fun pinCredentialWhenBadAndFinalAttempt() = runTest {
-        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt()))
+        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt()))
             .thenReturn(badCredential())
         whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID)))
             .thenReturn(MAX_ATTEMPTS - 2)
@@ -191,7 +191,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
 
     @Test
     fun pinCredentialWhenBadAndNoMoreAttempts() = runTest {
-        whenever(lockPatternUtils.verifyCredential(any(), eq(true), eq(USER_ID), anyInt()))
+        whenever(lockPatternUtils.verifyCredential(any(), eq(USER_ID), anyInt()))
             .thenReturn(badCredential())
         whenever(lockPatternUtils.getCurrentFailedPasswordAttempts(eq(USER_ID)))
             .thenReturn(MAX_ATTEMPTS - 1)
