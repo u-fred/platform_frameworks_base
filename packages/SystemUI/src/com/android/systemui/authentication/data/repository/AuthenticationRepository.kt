@@ -295,7 +295,7 @@ constructor(
                 lockPatternUtils.reportSuccessfulPasswordAttempt(selectedUserId, true, true)
                 _hasLockoutOccurred.value = false
             } else {
-                lockPatternUtils.reportFailedPasswordAttempt(selectedUserId, true)
+                lockPatternUtils.reportFailedPasswordAttempt(selectedUserId)
             }
             _failedAuthenticationAttempts.value = getFailedAuthenticationAttemptCount()
         }
