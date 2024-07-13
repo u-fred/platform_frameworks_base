@@ -285,8 +285,7 @@ constructor(
         getAuthenticationMethod(selectedUserId)
 
     override suspend fun getPinLength(): Int {
-        return withContext(backgroundDispatcher) { lockPatternUtils.getPinLength(selectedUserId,
-                true) }
+        return withContext(backgroundDispatcher) { lockPatternUtils.getPinLength(selectedUserId) }
     }
 
     override suspend fun reportAuthenticationAttempt(isSuccessful: Boolean) {
