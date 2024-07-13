@@ -30,6 +30,10 @@ public class WrappedLockPatternUtils {
         return mInner.getRequestedPasswordMetrics(userId, mLockDomain, deviceWideOnly);
     }
 
+    public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId) {
+        return mInner.getRequestedPasswordComplexity(userId, mLockDomain);
+    }
+
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
             boolean deviceWideOnly) {
         return mInner.getRequestedPasswordComplexity(userId, mLockDomain, deviceWideOnly);
