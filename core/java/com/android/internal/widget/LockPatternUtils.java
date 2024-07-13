@@ -1477,11 +1477,14 @@ public class LockPatternUtils {
 
     /**
      * @param userId the user whose lockout time to return.
-     * @param primary whether to return primary or biometric second factor lockout.
      * @return The elapsed time in millis in the future when the user is allowed to.
      *   attempt to enter their lock pattern, or 0 if the user is welcome to
      *   enter a pattern.
      */
+    public long getLockoutAttemptDeadline(int userId) {
+        return getLockoutAttemptDeadline(userId, true);
+    }
+
     public long getLockoutAttemptDeadline(int userId, boolean primary) {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return 0L;

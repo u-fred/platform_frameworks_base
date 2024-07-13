@@ -249,7 +249,7 @@ constructor(
 
     override val lockoutEndTimestamp: Long?
         get() =
-            lockPatternUtils.getLockoutAttemptDeadline(selectedUserId, true).takeIf {
+            lockPatternUtils.getLockoutAttemptDeadline(selectedUserId).takeIf {
                 clock.elapsedRealtime() < it
             }
 

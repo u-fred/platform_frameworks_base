@@ -246,7 +246,7 @@ public class KeyguardPatternViewController
         mPostureController.addCallback(mPostureCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), true);
+                mSelectedUserInteractor.getSelectedUserId());
         if (deadline != 0) {
             handleAttemptLockout(deadline);
         }
