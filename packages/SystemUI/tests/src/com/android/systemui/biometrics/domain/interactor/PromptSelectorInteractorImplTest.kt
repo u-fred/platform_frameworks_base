@@ -198,7 +198,7 @@ class PromptSelectorInteractorImplTest : SysuiTestCase() {
     }
 
     private fun setUserCredentialType(isPin: Boolean = false, isPassword: Boolean = false) {
-        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(any(), eq(true)))
+        whenever(lockPatternUtils.getKeyguardStoredPasswordQuality(any()))
             .thenReturn(
                 when {
                     isPin -> DevicePolicyManager.PASSWORD_QUALITY_NUMERIC
