@@ -163,7 +163,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
                     .matches(Regex("(.*)try again(.*)", RegexOption.IGNORE_CASE).toPattern())
                 assertThat(statusList).isEmpty()
 
-                verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
+                verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID))
             }
         }
     }
@@ -186,7 +186,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         assertThat(result.urgentMessage).isNotEmpty()
         assertThat(statusList).isEmpty()
 
-        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
+        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID))
     }
 
     @Test
@@ -208,7 +208,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         assertThat(result.urgentMessage).isNotEmpty()
         assertThat(statusList).isEmpty()
 
-        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID), eq(true))
+        verify(lockPatternUtils).reportFailedPasswordAttempt(eq(USER_ID))
     }
 }
 
