@@ -9163,6 +9163,14 @@ public class DevicePolicyManager {
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
+        reportPasswordChanged(metrics, userId, true);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
             boolean primary) {
         if (mService != null) {

@@ -1026,7 +1026,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Change the parent user's password.
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PASSWORD),
-                UserHandle.USER_SYSTEM, true);
+                UserHandle.USER_SYSTEM);
 
         // The managed profile owner should receive this broadcast.
         final Intent intent = new Intent(DeviceAdminReceiver.ACTION_PASSWORD_CHANGED);
@@ -1066,7 +1066,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Change the profile's password.
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PASSWORD),
-                MANAGED_PROFILE_USER_ID, true);
+                MANAGED_PROFILE_USER_ID);
 
         // Both the device owner and the managed profile owner should receive this broadcast.
         final Intent intent = new Intent(DeviceAdminReceiver.ACTION_PASSWORD_CHANGED);
@@ -6107,7 +6107,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         reset(mContext.spiedContext);
         // This should be ignored, as there is no lock screen.
-        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_NONE), userHandle, true);
+        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_NONE), userHandle);
 
         // No broadcast should be sent.
         verify(mContext.spiedContext, times(0)).sendBroadcastAsUser(
@@ -6483,7 +6483,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         when(getServices().lockSettingsInternal.getUserPasswordMetrics(userHandle))
                 .thenReturn(passwordMetrics);
-        dpm.reportPasswordChanged(passwordMetrics, userHandle, true);
+        dpm.reportPasswordChanged(passwordMetrics, userHandle);
 
         verify(mContext.spiedContext, times(1)).sendBroadcastAsUser(
                 MockUtils.checkIntentAction(
