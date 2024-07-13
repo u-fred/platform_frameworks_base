@@ -5829,31 +5829,45 @@ public class DevicePolicyManager {
      * @hide
      */
     @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary) {
-        return getAggregatedPasswordComplexityForUser(userId, primary, false);
+    public int getAggregatedPasswordComplexityForUser(int userId) {
+        return getAggregatedPasswordComplexityForUser(userId, Primary, false);
+    }
+
+    @PasswordComplexity
+    public int getAggregatedPasswordComplexityForUser(int userId, LockDomain lockDomain) {
+        return getAggregatedPasswordComplexityForUser(userId, lockDomain, false);
     }
 
     /**
      * Returns the password complexity that applies to this user, aggregated from other users if
      * necessary (for example, if the DPC has set password complexity requirements on the parent
      * profile DPM instance of a managed profile user, they would apply to the primary user on the
-     * device). If {@code deviceWideOnly} and {@code primary} is {@code true}, ignore policies set
-     * on the managed profile DPM instance (as if the managed profile had separate work challenge).
+     * device). If {@code deviceWideOnly} is {@code true}, ignore policies set on the
+     * managed profile DPM instance (as if the managed profile had separate work challenge).
      * @hide
      */
     @PasswordComplexity
-    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary, boolean deviceWideOnly) {
+    public int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly) {
+        return getAggregatedPasswordComplexityForUser(userId, Primary, deviceWideOnly);
+    }
+
+    /**
+     * @param deviceWideOnly ignored if LockDomain is not Primary.
+     */
+    @PasswordComplexity
+    public int getAggregatedPasswordComplexityForUser(int userId, LockDomain lockDomain,
+            boolean deviceWideOnly) {
         if (mService == null) {
             return PASSWORD_COMPLEXITY_NONE;
         }
 
         try {
-            return mService.getAggregatedPasswordComplexityForUser(userId, primary, deviceWideOnly);
+            return mService.getAggregatedPasswordComplexityForUser(userId, lockDomain == Primary,
+                    deviceWideOnly);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
     }
-
 
     /**
      * When called by a profile owner of a managed profile returns true if the profile uses unified

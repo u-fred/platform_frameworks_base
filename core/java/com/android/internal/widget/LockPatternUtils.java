@@ -477,8 +477,8 @@ public class LockPatternUtils {
 
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
             LockDomain lockDomain, boolean deviceWideOnly) {
-        return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId,
-                lockDomain == Primary, deviceWideOnly);
+        return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId, lockDomain,
+                deviceWideOnly);
     }
 
     @UnsupportedAppUsage

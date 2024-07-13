@@ -550,7 +550,7 @@ public class RestrictedLockUtilsInternal extends RestrictedLockUtils {
         }
 
         LockPatternUtils lockPatternUtils = new LockPatternUtils(context);
-        final int aggregatedComplexity = dpm.getAggregatedPasswordComplexityForUser(userId, true);
+        final int aggregatedComplexity = dpm.getAggregatedPasswordComplexityForUser(userId);
         if (aggregatedComplexity > DevicePolicyManager.PASSWORD_COMPLEXITY_NONE) {
             // First, check if there's a Device Owner. If so, then only it can apply password
             // complexity requiremnts (there can be no secondary profiles).

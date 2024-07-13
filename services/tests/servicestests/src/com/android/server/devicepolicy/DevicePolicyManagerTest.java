@@ -5575,7 +5575,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getAggregatedPasswordComplexityForUser(userId, false, true));
+                () -> dpm.getAggregatedPasswordComplexityForUser(userId, Secondary, true));
     }
 
     @Test
@@ -5587,7 +5587,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(USER_FRP);
 
         assertThrows(SecondaryForSpecialUserException.class,
-                () -> dpm.getAggregatedPasswordComplexityForUser(USER_FRP, false, true));
+                () -> dpm.getAggregatedPasswordComplexityForUser(USER_FRP, Secondary, true));
     }
 
     @Test
@@ -5599,7 +5599,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getAggregatedPasswordComplexityForUser(DOES_NOT_EXIST_USER_ID, false,
+        assertThat(dpm.getAggregatedPasswordComplexityForUser(DOES_NOT_EXIST_USER_ID, Secondary,
                 true))
                 .isEqualTo(PASSWORD_COMPLEXITY_NONE);
     }
@@ -5613,7 +5613,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(userId);
 
-        assertThat(dpm.getAggregatedPasswordComplexityForUser(userId, false,
+        assertThat(dpm.getAggregatedPasswordComplexityForUser(userId, Secondary,
                 true))
                 .isEqualTo(PASSWORD_COMPLEXITY_NONE);
     }
@@ -6158,9 +6158,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         dpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_HIGH);
         parentDpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_LOW);
 
-        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM, true,  true))
+        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  true))
                 .isEqualTo(PASSWORD_COMPLEXITY_LOW);
-        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM, true,  false))
+        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  false))
                 .isEqualTo(PASSWORD_COMPLEXITY_HIGH);
     }
 
