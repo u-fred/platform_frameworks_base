@@ -65,6 +65,7 @@ import static android.content.Intent.LOCAL_FLAG_FROM_SYSTEM;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
 
 import android.Manifest.permission;
 import android.accounts.Account;
@@ -157,6 +158,7 @@ import com.android.internal.os.BackgroundThread;
 import com.android.internal.os.Zygote;
 import com.android.internal.util.ArrayUtils;
 import com.android.internal.util.Preconditions;
+import com.android.internal.widget.LockPatternUtils.LockDomain;
 import com.android.org.conscrypt.TrustedCertificateStore;
 
 import java.io.ByteArrayInputStream;
@@ -5370,24 +5372,44 @@ public class DevicePolicyManager {
      *
      * @hide
      */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary) {
-        return getPasswordMinimumMetrics(userHandle, primary, false);
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle) {
+        return getPasswordMinimumMetrics(userHandle, Primary, false);
+    }
+
+    /**
+     * @hide
+     */
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+            LockDomain lockDomain) {
+        return getPasswordMinimumMetrics(userHandle, lockDomain, false);
     }
 
     /**
      * Returns minimum PasswordMetrics that satisfies all admin policies.
+     * If requested, only consider device-wide admin policies and ignore policies set on the
+     * managed profile instance (as if the managed profile had separate work challenge).
      *
+     * @hide
+     */
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+            boolean deviceWideOnly) {
+        return getPasswordMinimumMetrics(userHandle, Primary, deviceWideOnly);
+
+    }
+
+    /**
      * @param deviceWideOnly Only consider device-wide admin policies and ignore policies set on the
      *                       managed profile instance (as if the managed profile had separate work
      *                       challenge). This is ignored if primary is false.
      *
      * @hide
      */
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary,
-            boolean deviceWideOnly) {
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+            LockDomain lockDomain, boolean deviceWideOnly) {
         if (mService != null) {
             try {
-                return mService.getPasswordMinimumMetrics(userHandle, primary, deviceWideOnly);
+                return mService.getPasswordMinimumMetrics(userHandle, lockDomain == Primary,
+                        deviceWideOnly);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

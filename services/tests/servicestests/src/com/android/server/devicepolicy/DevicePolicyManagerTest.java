@@ -59,6 +59,7 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChangeCallback;
+import static com.android.internal.widget.LockPatternUtils.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
 import static com.android.internal.widget.LockPatternUtils.SecondaryForSpecialUserException;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
@@ -5526,7 +5527,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getPasswordMinimumMetrics(userId, false, true));
+                () -> dpm.getPasswordMinimumMetrics(userId, Secondary));
     }
 
     @Test
@@ -5535,7 +5536,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.getPasswordMinimumMetrics(USER_FRP, false, true));
+                () -> dpm.getPasswordMinimumMetrics(USER_FRP, Secondary));
     }
 
     @Test
@@ -5547,7 +5548,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getPasswordMinimumMetrics(DOES_NOT_EXIST_USER_ID, false, true))
+        assertThat(dpm.getPasswordMinimumMetrics(DOES_NOT_EXIST_USER_ID, Secondary))
                 .isEqualTo(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
     }
 
@@ -5560,7 +5561,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(userId);
 
-        assertThat(dpm.getPasswordMinimumMetrics(userId, false, true))
+        assertThat(dpm.getPasswordMinimumMetrics(userId, Secondary))
                 .isEqualTo(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
     }
 

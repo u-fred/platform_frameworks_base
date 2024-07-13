@@ -435,7 +435,7 @@ public class LockPatternUtils {
      */
     public PasswordMetrics getRequestedPasswordMetrics(int userId, LockDomain lockDomain,
             boolean deviceWideOnly) {
-        return getDevicePolicyManager().getPasswordMinimumMetrics(userId, lockDomain == Primary,
+        return getDevicePolicyManager().getPasswordMinimumMetrics(userId, lockDomain,
                 deviceWideOnly);
     }
 
