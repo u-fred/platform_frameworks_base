@@ -282,7 +282,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(pattern)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(pattern, getOldCredential(), true, mCurrentUserId);
+        mLockPatternUtils.setLockCredential(pattern, getOldCredential(), mCurrentUserId);
         getOutPrintWriter().println("Pattern set to '" + mNew + "'");
         return true;
     }
@@ -292,7 +292,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(password)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(password, getOldCredential(), true, mCurrentUserId);
+        mLockPatternUtils.setLockCredential(password, getOldCredential(), mCurrentUserId);
         getOutPrintWriter().println("Password set to '" + mNew + "'");
         return true;
     }
@@ -302,7 +302,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(pin)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(pin, getOldCredential(), true, mCurrentUserId);
+        mLockPatternUtils.setLockCredential(pin, getOldCredential(), mCurrentUserId);
         getOutPrintWriter().println("Pin set to '" + mNew + "'");
         return true;
     }
@@ -341,7 +341,7 @@ class LockSettingsShellCommand extends ShellCommand {
         if (!isNewCredentialSufficient(none)) {
             return false;
         }
-        mLockPatternUtils.setLockCredential(none, getOldCredential(), true, mCurrentUserId);
+        mLockPatternUtils.setLockCredential(none, getOldCredential(), mCurrentUserId);
         getOutPrintWriter().println("Lock credential cleared");
         return true;
     }

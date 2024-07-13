@@ -985,9 +985,6 @@ public class LockPatternUtils {
      * @param newCredential the new credential to save. Can only be PIN or None if setting
      *                      secondary.
      * @param savedCredential the current credential. Must be primary, even if setting secondary.
-     * @param primary whether to set the primary or biometric second factor credential. Must be true
-     *                if userHandle is user that can share credentials with parent. Must have
-     *                existing (not None) primary in order to set secondary.
      * @param userHandle the user whose lockscreen credential is to be changed.
      *
      * @return whether this method saved the new password successfully or not. This flow will fail
@@ -995,6 +992,11 @@ public class LockPatternUtils {
      * @throws RuntimeException if password change encountered an unrecoverable error.
      * @throws UnsupportedOperationException secure lockscreen is not supported on this device.
      */
+    public boolean setLockCredential(@NonNull LockscreenCredential newCredential,
+            @NonNull LockscreenCredential savedCredential, int userHandle) {
+        return setLockCredential(newCredential, savedCredential, true, userHandle);
+    }
+
     public boolean setLockCredential(@NonNull LockscreenCredential newCredential,
             @NonNull LockscreenCredential savedCredential, boolean primary, int userHandle) {
         if (!hasSecureLockScreen() && newCredential.getType() != CREDENTIAL_TYPE_NONE) {
