@@ -1353,22 +1353,21 @@ public class LockPatternUtils {
         return cache.query(userHandle);
     }
 
+    /**
+     * @param userId the user for which to report the value
+     * @return Whether the lock screen is secured.
+     */
     @UnsupportedAppUsage
     public boolean isSecure(int userId) {
         return isSecure(userId, true);
     }
 
-    /**
-     * @param userId the user for which to report the value
-     * @return Whether the lock screen is secured.
-     */
     public boolean isSecure(int userId, boolean primary) {
         int type = getCredentialTypeForUser(userId, primary);
         return type != CREDENTIAL_TYPE_NONE;
     }
 
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
-    // TODO: Add a secondary overload?
     public boolean isLockPasswordEnabled(int userId) {
         int type = getCredentialTypeForUser(userId);
         return type == CREDENTIAL_TYPE_PASSWORD || type == CREDENTIAL_TYPE_PIN;
