@@ -5743,9 +5743,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
         // Failed password attempts on the parent user are taken into account, as there isn't a
         // separate work challenge.
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
 
         // The profile should be wiped even if DISALLOW_REMOVE_MANAGED_PROFILE is enabled, because
         // both the user restriction and the policy were set by the PO.
@@ -5777,9 +5777,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
         // Failed password attempts on the parent user are taken into account, as there isn't a
         // separate work challenge.
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
 
         // DISALLOW_REMOVE_MANAGED_PROFILE was set by the system, not the PO, so the profile is
         // not wiped.
@@ -5800,9 +5800,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
 
         // The device should be wiped even if DISALLOW_FACTORY_RESET is enabled, because both the
         // user restriction and the policy were set by the DO.
@@ -5821,9 +5821,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         mContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         mContext.callerPermissions.add(permission.BIND_DEVICE_ADMIN);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
 
         // DISALLOW_FACTORY_RESET was set by the system, not the DO, so the device is not wiped.
         verifyZeroInteractions(getServices().recoverySystem);
@@ -5860,9 +5860,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Failed password attempts on the parent user are taken into account, as there isn't a
         // separate work challenge.
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
-        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM, true);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
+        dpm.reportFailedPasswordAttempt(UserHandle.USER_SYSTEM);
 
         // For managed profile on an organization owned device, the whole device should be wiped.
         verifyRebootWipeUserData(/* wipeEuicc= */ false);
@@ -5902,9 +5902,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(UserHandle.USER_SYSTEM);
 
         // Simulate three failed attempts at solving the separate challenge.
-        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, true);
-        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, true);
-        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID, true);
+        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID);
+        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID);
+        dpm.reportFailedPasswordAttempt(MANAGED_PROFILE_USER_ID);
 
         // For managed profile on an organization owned device, the whole device should be wiped.
         verifyRebootWipeUserData(/* wipeEuicc= */ false);
