@@ -1018,8 +1018,7 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                         lockPatternUtils.setPowerButtonInstantlyLocks("1".equals(value), userId);
                         break;
                     case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY:
-                        lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId,
-                                true);
+                        lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId);
                         break;
                     case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY:
                         lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId,

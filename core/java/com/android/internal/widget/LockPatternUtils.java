@@ -1414,6 +1414,10 @@ public class LockPatternUtils {
     /**
      * Set whether enhanced pin privacy is enabled.
      */
+    public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId) {
+        setPinEnhancedPrivacyEnabled(enabled, userId, true);
+    }
+
     public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId, boolean primary) {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
