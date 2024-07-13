@@ -361,7 +361,9 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
         // TODO: Would it be preferred to add this to the base method and use instanceof?
         if (!mIsForPrimaryCredential) {
             // Without this can end up displaying a strong auth prompt even when SecurityMode is
-            // BiometricSecondFactorPin. For example, when weak biometric has idle timed out.
+            // BiometricSecondFactorPin. See allowedNonStrongAfterIdleTimeout in
+            // KeyguardViewMediator#getBouncerPromptReason. This may be an upstream bug, would need
+            // to look further.
             return 0;
         }
         return super.getPromptReasonStringRes(reason);
