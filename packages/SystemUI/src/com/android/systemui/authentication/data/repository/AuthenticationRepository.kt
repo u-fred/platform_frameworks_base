@@ -273,7 +273,7 @@ constructor(
     ): AuthenticationResultModel {
         return withContext(backgroundDispatcher) {
             try {
-                val matched = lockPatternUtils.checkCredential(credential, true, selectedUserId) {}
+                val matched = lockPatternUtils.checkCredential(credential, selectedUserId) {}
                 AuthenticationResultModel(isSuccessful = matched, lockoutDurationMs = 0)
             } catch (ex: LockPatternUtils.RequestThrottledException) {
                 AuthenticationResultModel(isSuccessful = false, lockoutDurationMs = ex.timeoutMs)

@@ -380,7 +380,7 @@ class LockSettingsShellCommand extends ShellCommand {
             }
 
             try {
-                final boolean result = mLockPatternUtils.checkCredential(getOldCredential(), true,
+                final boolean result = mLockPatternUtils.checkCredential(getOldCredential(),
                         mCurrentUserId, null);
                 if (!result) {
                     if (!mLockPatternUtils.isManagedProfileWithUnifiedChallenge(mCurrentUserId)) {
