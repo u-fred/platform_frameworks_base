@@ -5954,16 +5954,6 @@ public class DevicePolicyManager {
         return getCurrentFailedPasswordAttempts(userHandle, true);
     }
 
-    /**
-     * Retrieve the number of times the given user has failed at entering a
-     * password (primary or biometric second factor) since that last successful password entry.
-     *
-     * <p>The calling device admin must have requested
-     * {@link DeviceAdminInfo#USES_POLICY_WATCH_LOGIN} to be able to call this method; if it has
-     * not and it is not the system uid, a security exception will be thrown.
-     *
-     * @hide
-     */
     public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
         if (mService != null) {
             try {
