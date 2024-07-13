@@ -801,6 +801,10 @@ public class LockPatternUtils {
      * @param primary whether to refresh primary or biometric second factor PIN length
      * @return true/false depending on whether PIN length has been saved or not
      */
+    public boolean refreshStoredPinLength(int userId) {
+        return refreshStoredPinLength(userId, true);
+    }
+
     public boolean refreshStoredPinLength(int userId, boolean primary) {
         try {
             return getLockSettings().refreshStoredPinLength(userId, primary ? Primary : Secondary);
