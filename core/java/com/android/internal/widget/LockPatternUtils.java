@@ -1348,7 +1348,6 @@ public class LockPatternUtils {
     }
 
     @UnsupportedAppUsage
-    // TODO: Remove all calls to this overload?
     public boolean isSecure(int userId) {
         return isSecure(userId, true);
     }
