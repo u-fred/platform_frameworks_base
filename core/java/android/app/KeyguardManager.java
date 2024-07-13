@@ -1248,7 +1248,7 @@ public class KeyguardManager {
         final LockscreenCredential credential = createLockscreenCredential(
                 lockType, password);
         final VerifyCredentialResponse response = mLockPatternUtils.verifyCredential(
-                credential, true, mContext.getUserId(), /* flags= */ 0);
+                credential, mContext.getUserId(), /* flags= */ 0);
         if (response == null) {
             return false;
         }

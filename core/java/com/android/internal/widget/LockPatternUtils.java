@@ -585,11 +585,16 @@ public class LockPatternUtils {
      * If credential matches, return an opaque attestation that the challenge was verified.
      *
      * @param credential The credential to check.
-     * @param primary Whether to verify the primary or biometric second factor credential.
      * @param userId The user whose credential is being verified.
      * @param flags See {@link VerifyFlag}.
      * @throws IllegalStateException If called on the main thread.
      */
+    @NonNull
+    public VerifyCredentialResponse verifyCredential(@NonNull LockscreenCredential credential,
+            int userId, @VerifyFlag int flags) {
+        return verifyCredential(credential, true, userId, flags);
+    }
+
     @NonNull
     public VerifyCredentialResponse verifyCredential(@NonNull LockscreenCredential credential,
             boolean primary, int userId, @VerifyFlag int flags) {
