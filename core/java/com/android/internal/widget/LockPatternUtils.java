@@ -445,9 +445,13 @@ public class LockPatternUtils {
      * @param userId  The user to return the complexity for.
      * @return complexity level for the user.
      */
+    public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId) {
+        return getRequestedPasswordComplexity(userId, Primary, false);
+    }
+
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
-            boolean primary) {
-        return getRequestedPasswordComplexity(userId, primary, false);
+            LockDomain lockDomain) {
+        return getRequestedPasswordComplexity(userId, lockDomain, false);
     }
 
     /**
@@ -456,13 +460,18 @@ public class LockPatternUtils {
 
      * @param userId  The user to return the complexity for.
      * @param deviceWideOnly  Whether to ignore complexity set on the managed profile. This is
-     *                        ignored if primary is false.
+     *                        ignored if lockDomain is not Primary.
      * @return complexity level for the user.
      */
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
-            boolean primary, boolean deviceWideOnly) {
-        return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId, primary,
-                deviceWideOnly);
+            boolean deviceWideOnly) {
+        return getRequestedPasswordComplexity(userId, Primary, deviceWideOnly);
+    }
+
+    public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
+            LockDomain lockDomain, boolean deviceWideOnly) {
+        return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId,
+                lockDomain == Primary, deviceWideOnly);
     }
 
     @UnsupportedAppUsage
