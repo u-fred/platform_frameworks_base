@@ -240,7 +240,7 @@ constructor(
     override val isPinEnhancedPrivacyEnabled: StateFlow<Boolean> =
         refreshingFlow(
             initialValue = true,
-            getFreshValue = { userId -> lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, true) },
+            getFreshValue = { userId -> lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) },
         )
 
     private val _failedAuthenticationAttempts = MutableStateFlow(0)
