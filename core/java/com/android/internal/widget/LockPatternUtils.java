@@ -897,8 +897,11 @@ public class LockPatternUtils {
      * Sets the pin auto confirm capability to enabled or disabled
      * @param enabled enables pin auto confirm capability when true
      * @param userId user ID of the user this has effect on
-     * @param primary whether to set primary or biometric second factor PIN auto confirm
      */
+    public void setAutoPinConfirm(boolean enabled, int userId) {
+        setAutoPinConfirm(enabled, userId, true);
+    }
+
     public void setAutoPinConfirm(boolean enabled, int userId, boolean primary) {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             return;
