@@ -814,16 +814,16 @@ public class LockPatternUtils {
         }
     }
 
-    @UnsupportedAppUsage
-    public int getActivePasswordQuality(int userId) {
-        return getActivePasswordQuality(userId, true);
-    }
-
     /**
      * Used by device policy manager to validate the current password
      * information it has.
      * @Deprecated use {@link #getKeyguardStoredPasswordQuality}
      */
+    @UnsupportedAppUsage
+    public int getActivePasswordQuality(int userId) {
+        return getActivePasswordQuality(userId, true);
+    }
+
     public int getActivePasswordQuality(int userId, boolean primary) {
         return getKeyguardStoredPasswordQuality(userId, primary);
     }

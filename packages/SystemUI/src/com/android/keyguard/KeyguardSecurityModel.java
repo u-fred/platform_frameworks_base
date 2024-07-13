@@ -86,7 +86,7 @@ public class KeyguardSecurityModel {
         }
 
         final int security = whitelistIpcs(() ->
-                mLockPatternUtils.getActivePasswordQuality(userId, true));
+                mLockPatternUtils.getActivePasswordQuality(userId));
         switch (security) {
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC:
             case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX:
