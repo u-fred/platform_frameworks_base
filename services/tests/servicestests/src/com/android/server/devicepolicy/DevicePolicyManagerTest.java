@@ -5527,7 +5527,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getPasswordMinimumMetrics(userId, Secondary));
+                () -> dpm.getPasswordMinimumMetrics(userId, Secondary, false));
     }
 
     @Test
@@ -5536,7 +5536,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.getPasswordMinimumMetrics(USER_FRP, Secondary));
+                () -> dpm.getPasswordMinimumMetrics(USER_FRP, Secondary, false));
     }
 
     @Test
@@ -5548,7 +5548,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getPasswordMinimumMetrics(DOES_NOT_EXIST_USER_ID, Secondary))
+        assertThat(dpm.getPasswordMinimumMetrics(DOES_NOT_EXIST_USER_ID, Secondary, false))
                 .isEqualTo(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
     }
 
@@ -5561,7 +5561,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(userId);
 
-        assertThat(dpm.getPasswordMinimumMetrics(userId, Secondary))
+        assertThat(dpm.getPasswordMinimumMetrics(userId, Secondary, false))
                 .isEqualTo(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
     }
 
