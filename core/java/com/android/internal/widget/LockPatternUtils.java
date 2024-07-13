@@ -1338,6 +1338,10 @@ public class LockPatternUtils {
      * {@link #CREDENTIAL_TYPE_PATTERN}, {@link #CREDENTIAL_TYPE_PIN} and
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
+    public @CredentialType int getCredentialTypeForUser(int userHandle) {
+        return getCredentialTypeForUser(userHandle, true);
+    }
+
     public @CredentialType int getCredentialTypeForUser(int userHandle, boolean primaryCredential) {
         var cache = primaryCredential ? mPrimaryCredentialTypeCache : mSecondaryCredentialTypeCache;
         return cache.query(userHandle);
@@ -1361,7 +1365,7 @@ public class LockPatternUtils {
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
     // TODO: Add a secondary overload?
     public boolean isLockPasswordEnabled(int userId) {
-        int type = getCredentialTypeForUser(userId, true);
+        int type = getCredentialTypeForUser(userId);
         return type == CREDENTIAL_TYPE_PASSWORD || type == CREDENTIAL_TYPE_PIN;
     }
 
@@ -1370,7 +1374,7 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public boolean isLockPatternEnabled(int userId) {
-        int type = getCredentialTypeForUser(userId, true);
+        int type = getCredentialTypeForUser(userId);
         return type == CREDENTIAL_TYPE_PATTERN;
     }
 
