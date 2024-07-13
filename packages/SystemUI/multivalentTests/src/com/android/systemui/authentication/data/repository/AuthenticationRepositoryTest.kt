@@ -126,8 +126,8 @@ class AuthenticationRepositoryTest : SysuiTestCase() {
     fun isAutoConfirmFeatureEnabled() =
         // TODO: Fix this test by adding primary arg to the flow in AuthenticationRepositoryImpl.
         testScope.runTest {
-            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[0].id, true)).thenReturn(true)
-            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[1].id, true)).thenReturn(false)
+            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[0].id)).thenReturn(true)
+            whenever(lockPatternUtils.isAutoPinConfirmEnabled(USER_INFOS[1].id)).thenReturn(false)
 
             val values by collectValues(underTest.isAutoConfirmFeatureEnabled)
             assertThat(values.first()).isFalse()
