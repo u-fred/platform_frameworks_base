@@ -1445,10 +1445,14 @@ public class LockPatternUtils {
      * Set and store the lockout deadline, meaning the user can't attempt their unlock
      * pattern until the deadline has passed.
      * @param userId the user whose lockout time to set.
-     * @param primary whether to set primary or biometric second factor lockout.
      * @param timeoutMs the timeout to set.
      * @return the chosen deadline.
      */
+    @UnsupportedAppUsage
+    public long setLockoutAttemptDeadline(int userId, int timeoutMs) {
+        return setLockoutAttemptDeadline(userId, true, timeoutMs);
+    }
+
     public long setLockoutAttemptDeadline(int userId, boolean primary, int timeoutMs) {
         if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
             // We can't follow the base behaviour and add to deadlines even if user does not exist
@@ -1469,11 +1473,6 @@ public class LockPatternUtils {
         deadlines.put(userId, deadline);
 
         return deadline;
-    }
-
-    @UnsupportedAppUsage
-    public long setLockoutAttemptDeadline(int userId, int timeoutMs) {
-        return setLockoutAttemptDeadline(userId, true, timeoutMs);
     }
 
     /**

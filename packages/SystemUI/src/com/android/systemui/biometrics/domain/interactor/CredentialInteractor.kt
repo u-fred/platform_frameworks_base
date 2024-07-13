@@ -101,7 +101,7 @@ constructor(
             // if requests are being throttled, update the error message every
             // second until the temporary lock has expired
             val deadline: Long =
-                lockPatternUtils.setLockoutAttemptDeadline(effectiveUserId, true, response.timeout)
+                lockPatternUtils.setLockoutAttemptDeadline(effectiveUserId, response.timeout)
             val interval = LockPatternUtils.FAILED_ATTEMPT_COUNTDOWN_INTERVAL_MS
             var remaining = deadline - systemClock.elapsedRealtime()
             while (remaining > 0) {
