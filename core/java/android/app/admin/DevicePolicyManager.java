@@ -5579,6 +5579,10 @@ public class DevicePolicyManager {
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle) {
+        return getPasswordHistoryLength(admin, userHandle, true);
+    }
+
     public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle,
             boolean primary) {
         if (mService != null) {
