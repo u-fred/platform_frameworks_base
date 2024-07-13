@@ -551,6 +551,10 @@ public class LockPatternUtils {
         }
     }
 
+    public int getCurrentFailedPasswordAttempts(int userId) {
+        return getCurrentFailedPasswordAttempts(userId, true);
+    }
+
     public int getCurrentFailedPasswordAttempts(int userId, boolean primary) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             if (primary) {

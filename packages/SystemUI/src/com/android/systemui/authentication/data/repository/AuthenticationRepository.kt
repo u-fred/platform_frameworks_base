@@ -311,7 +311,7 @@ constructor(
 
     private suspend fun getFailedAuthenticationAttemptCount(): Int {
         return withContext(backgroundDispatcher) {
-            lockPatternUtils.getCurrentFailedPasswordAttempts(selectedUserId, true)
+            lockPatternUtils.getCurrentFailedPasswordAttempts(selectedUserId)
         }
     }
 
