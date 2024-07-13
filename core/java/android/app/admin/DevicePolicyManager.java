@@ -9246,6 +9246,14 @@ public class DevicePolicyManager {
       * @hide
       */
      @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+     public void reportSuccessfulBiometricAttempt(int userHandle) {
+         reportSuccessfulBiometricAttempt(userHandle, false);
+     }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
      public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
         if (mService != null) {
             try {
