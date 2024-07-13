@@ -93,7 +93,7 @@ object Utils {
     @JvmStatic
     @CredentialType
     fun getCredentialType(utils: LockPatternUtils, userId: Int): Int =
-        when (utils.getKeyguardStoredPasswordQuality(userId, true)) {
+        when (utils.getKeyguardStoredPasswordQuality(userId)) {
             PASSWORD_QUALITY_SOMETHING -> CREDENTIAL_PATTERN
             PASSWORD_QUALITY_NUMERIC,
             PASSWORD_QUALITY_NUMERIC_COMPLEX -> CREDENTIAL_PIN
