@@ -5178,14 +5178,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getCurrentFailedPasswordAttempts(userId, false));
+                () -> dpm.getCurrentFailedPasswordAttempts(userId, Secondary));
     }
 
     @Test
     public void getCurrentFailedPasswordAttempts_SecondaryForSpecialUser_ThrowsException() {
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.getCurrentFailedPasswordAttempts(USER_FRP, false));
+                () -> dpm.getCurrentFailedPasswordAttempts(USER_FRP, Secondary));
     }
 
     @Test
@@ -5197,7 +5197,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(DOES_NOT_EXIST_USER_ID, false))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(DOES_NOT_EXIST_USER_ID, Secondary))
                 .isEqualTo(0);
     }
 
@@ -5255,12 +5255,12 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(0);
 
         dpm.reportFailedPasswordAttempt(userId, primary);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(1);
     }
 
@@ -5316,12 +5316,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+                .isEqualTo(0);
         reset(mServiceContext.spiedContext);
 
         dpm.reportSuccessfulPasswordAttempt(userId, primary);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+                .isEqualTo(0);
         // Should not save.
         verify(mServiceContext.spiedContext, times(0)).sendBroadcastAsUser(
                 MockUtils.checkIntentAction(
@@ -5346,12 +5348,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         }
 
         dpm.reportFailedPasswordAttempt(userId, primary);
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(1);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+                .isEqualTo(1);
         reset(mServiceContext.spiedContext);
 
         dpm.reportSuccessfulPasswordAttempt(userId, primary);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+                .isEqualTo(0);
         // Should save.
         verify(mServiceContext.spiedContext, times(1)).sendBroadcastAsUser(
                 MockUtils.checkIntentAction(
@@ -5421,12 +5425,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .thenReturn(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
 
         dpm.reportFailedPasswordAttempt(userId, primary);
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(1);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+                .isEqualTo(1);
         reset(mServiceContext.spiedContext);
 
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), userId, primary);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary)).isEqualTo(0);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+                .isEqualTo(0);
         // Should save.
         verify(mServiceContext.spiedContext, times(1)).sendBroadcastAsUser(
                 MockUtils.checkIntentAction(

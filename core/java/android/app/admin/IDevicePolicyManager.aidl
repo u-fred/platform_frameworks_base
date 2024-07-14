@@ -107,7 +107,7 @@ interface IDevicePolicyManager {
     int getRequiredPasswordComplexity(String callerPackageName, boolean parent);
     int getAggregatedPasswordComplexityForUser(int userId, in LockDomain lockDomain, boolean deviceWideOnly);
     boolean isUsingUnifiedPassword(in ComponentName admin);
-    int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary, int userHandle, boolean parent);
+    int getCurrentFailedPasswordAttempts(String callerPackageName, in LockDomain lockDomain, int userHandle, boolean parent);
     int getProfileWithMinimumFailedPasswordsForWipe(int userHandle, boolean parent);
 
     void setMaximumFailedPasswordsForWipe(

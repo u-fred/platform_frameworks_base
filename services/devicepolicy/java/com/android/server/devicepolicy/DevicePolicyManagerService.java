@@ -5559,7 +5559,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public int getCurrentFailedPasswordAttempts(String callerPackageName, boolean primary,
+    public int getCurrentFailedPasswordAttempts(String callerPackageName, LockDomain lockDomain,
             int userHandle, boolean parent) {
         if (!mLockPatternUtils.hasSecureLockScreen()) {
             return 0;
@@ -5568,7 +5568,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain)) {
             return 0;
         }
 
@@ -5588,7 +5588,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             }
 
             DevicePolicyData policy = getUserDataUnchecked(getCredentialOwner(userHandle, parent));
-            if (primary) {
+            if (lockDomain == Primary) {
                 return policy.mFailedPasswordAttempts;
             }
             return policy.mFailedBiometricSecondFactorAttempts;

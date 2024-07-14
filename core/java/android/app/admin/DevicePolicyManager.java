@@ -5950,7 +5950,7 @@ public class DevicePolicyManager {
         if (mService != null) {
             try {
                 return mService.getCurrentFailedPasswordAttempts(
-                        mContext.getPackageName(), primary, userHandle, mParentInstance);
+                        mContext.getPackageName(), primary ? Primary : Secondary, userHandle, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
