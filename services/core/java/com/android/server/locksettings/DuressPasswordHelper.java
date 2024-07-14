@@ -63,7 +63,7 @@ public class DuressPasswordHelper {
             if (!ownerCredential.isNone()) {
                 throw new IllegalArgumentException("!ownerCredential.isNone()");
             }
-        } else if (lockSettingsService.checkCredential(ownerCredential, true, userId, null)
+        } else if (lockSettingsService.checkCredential(ownerCredential, Primary, userId, null)
                 .getResponseCode() != VerifyCredentialResponse.RESPONSE_OK) {
             throw new SecurityException("owner credential verification failed");
         }

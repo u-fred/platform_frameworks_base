@@ -50,9 +50,9 @@ interface ILockSettings {
     String getString(in String key, in String defaultValue, in int userId);
     boolean setLockCredential(in LockscreenCredential credential, in LockscreenCredential savedCredential, in LockDomain lockDomain, int userId);
     void resetKeyStore(int userId);
-    VerifyCredentialResponse checkCredential(in LockscreenCredential credential, boolean primary, int userId,
+    VerifyCredentialResponse checkCredential(in LockscreenCredential credential, in LockDomain lockDomain, int userId,
             in ICheckCredentialProgressCallback progressCallback);
-    VerifyCredentialResponse verifyCredential(in LockscreenCredential credential, boolean primary, int userId, int flags);
+    VerifyCredentialResponse verifyCredential(in LockscreenCredential credential, in LockDomain lockDomain, int userId, int flags);
     VerifyCredentialResponse verifyTiedProfileChallenge(in LockscreenCredential credential, int userId, int flags);
     VerifyCredentialResponse verifyGatekeeperPasswordHandle(long gatekeeperPasswordHandle, long challenge, int userId);
     void removeGatekeeperPasswordHandle(long gatekeeperPasswordHandle);

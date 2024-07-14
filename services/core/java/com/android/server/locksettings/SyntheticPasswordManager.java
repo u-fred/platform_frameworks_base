@@ -16,6 +16,7 @@
 
 package com.android.server.locksettings;
 
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
@@ -773,13 +774,13 @@ class SyntheticPasswordManager {
         // Remove potential persistent state (in RPMB), to prevent them from accumulating and
         // causing problems.
         try {
-            gatekeeper.clearSecureUserId(fakeUserId(userId, true));
+            gatekeeper.clearSecureUserId(fakeUserId(userId, Primary));
         } catch (RemoteException e) {
             Slog.w(TAG, "Failed to clear primary SID from gatekeeper", e);
         }
 
         try {
-            gatekeeper.clearSecureUserId(fakeUserId(userId, false));
+            gatekeeper.clearSecureUserId(fakeUserId(userId, Secondary));
         } catch (RemoteException e) {
             Slog.w(TAG, "Failed to clear secondary SID from gatekeeper", e);
         }
@@ -1075,14 +1076,14 @@ class SyntheticPasswordManager {
                 // In case GK enrollment leaves persistent state around (in RPMB), this will nuke
                 // them to prevent them from accumulating and causing problems.
                 try {
-                    gatekeeper.clearSecureUserId(fakeUserId(userId, primary));
+                    gatekeeper.clearSecureUserId(fakeUserId(userId, primary ? Primary : Secondary));
                 } catch (RemoteException ignore) {
                     Slog.w(TAG, "Failed to clear SID from gatekeeper");
                 }
                 Slogf.i(TAG, "Enrolling LSKF for user %d into Gatekeeper", userId);
                 GateKeeperResponse response;
                 try {
-                    response = gatekeeper.enroll(fakeUserId(userId, primary), null, null,
+                    response = gatekeeper.enroll(fakeUserId(userId, primary ? Primary : Secondary), null, null,
                             stretchedLskfToGkPassword(stretchedLskf));
                 } catch (RemoteException e) {
                     throw new IllegalStateException("Failed to enroll LSKF for new SP protector"
@@ -1132,7 +1133,7 @@ class SyntheticPasswordManager {
 
             GateKeeperResponse response;
             try {
-                response = gatekeeper.verifyChallenge(fakeUserId(persistentData.userId, true),
+                response = gatekeeper.verifyChallenge(fakeUserId(persistentData.userId, Primary),
                         0 /* challenge */, pwd.passwordHandle,
                         stretchedLskfToGkPassword(stretchedLskf));
             } catch (RemoteException e) {
@@ -1403,8 +1404,8 @@ class SyntheticPasswordManager {
      * verification to refresh the SID and HardwareAuthToken maintained by the system.
      */
     public AuthenticationResult unlockLskfBasedProtector(IGateKeeperService gatekeeper,
-            long protectorId, @NonNull LockscreenCredential credential, boolean primary, int userId,
-            ICheckCredentialProgressCallback progressCallback) {
+            long protectorId, @NonNull LockscreenCredential credential, LockDomain lockDomain,
+            int userId, ICheckCredentialProgressCallback progressCallback) {
         AuthenticationResult result = new AuthenticationResult();
 
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
@@ -1467,7 +1468,7 @@ class SyntheticPasswordManager {
                 GateKeeperResponse response;
                 try {
                     response = gatekeeper.verifyChallenge(fakeUserId(userId,
-                                    primary), 0L,
+                                    lockDomain), 0L,
                             pwd.passwordHandle, gkPassword);
                 } catch (RemoteException e) {
                     Slog.e(TAG, "gatekeeper verify failed", e);
@@ -1481,7 +1482,7 @@ class SyntheticPasswordManager {
                         GateKeeperResponse reenrollResponse;
                         try {
                             reenrollResponse = gatekeeper.enroll(fakeUserId(userId,
-                                            primary),
+                                            lockDomain),
                                     pwd.passwordHandle, gkPassword, gkPassword);
                         } catch (RemoteException e) {
                             Slog.w(TAG, "Fail to invoke gatekeeper.enroll", e);
@@ -1530,7 +1531,7 @@ class SyntheticPasswordManager {
         result.syntheticPassword = unwrapSyntheticPasswordBlob(protectorId,
                 PROTECTOR_TYPE_LSKF_BASED, protectorSecret, sid, userId);
 
-        if (primary) {
+        if (lockDomain == Primary) {
             // Perform verifyChallenge to refresh auth tokens for GK if user password exists.
             result.gkResponse = verifyChallenge(gatekeeper, result.syntheticPassword, 0L,
                     userId);
@@ -1964,8 +1965,8 @@ class SyntheticPasswordManager {
     }
 
     @VisibleForTesting
-    static int fakeUserId(int userId, boolean primaryCredential) {
-        return 100_000 + userId + (primaryCredential ? 0 : 10_000);
+    static int fakeUserId(int userId, LockDomain lockDomain) {
+        return 100_000 + userId + (lockDomain == Primary ? 0 : 10_000);
     }
 
     private String getProtectorKeyAlias(long protectorId) {

@@ -577,7 +577,7 @@ public class LockPatternUtils {
         throwIfCalledOnMainThread();
         try {
             final VerifyCredentialResponse response = getLockSettings().verifyCredential(
-                    credential, primary, userId, flags);
+                    credential, primary ? Primary : Secondary, userId, flags);
             if (response == null) {
                 return VerifyCredentialResponse.ERROR;
             } else {
@@ -641,7 +641,7 @@ public class LockPatternUtils {
         throwIfCalledOnMainThread();
         try {
             VerifyCredentialResponse response = getLockSettings().checkCredential(
-                    credential, primary, userId, wrapCallback(progressCallback));
+                    credential, primary ? Primary : Secondary, userId, wrapCallback(progressCallback));
             if (response == null) {
                 return false;
             } else if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {

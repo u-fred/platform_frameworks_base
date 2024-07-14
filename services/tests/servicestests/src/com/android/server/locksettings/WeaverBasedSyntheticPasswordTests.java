@@ -1,5 +1,7 @@
 package com.android.server.locksettings;
 
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -94,7 +96,8 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
 
         mSpManager.newSidForUser(mGateKeeperService, sp, userId);
         SyntheticPasswordManager.AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
-                mGateKeeperService, protectorId, pin, primary, userId, null);
+                mGateKeeperService, protectorId, pin, primary ? Primary : Secondary, userId,
+                null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
         if (primary) {

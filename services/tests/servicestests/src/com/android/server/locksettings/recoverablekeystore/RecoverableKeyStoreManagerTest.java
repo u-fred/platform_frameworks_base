@@ -62,6 +62,7 @@ import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.internal.util.ArrayUtils;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
@@ -219,7 +220,7 @@ public class RecoverableKeyStoreManagerTest {
                 mCleanupManager,
                 mRemoteLockscreenValidationSessionStorage);
         when(mLockSettingsService.verifyCredential(
-                any(LockscreenCredential.class), anyBoolean(), anyInt(), anyInt())).thenAnswer(args -> {
+                any(LockscreenCredential.class), any(LockDomain.class), anyInt(), anyInt())).thenAnswer(args -> {
                     LockscreenCredential argument = (LockscreenCredential) args.getArguments()[0];
                     if (Arrays.equals(argument.getCredential(), VALID_GUESS)) {
                         return VerifyCredentialResponse.OK;
