@@ -5853,7 +5853,7 @@ public class DevicePolicyManager {
         }
 
         try {
-            return mService.getAggregatedPasswordComplexityForUser(userId, lockDomain == Primary,
+            return mService.getAggregatedPasswordComplexityForUser(userId, lockDomain,
                     deviceWideOnly);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();

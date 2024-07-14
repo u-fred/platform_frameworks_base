@@ -5252,7 +5252,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         final boolean isSufficient;
         synchronized (getLockObject()) {
 
-            int complexity = getAggregatedPasswordComplexityLocked(parentUser, true, true);
+            int complexity = getAggregatedPasswordComplexityLocked(parentUser, Primary, true);
             PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(parentUser,
                     Primary, true);
 
@@ -5345,7 +5345,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
      */
     private boolean isPasswordSufficientForUserWithoutCheckpointLocked(
             @NonNull PasswordMetrics metrics, @UserIdInt int userId) {
-        final int complexity = getAggregatedPasswordComplexityLocked(userId, true);
+        final int complexity = getAggregatedPasswordComplexityLocked(userId, Primary);
         PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userId, Primary);
         final List<PasswordValidationError> passwordValidationErrors =
                 PasswordMetrics.validatePasswordMetrics(minMetrics, complexity, metrics);
@@ -5474,15 +5474,17 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         }
     }
     @GuardedBy("getLockObject()")
-    private int getAggregatedPasswordComplexityLocked(@UserIdInt int userHandle, boolean primary) {
-        return getAggregatedPasswordComplexityLocked(userHandle, primary, false);
+    private int getAggregatedPasswordComplexityLocked(@UserIdInt int userHandle,
+            LockDomain lockDomain) {
+        return getAggregatedPasswordComplexityLocked(userHandle, lockDomain, false);
     }
 
     @GuardedBy("getLockObject()")
-    private int getAggregatedPasswordComplexityLocked(@UserIdInt int userHandle, boolean primary,
-            boolean deviceWideOnly) {
+    private int getAggregatedPasswordComplexityLocked(@UserIdInt int userHandle,
+            LockDomain lockDomain, boolean deviceWideOnly) {
         ensureLocked();
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary) || !primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain) ||
+                lockDomain == Secondary) {
             return PASSWORD_COMPLEXITY_NONE;
         }
 
@@ -5528,7 +5530,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public int getAggregatedPasswordComplexityForUser(int userId, boolean primary,
+    public int getAggregatedPasswordComplexityForUser(int userId, LockDomain lockDomain,
             boolean deviceWideOnly) {
         if (!mHasFeature) {
             return PASSWORD_COMPLEXITY_NONE;
@@ -5538,7 +5540,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userId));
 
         synchronized (getLockObject()) {
-            return getAggregatedPasswordComplexityLocked(userId, primary, deviceWideOnly);
+            return getAggregatedPasswordComplexityLocked(userId, lockDomain, deviceWideOnly);
         }
     }
 
@@ -5797,7 +5799,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         }
         synchronized (getLockObject()) {
             final PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userHandle, Primary);
-            final int complexity = getAggregatedPasswordComplexityLocked(userHandle, true);
+            final int complexity = getAggregatedPasswordComplexityLocked(userHandle, Primary);
             final List<PasswordValidationError> validationErrors =
                     PasswordMetrics.validateCredential(minMetrics, complexity, newCredential);
             if (!validationErrors.isEmpty()) {

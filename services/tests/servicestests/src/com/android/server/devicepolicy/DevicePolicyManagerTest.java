@@ -6159,9 +6159,9 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         dpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_HIGH);
         parentDpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_LOW);
 
-        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  true))
+        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  Primary))
                 .isEqualTo(PASSWORD_COMPLEXITY_LOW);
-        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  false))
+        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  Secondary))
                 .isEqualTo(PASSWORD_COMPLEXITY_HIGH);
     }
 
