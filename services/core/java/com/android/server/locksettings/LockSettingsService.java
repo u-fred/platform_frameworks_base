@@ -2415,9 +2415,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     /**
      * Verify user credential and unlock the user.
      * @param credential User's lockscreen credential
-     * @param primary Whether to verify the primary or biometric second factor. Must set this to
-     *                true when userId is a special user, or a user that can share credentials with
-     *                parent.
+     * @param lockDomain Whether to verify the primary or biometric second factor
      * @param userId User to verify the credential for
      * @param progressCallback Receive progress callbacks
      * @param flags See {@link LockPatternUtils.VerifyFlag}
