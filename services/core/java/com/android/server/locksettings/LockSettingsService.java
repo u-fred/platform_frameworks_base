@@ -1244,16 +1244,12 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId, boolean primary) {
-        if (primary) {
+    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId,
+            LockDomain lockDomain) {
+        if (lockDomain == Primary) {
             return true;
         }
         return mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId);
-    }
-
-    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId,
-            LockDomain lockDomain) {
-        return checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain == Primary);
     }
 
     private final void checkWritePermission() {
@@ -1481,11 +1477,11 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (isSpecialUserId(userId) && lockDomain == Primary) {
                 return mSpManager.getSpecialUserCredentialType(userId);
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain == Primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return CREDENTIAL_TYPE_NONE;
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId, lockDomain == Primary);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, lockDomain);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return CREDENTIAL_TYPE_NONE;
@@ -1912,7 +1908,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             throw new IllegalArgumentException(
                     "Biometric second factor must be PIN or None");
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId,
+                primary ? Primary : Secondary)) {
             return false;
         }
 
@@ -2442,7 +2439,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (!primary && flags != 0) {
             throw new IllegalArgumentException("Invalid flags for biometric second factor");
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId,
+                primary ? Primary : Secondary)) {
             return VerifyCredentialResponse.ERROR;
         }
 
