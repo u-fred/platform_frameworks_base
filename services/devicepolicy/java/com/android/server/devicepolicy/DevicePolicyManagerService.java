@@ -4631,12 +4631,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public int getPasswordHistoryLength(ComponentName who, int userHandle, boolean primary,
+    public int getPasswordHistoryLength(ComponentName who, int userHandle, LockDomain lockDomain,
             boolean parent) {
         if (!mLockPatternUtils.hasSecureLockScreen()) {
             return 0;
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary) || !primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain) ||
+                lockDomain == Secondary) {
             return 0;
         }
         return getStrictestPasswordRequirement(who, userHandle, parent,

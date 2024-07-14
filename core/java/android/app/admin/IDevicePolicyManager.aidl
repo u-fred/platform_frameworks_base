@@ -92,7 +92,7 @@ interface IDevicePolicyManager {
     PasswordMetrics getPasswordMinimumMetrics(int userHandle, boolean primary, boolean deviceWideOnly);
 
     void setPasswordHistoryLength(in ComponentName who, int length, boolean parent);
-    int getPasswordHistoryLength(in ComponentName who, int userHandle, boolean primary, boolean parent);
+    int getPasswordHistoryLength(in ComponentName who, int userHandle, in LockDomain lockDomain, boolean parent);
 
     void setPasswordExpirationTimeout(in ComponentName who, String callerPackageName, long expiration, boolean parent);
     long getPasswordExpirationTimeout(in ComponentName who, int userHandle, boolean parent);

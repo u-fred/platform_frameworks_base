@@ -5581,7 +5581,7 @@ public class DevicePolicyManager {
             LockDomain lockDomain) {
         if (mService != null) {
             try {
-                return mService.getPasswordHistoryLength(admin, userHandle, lockDomain == Primary,
+                return mService.getPasswordHistoryLength(admin, userHandle, lockDomain,
                         mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
