@@ -1751,8 +1751,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * unlock operation.
      */
     private void sendCredentialsOnUnlockIfRequired(LockscreenCredential credential, int userId,
-            boolean primary) {
-        if (!primary) {
+            LockDomain lockDomain) {
+        if (lockDomain == Secondary) {
             return;
         }
 
@@ -2502,7 +2502,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                         .setGatekeeperPasswordHandle(gkHandle)
                         .build();
             }
-            sendCredentialsOnUnlockIfRequired(credential, userId, primary);
+            sendCredentialsOnUnlockIfRequired(credential, userId, primary ? Primary : Secondary);
         } else if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_RETRY) {
             if (response.getTimeout() > 0) {
                 requireStrongAuth(STRONG_AUTH_REQUIRED_AFTER_LOCKOUT, userId);
