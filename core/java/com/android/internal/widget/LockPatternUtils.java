@@ -466,8 +466,7 @@ public class LockPatternUtils {
      * managed profile as if the  profile had separate work challenge.
 
      * @param userId  The user to return the complexity for.
-     * @param deviceWideOnly  Whether to ignore complexity set on the managed profile. This is
-     *                        ignored if lockDomain is not Primary.
+     * @param deviceWideOnly  whether to ignore complexity set on the managed profile.
      * @return complexity level for the user.
      */
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
@@ -475,6 +474,9 @@ public class LockPatternUtils {
         return getRequestedPasswordComplexity(userId, Primary, deviceWideOnly);
     }
 
+    /**
+     * @param deviceWideOnly Ignored if lockDomain is Secondary.
+     */
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
             LockDomain lockDomain, boolean deviceWideOnly) {
         return getDevicePolicyManager().getAggregatedPasswordComplexityForUser(userId, lockDomain,
@@ -592,8 +594,8 @@ public class LockPatternUtils {
      * If credential matches, return an opaque attestation that the challenge was verified.
      *
      * @param credential The credential to check.
-     * @param userId The user whose credential is being verified.
-     * @param flags See {@link VerifyFlag}.
+     * @param userId The user whose credential is being verified
+     * @param flags See {@link VerifyFlag}
      * @throws IllegalStateException If called on the main thread.
      */
     @NonNull
@@ -780,7 +782,7 @@ public class LockPatternUtils {
 
     /**
      * Returns the length of the PIN set by a particular user.
-     * @param userId User id of the user whose pin length we have to return.
+     * @param userId user id of the user whose pin length we have to return
      * @return
      *       A. the length of the pin set by user if it is currently available
      *       B. PIN_LENGTH_UNAVAILABLE if it is not available or if an exception occurs
@@ -805,7 +807,6 @@ public class LockPatternUtils {
      * value, the pin length value is set to PIN_LENGTH_UNAVAILABLE. Otherwise, if the
      * flag is enabled, the pin length value is set to the actual length of the user's PIN.
      * @param userId user id of the user whose pin length we want to save
-     * @param primary whether to refresh primary or biometric second factor PIN length
      * @return true/false depending on whether PIN length has been saved or not
      */
     public boolean refreshStoredPinLength(int userId) {
@@ -987,11 +988,10 @@ public class LockPatternUtils {
      *
      * <p> This method will fail (returning {@code false}) if the previously saved credential
      * provided is incorrect, or if the lockscreen verification is still being throttled.
-
-     * @param newCredential the new credential to save. Can only be PIN or None if setting
-     *                      secondary.
-     * @param savedCredential the current credential. Must be primary, even if setting secondary.
-     * @param userHandle the user whose lockscreen credential is to be changed.
+     *
+     * @param newCredential The new credential to save
+     * @param savedCredential The current credential
+     * @param userHandle the user whose lockscreen credential is to be changed
      *
      * @return whether this method saved the new password successfully or not. This flow will fail
      * and return false if the given credential is wrong.
@@ -1003,6 +1003,12 @@ public class LockPatternUtils {
         return setLockCredential(newCredential, savedCredential, true, userHandle);
     }
 
+    /**
+     * @param newCredential Can only be of type CREDENTIAL_TYPE_PIN, or CREDENTIAL_TYPE_NONE if
+     *                      lockDomain is Secondary.
+     * @param savedCredential Must be primary credential, even if setting secondary.
+     * @param lockDomain Whether setting primary or biometric second factor credential.
+     */
     public boolean setLockCredential(@NonNull LockscreenCredential newCredential,
             @NonNull LockscreenCredential savedCredential, boolean primary, int userHandle) {
         if (!hasSecureLockScreen() && newCredential.getType() != CREDENTIAL_TYPE_NONE) {
@@ -1449,8 +1455,6 @@ public class LockPatternUtils {
     /**
      * Set and store the lockout deadline, meaning the user can't attempt their unlock
      * pattern until the deadline has passed.
-     * @param userId the user whose lockout time to set.
-     * @param timeoutMs the timeout to set.
      * @return the chosen deadline.
      */
     @UnsupportedAppUsage
@@ -1481,8 +1485,7 @@ public class LockPatternUtils {
     }
 
     /**
-     * @param userId the user whose lockout time to return.
-     * @return The elapsed time in millis in the future when the user is allowed to.
+     * @return The elapsed time in millis in the future when the user is allowed to
      *   attempt to enter their lock pattern, or 0 if the user is welcome to
      *   enter a pattern.
      */
