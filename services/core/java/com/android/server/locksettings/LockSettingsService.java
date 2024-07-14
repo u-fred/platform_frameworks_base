@@ -461,7 +461,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         // If parent does not have a screen lock, simply clear credential from the profile,
         // to maintain the invariant that unified profile should always have the same secure state
         // as its parent.
-        if (!isUserSecure(parent.id, true) && !profileUserPassword.isNone()) {
+        if (!isUserSecure(parent.id, Primary) && !profileUserPassword.isNone()) {
             Slogf.i(TAG, "Clearing password for profile user %d to match parent", profileUserId);
             setLockCredentialInternal(LockscreenCredential.createNone(), profileUserPassword,
                     true, profileUserId, /* isLockTiedToParent= */ true);
@@ -738,7 +738,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
 
         final UserHandle userHandle = user.getUserHandle();
-        final boolean isSecure = isUserSecure(userId, true);
+        final boolean isSecure = isUserSecure(userId, Primary);
         if (isSecure && !mUserManager.isUserUnlockingOrUnlocked(userHandle)) {
             UserInfo parent = mUserManager.getProfileParent(userId);
             if (parent != null &&
@@ -1014,7 +1014,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             return;
         }
         for (UserInfo userInfo : mUserManager.getUsers()) {
-            if (userOwnsFrpCredential(mContext, userInfo) && isUserSecure(userInfo.id, true)) {
+            if (userOwnsFrpCredential(mContext, userInfo) && isUserSecure(userInfo.id, Primary)) {
                 synchronized (mSpManager) {
                     int actualQuality = (int) getLong(LockPatternUtils.PASSWORD_TYPE_KEY,
                             DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED, userInfo.id);
@@ -1145,7 +1145,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     @GuardedBy("mSpManager")
     private void migrateUserToSpWithBoundCeKeyLocked(@UserIdInt int userId) {
-        if (isUserSecure(userId, true)) {
+        if (isUserSecure(userId, Primary)) {
             Slogf.d(TAG, "User %d is secured; no migration needed", userId);
             return;
         }
@@ -1169,7 +1169,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     @GuardedBy("mSpManager")
     private void migrateUserToSpWithBoundKeysLocked(@UserIdInt int userId) {
-        if (isUserSecure(userId, true)) {
+        if (isUserSecure(userId, Primary)) {
             Slogf.d(TAG, "User %d is secured; no migration needed", userId);
             return;
         }
@@ -1494,8 +1494,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-    private boolean isUserSecure(int userId, boolean primary) {
-        return getCredentialTypeInternal(userId, primary ? Primary : Secondary) != CREDENTIAL_TYPE_NONE;
+    private boolean isUserSecure(int userId, LockDomain lockDomain) {
+        return getCredentialTypeInternal(userId, lockDomain) != CREDENTIAL_TYPE_NONE;
     }
 
     @VisibleForTesting /** Note: this method is overridden in unit tests */
@@ -1707,7 +1707,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (isCredentialSharableWithParent(userId)) {
             return;
         }
-        final boolean isSecure = isUserSecure(userId, true);
+        final boolean isSecure = isUserSecure(userId, Primary);
         final List<UserInfo> profiles = mUserManager.getProfiles(userId);
         final int size = profiles.size();
         for (int i = 0; i < size; i++) {
@@ -1914,7 +1914,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
 
         synchronized (mSpManager) {
-            if (!primary && !isUserSecure(userId, true)) {
+            if (!primary && !isUserSecure(userId, Primary)) {
                 // Not using IllegalArgument as caller can't guarantee that user is secure at time
                 // this is executed.
                 Slog.w(TAG, "Must have primary password to set biometric second factor");
@@ -2250,7 +2250,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.d(TAG, "CE storage for user %d is already unlocked", userId);
             return;
         }
-        final String userType = isUserSecure(userId, true) ? "secured" : "unsecured";
+        final String userType = isUserSecure(userId, Primary) ? "secured" : "unsecured";
         final byte[] secret = sp.deriveFileBasedEncryptionKey();
         try {
             mStorageManager.unlockCeStorage(userId, secret);
@@ -2272,7 +2272,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 // already unlocked, then the other parts must have already been done too.
                 return;
             }
-            if (isUserSecure(userId, true)) {
+            if (isUserSecure(userId, Primary)) {
                 Slogf.d(TAG, "Not unlocking CE storage for user %d yet because user is secured",
                         userId);
                 return;
@@ -2589,7 +2589,7 @@ public class LockSettingsService extends ILockSettings.Stub {
      */
     @VisibleForTesting
     PasswordMetrics getUserPasswordMetrics(int userHandle, boolean primary) {
-        if (!isUserSecure(userHandle, primary)) {
+        if (!isUserSecure(userHandle, primary ? Primary : Secondary)) {
             // for users without password, mUserPasswordMetrics might not be initialized
             // since the user never unlock the device manually. In this case, always
             // return a default metrics object. This is to distinguish this case from
@@ -2610,7 +2610,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     private @Nullable PasswordMetrics loadPasswordMetrics(SyntheticPassword sp, int userHandle) {
         synchronized (mSpManager) {
-            if (!isUserSecure(userHandle, true)) {
+            if (!isUserSecure(userHandle, Primary)) {
                 return null;
             }
             return mSpManager.getPasswordMetrics(sp, getCurrentLskfBasedProtectorId(userHandle,
@@ -3266,7 +3266,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
             // TODO: Check second factor support through LPU?
             if (credential.isNone() && !isCredentialSharableWithParent(userId) &&
-                    isUserSecure(userId, false)) {
+                    isUserSecure(userId, Secondary)) {
                 setLockCredentialWithSpLocked(credential, false,
                         mSpManager.newSyntheticPassword(userId, false), userId);
                 // This must be called after removeBiometricsForUser has been called for userId and
@@ -3428,7 +3428,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // token can't be activated until the SP is unlocked by another protector (normally the
             // LSKF-based one).
             SyntheticPassword sp = null;
-            if (!isUserSecure(userId, true)) {
+            if (!isUserSecure(userId, Primary)) {
                 long protectorId = getCurrentLskfBasedProtectorId(userId, true);
                 sp = mSpManager.unlockLskfBasedProtector(getGateKeeperService(), protectorId,
                         LockscreenCredential.createNone(), true, userId, null)
@@ -3842,7 +3842,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             List<UserInfo> users = mUserManager.getUsers();
             for (UserInfo user : users) {
                 if (userOwnsFrpCredential(mContext, user)) {
-                    if (!isUserSecure(user.id, true)) {
+                    if (!isUserSecure(user.id, Primary)) {
                         Slogf.d(TAG, "Clearing FRP credential tied to user %d", user.id);
                         mStorage.writePersistentDataBlock(PersistentData.TYPE_NONE, user.id,
                                 0, null);
@@ -3995,7 +3995,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     private class RebootEscrowCallbacks implements RebootEscrowManager.Callbacks {
         @Override
         public boolean isUserSecure(int userId) {
-            return LockSettingsService.this.isUserSecure(userId, true);
+            return LockSettingsService.this.isUserSecure(userId, Primary);
         }
 
         @Override
