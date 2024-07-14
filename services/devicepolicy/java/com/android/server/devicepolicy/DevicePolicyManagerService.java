@@ -5151,8 +5151,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
      * Calculates strictest (maximum) value for a given password property enforced by admin[s].
      */
     @Override
-    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle, boolean primary,
-            boolean deviceWideOnly) {
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+            LockDomain lockDomain, boolean deviceWideOnly) {
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle)
                 && (isSystemUid(caller)
@@ -5160,21 +5160,22 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
                     || hasCallingOrSelfPermission(permission.SET_INITIAL_LOCK)
                     || hasCallingOrSelfPermission(permission.SET_AND_VERIFY_LOCKSCREEN_CREDENTIALS)
                     || hasCallingOrSelfPermission(permission.ACCESS_KEYGUARD_SECURE_STORAGE)));
-        return getPasswordMinimumMetricsUnchecked(userHandle, primary, deviceWideOnly);
+        return getPasswordMinimumMetricsUnchecked(userHandle, lockDomain, deviceWideOnly);
     }
 
     private PasswordMetrics getPasswordMinimumMetricsUnchecked(@UserIdInt int userId,
-            boolean primary) {
-        return getPasswordMinimumMetricsUnchecked(userId, primary, false);
+            LockDomain lockDomain) {
+        return getPasswordMinimumMetricsUnchecked(userId, lockDomain, false);
     }
 
     private PasswordMetrics getPasswordMinimumMetricsUnchecked(@UserIdInt int userId,
-            boolean primary, boolean deviceWideOnly) {
+            LockDomain lockDomain, boolean deviceWideOnly) {
         if (!mHasFeature) {
             return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
         }
         Preconditions.checkArgumentNonnegative(userId, "Invalid userId");
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary) || !primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain) ||
+                lockDomain == Secondary) {
             return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
         }
         if (deviceWideOnly) {
@@ -5253,7 +5254,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
             int complexity = getAggregatedPasswordComplexityLocked(parentUser, true, true);
             PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(parentUser,
-                    true, true);
+                    Primary, true);
 
             PasswordMetrics metrics = mLockSettingsInternal.getUserPasswordMetrics(parentUser);
             final List<PasswordValidationError> passwordValidationErrors =
@@ -5345,7 +5346,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     private boolean isPasswordSufficientForUserWithoutCheckpointLocked(
             @NonNull PasswordMetrics metrics, @UserIdInt int userId) {
         final int complexity = getAggregatedPasswordComplexityLocked(userId, true);
-        PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userId, true);
+        PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userId, Primary);
         final List<PasswordValidationError> passwordValidationErrors =
                 PasswordMetrics.validatePasswordMetrics(minMetrics, complexity, metrics);
         return passwordValidationErrors.isEmpty();
@@ -5795,7 +5796,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             newCredential = LockscreenCredential.createPasswordOrNone(password);
         }
         synchronized (getLockObject()) {
-            final PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userHandle, true);
+            final PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userHandle, Primary);
             final int complexity = getAggregatedPasswordComplexityLocked(userHandle, true);
             final List<PasswordValidationError> validationErrors =
                     PasswordMetrics.validateCredential(minMetrics, complexity, newCredential);

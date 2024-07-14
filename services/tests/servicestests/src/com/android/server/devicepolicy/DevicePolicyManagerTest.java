@@ -6185,11 +6185,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         parentDpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
 
         PasswordMetrics deviceMetrics =
-                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, true, true);
+                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, Primary, true);
         assertThat(deviceMetrics.credType).isEqualTo(LockPatternUtils.CREDENTIAL_TYPE_PATTERN);
 
         PasswordMetrics allMetrics =
-                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, true, false);
+                dpms.getPasswordMinimumMetrics(UserHandle.USER_SYSTEM, Primary, false);
         assertThat(allMetrics.credType).isEqualTo(LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         assertThat(allMetrics.length).isEqualTo(8);
         assertThat(allMetrics.letters).isEqualTo(1);

@@ -89,7 +89,7 @@ interface IDevicePolicyManager {
     void setPasswordMinimumNonLetter(in ComponentName who, int length, boolean parent);
     int getPasswordMinimumNonLetter(in ComponentName who, int userHandle, boolean parent);
 
-    PasswordMetrics getPasswordMinimumMetrics(int userHandle, boolean primary, boolean deviceWideOnly);
+    PasswordMetrics getPasswordMinimumMetrics(int userHandle, in LockDomain lockDomain, boolean deviceWideOnly);
 
     void setPasswordHistoryLength(in ComponentName who, int length, boolean parent);
     int getPasswordHistoryLength(in ComponentName who, int userHandle, in LockDomain lockDomain, boolean parent);

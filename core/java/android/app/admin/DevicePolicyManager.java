@@ -5400,7 +5400,7 @@ public class DevicePolicyManager {
             LockDomain lockDomain, boolean deviceWideOnly) {
         if (mService != null) {
             try {
-                return mService.getPasswordMinimumMetrics(userHandle, lockDomain == Primary,
+                return mService.getPasswordMinimumMetrics(userHandle, lockDomain,
                         deviceWideOnly);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
