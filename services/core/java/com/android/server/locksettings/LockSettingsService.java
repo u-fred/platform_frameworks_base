@@ -2572,9 +2572,9 @@ public class LockSettingsService extends ILockSettings.Stub {
      * {@link #notifyPasswordChanged} only needs to be called when the user changes the password.
      */
     private void setUserPasswordMetrics(LockscreenCredential password, @UserIdInt int userHandle,
-            boolean primary) {
+            LockDomain lockDomain) {
         synchronized (this) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 mUserPasswordMetrics.put(userHandle,
                         PasswordMetrics.computeForCredential(password));
             } else {
@@ -3272,7 +3272,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 onPostPasswordChanged(credential, Secondary, userId);
             }
         }
-        setUserPasswordMetrics(credential, userId, lockDomain == Primary);
+        setUserPasswordMetrics(credential, userId, lockDomain);
         if (lockDomain == Primary) {
             mUnifiedProfilePasswordCache.removePassword(userId);
             // TODO: Not exactly sure why this is checking savedCredentialType.
