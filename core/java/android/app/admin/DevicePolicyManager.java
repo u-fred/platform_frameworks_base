@@ -5390,9 +5390,7 @@ public class DevicePolicyManager {
     }
 
     /**
-     * @param deviceWideOnly Only consider device-wide admin policies and ignore policies set on the
-     *                       managed profile instance (as if the managed profile had separate work
-     *                       challenge). This is ignored if primary is false.
+     * @param deviceWideOnly Ignored if lockDomain is Secondary.
      *
      * @hide
      */
@@ -5841,7 +5839,7 @@ public class DevicePolicyManager {
     }
 
     /**
-     * @param deviceWideOnly ignored if LockDomain is not Primary.
+     * @param deviceWideOnly ignored if LockDomain is Secondary.
      *
      * @hide
      */
