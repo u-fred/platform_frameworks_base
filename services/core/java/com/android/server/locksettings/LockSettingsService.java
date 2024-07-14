@@ -1459,8 +1459,6 @@ public class LockSettingsService extends ILockSettings.Stub {
      * This API is cached; whenever the result would change,
      * {@link com.android.internal.widget.LockPatternUtils#invalidateCredentialTypeCache}
      * must be called.
-     * @param userId The id of the user whose credential type to return.
-     * @param lockDomain Whether to get the primary or biometric second factor credential type.
      */
     @Override
     public int getCredentialType(int userId, LockDomain lockDomain) {

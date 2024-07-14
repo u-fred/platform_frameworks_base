@@ -174,7 +174,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
             throws RemoteException {
         mService.initializeSyntheticPassword(userId);
         assertTrue(mService.setLockCredential(credential, nonePassword(), Primary, userId));
-        assertEquals(credential.getType(), mService.getCredentialType(userId, true));
+        assertEquals(credential.getType(), mService.getCredentialType(userId, Primary));
     }
 
     // Tests that the FRP credential is updated when an LSKF-based protector is created for the user
@@ -406,7 +406,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         byte[] token = "some-high-entropy-secure-token".getBytes();
         initSpAndSetCredential(PRIMARY_USER_ID, password);
         assertTrue(mService.setLockCredential(secondaryPin, password, Secondary, PRIMARY_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(PRIMARY_USER_ID, false));
+        assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(PRIMARY_USER_ID, Secondary));
         byte[] storageKey = mStorageManager.getUserUnlockToken(PRIMARY_USER_ID);
 
         long handle = mLocalService.addEscrowToken(token, PRIMARY_USER_ID, null);
@@ -417,7 +417,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         assertTrue(mLocalService.isEscrowTokenActive(handle, PRIMARY_USER_ID));
 
         mLocalService.setLockCredentialWithToken(nonePassword(), handle, token, PRIMARY_USER_ID);
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, false));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, Secondary));
         flushHandlerTasks(); // flush the unlockUser() call before changing password again
         mLocalService.setLockCredentialWithToken(pattern, handle, token,
                 PRIMARY_USER_ID);
@@ -540,7 +540,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         } catch (UnsupportedOperationException e) {
             // Success - the exception was expected.
         }
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, true));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, Primary));
 
         try {
             mLocalService.setLockCredentialWithToken(pattern, handle, token, PRIMARY_USER_ID);
@@ -548,7 +548,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         } catch (UnsupportedOperationException e) {
             // Success - the exception was expected.
         }
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, true));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, Primary));
     }
 
     @Test
