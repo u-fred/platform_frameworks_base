@@ -66,6 +66,7 @@ import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
 import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 
 import android.Manifest.permission;
 import android.accounts.Account;
@@ -4725,7 +4726,8 @@ public class DevicePolicyManager {
     public int getPasswordQuality(@Nullable ComponentName admin, int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                return mService.getPasswordQuality(admin, userHandle, primary, mParentInstance);
+                return mService.getPasswordQuality(admin, userHandle, primary ? Primary : Secondary,
+                        mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

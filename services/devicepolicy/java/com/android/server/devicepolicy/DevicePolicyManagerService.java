@@ -263,6 +263,8 @@ import static android.provider.Telephony.Carriers.INVALID_APN_ID;
 import static android.security.keystore.AttestationUtils.USE_INDIVIDUAL_ATTESTATION;
 
 import static com.android.internal.logging.nano.MetricsProto.MetricsEvent.PROVISIONING_ENTRY_POINT_ADB;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.SOME_AUTH_REQUIRED_AFTER_ADAPTIVE_AUTH_REQUEST;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_DPM_LOCK_NOW;
@@ -500,6 +502,7 @@ import com.android.internal.util.FunctionalUtils.ThrowingSupplier;
 import com.android.internal.util.JournaledFile;
 import com.android.internal.util.Preconditions;
 import com.android.internal.util.StatLogger;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockSettingsInternal;
 import com.android.internal.widget.LockscreenCredential;
@@ -4372,7 +4375,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public int getPasswordQuality(ComponentName who, int userHandle, boolean primary,
+    public int getPasswordQuality(ComponentName who, int userHandle, LockDomain lockDomain,
             boolean parent) {
         if (!mHasFeature) {
             return PASSWORD_QUALITY_UNSPECIFIED;
@@ -4385,7 +4388,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(
                 who == null || isCallingFromPackage(who.getPackageName(), caller.getUid())
                         || canQueryAdminPolicy(caller));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary) || !primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain) ||
+                lockDomain == Secondary) {
             return PASSWORD_QUALITY_UNSPECIFIED;
         }
 
@@ -5534,6 +5538,11 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         synchronized (getLockObject()) {
             return getAggregatedPasswordComplexityLocked(userId, primary, deviceWideOnly);
         }
+    }
+
+    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userHandle,
+            LockDomain lockDomain) {
+        return checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain == Primary);
     }
 
     private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userHandle,

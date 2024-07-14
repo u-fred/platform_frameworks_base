@@ -66,7 +66,7 @@ import java.util.List;
  */
 interface IDevicePolicyManager {
     void setPasswordQuality(in ComponentName who, int quality, boolean parent);
-    int getPasswordQuality(in ComponentName who, int userHandle, boolean primary, boolean parent);
+    int getPasswordQuality(in ComponentName who, int userHandle, in LockDomain lockDomain, boolean parent);
 
     void setPasswordMinimumLength(in ComponentName who, int length, boolean parent);
     int getPasswordMinimumLength(in ComponentName who, int userHandle, boolean parent);
