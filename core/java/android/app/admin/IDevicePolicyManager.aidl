@@ -172,7 +172,7 @@ interface IDevicePolicyManager {
     boolean hasGrantedPolicy(in ComponentName policyReceiver, int usesPolicy, int userHandle);
 
     void reportPasswordChanged(in PasswordMetrics metrics, int userId, in LockDomain lockDomain);
-    void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent);
+    void reportFailedPasswordAttempt(int userHandle, in LockDomain lockDomain, boolean parent);
     void reportSuccessfulPasswordAttempt(int userHandle, boolean primary);
     void reportFailedBiometricAttempt(int userHandle);
     void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled);

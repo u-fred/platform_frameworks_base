@@ -5213,7 +5213,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.reportFailedPasswordAttempt(userId, false));
+                () -> dpm.reportFailedPasswordAttempt(userId, Secondary));
     }
 
     @Test
@@ -5223,7 +5223,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.reportFailedPasswordAttempt(USER_FRP, false));
+                () -> dpm.reportFailedPasswordAttempt(USER_FRP, Secondary));
     }
 
     @Test
@@ -5237,7 +5237,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         // Should not throw.
-        dpm.reportFailedPasswordAttempt(userId, false);
+        dpm.reportFailedPasswordAttempt(userId, Secondary);
 
     }
 
@@ -5258,7 +5258,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(0);
 
-        dpm.reportFailedPasswordAttempt(userId, primary);
+        dpm.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(1);
@@ -5347,7 +5347,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        dpm.reportFailedPasswordAttempt(userId, primary);
+        dpm.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(1);
         reset(mServiceContext.spiedContext);
@@ -5424,7 +5424,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         when(getServices().lockSettingsInternal.getUserPasswordMetrics(userId))
                 .thenReturn(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
 
-        dpm.reportFailedPasswordAttempt(userId, primary);
+        dpm.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(1);
         reset(mServiceContext.spiedContext);

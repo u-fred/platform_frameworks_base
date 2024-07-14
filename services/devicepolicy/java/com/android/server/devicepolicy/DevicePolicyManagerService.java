@@ -8208,16 +8208,16 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public void reportFailedPasswordAttempt(int userHandle, boolean primary, boolean parent) {
+    public void reportFailedPasswordAttempt(int userHandle, LockDomain lockDomain, boolean parent) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain)) {
             return;
         }
-        if (primary && !isSeparateProfileChallengeEnabled(userHandle)) {
+        if (lockDomain == Primary && !isSeparateProfileChallengeEnabled(userHandle)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userHandle),
                     "You can not report failed password attempt if separate profile challenge is "
                             + "not in place for a managed profile, userId = %d", userHandle);
@@ -8229,13 +8229,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         try {
             synchronized (getLockObject()) {
                 DevicePolicyData policy = getUserData(userHandle);
-                if (primary) {
+                if (lockDomain == Primary) {
                     policy.mFailedPasswordAttempts++;
                 } else {
                     policy.mFailedBiometricSecondFactorAttempts++;
                 }
                 saveSettingsLocked(userHandle);
-                if (!primary) {
+                if (lockDomain == Secondary) {
                     return;
                 }
                 if (mHasFeature) {

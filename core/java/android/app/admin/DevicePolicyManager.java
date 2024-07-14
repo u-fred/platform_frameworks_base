@@ -9190,7 +9190,8 @@ public class DevicePolicyManager {
     public void reportFailedPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportFailedPasswordAttempt(userHandle, primary, mParentInstance);
+                mService.reportFailedPasswordAttempt(userHandle, primary ? Primary : Secondary,
+                        mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
