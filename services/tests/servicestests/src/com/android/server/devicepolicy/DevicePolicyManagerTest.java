@@ -5686,7 +5686,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getMaximumFailedPasswordsForWipe(null, userId, false));
+                () -> dpm.getMaximumFailedPasswordsForWipe(null, userId, Secondary));
     }
 
     @Test
@@ -5699,7 +5699,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.getMaximumFailedPasswordsForWipe(null, USER_FRP, false));
+                () -> dpm.getMaximumFailedPasswordsForWipe(null, USER_FRP, Secondary));
     }
 
     @Test
@@ -5711,7 +5711,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, DOES_NOT_EXIST_USER_ID, false))
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, DOES_NOT_EXIST_USER_ID, Secondary))
                 .isEqualTo(0);
     }
 
@@ -5724,7 +5724,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(userId);
 
-        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, userId, false))
+        assertThat(dpm.getMaximumFailedPasswordsForWipe(null, userId, Secondary))
                 .isEqualTo(0);
     }
 

@@ -112,7 +112,7 @@ interface IDevicePolicyManager {
 
     void setMaximumFailedPasswordsForWipe(
         in ComponentName admin, String callerPackageName, int num, boolean parent);
-    int getMaximumFailedPasswordsForWipe(in ComponentName admin, int userHandle, boolean primary, boolean parent);
+    int getMaximumFailedPasswordsForWipe(in ComponentName admin, int userHandle, in LockDomain lockDomain, boolean parent);
 
     boolean resetPassword(String password, int flags);
 

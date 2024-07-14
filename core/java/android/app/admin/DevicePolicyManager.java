@@ -6058,7 +6058,7 @@ public class DevicePolicyManager {
         if (mService != null) {
             try {
                 return mService.getMaximumFailedPasswordsForWipe(
-                        admin, userHandle, primary, mParentInstance);
+                        admin, userHandle, primary ? Primary : Secondary, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

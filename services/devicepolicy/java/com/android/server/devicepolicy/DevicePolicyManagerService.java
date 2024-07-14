@@ -5641,7 +5641,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
     @Override
     public int getMaximumFailedPasswordsForWipe(ComponentName who, int userHandle,
-            boolean primary, boolean parent) {
+            LockDomain lockDomain, boolean parent) {
         if (!mHasFeature || !mLockPatternUtils.hasSecureLockScreen()) {
             return 0;
         }
@@ -5653,7 +5653,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(
                 who == null || isCallingFromPackage(who.getPackageName(), caller.getUid())
                         || canQueryAdminPolicy(caller));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary) || !primary) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain) ||
+                lockDomain == Secondary) {
             return 0;
         }
 
