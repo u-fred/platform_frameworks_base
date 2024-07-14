@@ -65,7 +65,7 @@ import static android.content.Intent.LOCAL_FLAG_FROM_SYSTEM;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
-import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Primary;
 
 import android.Manifest.permission;
 import android.accounts.Account;
@@ -158,7 +158,7 @@ import com.android.internal.os.BackgroundThread;
 import com.android.internal.os.Zygote;
 import com.android.internal.util.ArrayUtils;
 import com.android.internal.util.Preconditions;
-import com.android.internal.widget.LockPatternUtils.LockDomain;
+import com.android.internal.widget.LockDomain;
 import com.android.org.conscrypt.TrustedCertificateStore;
 
 import java.io.ByteArrayInputStream;

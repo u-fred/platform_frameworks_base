@@ -3,7 +3,7 @@ package com.android.internal.widget;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.PasswordMetrics;
 
-import com.android.internal.widget.LockPatternUtils.LockDomain;
+import com.android.internal.widget.LockDomain;
 
 public class WrappedLockPatternUtils {
     private final LockPatternUtils mInner;

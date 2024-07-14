@@ -28,7 +28,7 @@ import android.security.keystore.recovery.RecoveryCertPath;
 import com.android.internal.widget.ICheckCredentialProgressCallback;
 import com.android.internal.widget.IWeakEscrowTokenActivatedListener;
 import com.android.internal.widget.IWeakEscrowTokenRemovedListener;
-import com.android.internal.widget.LockPatternUtils.LockDomain;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 

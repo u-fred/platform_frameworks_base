@@ -25,8 +25,7 @@ import static android.security.keystore.recovery.RecoveryController.ERROR_INVALI
 import static android.security.keystore.recovery.RecoveryController.ERROR_NO_SNAPSHOT_PENDING;
 import static android.security.keystore.recovery.RecoveryController.ERROR_SERVICE_INTERNAL_ERROR;
 import static android.security.keystore.recovery.RecoveryController.ERROR_SESSION_EXPIRED;
-
-import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Primary;
 
 import android.Manifest;
 import android.annotation.NonNull;

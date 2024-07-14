@@ -11,7 +11,7 @@ import com.android.internal.widget.VerifyCredentialResponse;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;

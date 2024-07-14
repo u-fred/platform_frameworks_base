@@ -23,8 +23,8 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COM
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
 import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
-import static com.android.internal.widget.LockPatternUtils.LockDomain.Primary;
-import static com.android.internal.widget.LockPatternUtils.LockDomain.Secondary;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 
 import android.annotation.IntDef;
 import android.annotation.NonNull;
@@ -49,8 +49,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
@@ -145,38 +143,6 @@ public class LockPatternUtils {
             // CREDENTIAL_TYPE_PASSWORD_OR_PIN is missing on purpose.
     })
     public @interface CredentialType {}
-
-    // Using this type as an argument for methods that require secondary handling is safer and
-    // allows us to rebase more quickly.
-    // Consider that if we add secondary handling to a method by overloading with a boolean
-    // isPrimary, then upstream could add a conflicting overload.
-    // Also consider that if we have foo(bool) and its overload foo(bool, bool), adding an
-    // additional bool argument to differentiate primary/secondary could result in future callers
-    // calling the wrong method.
-    public enum LockDomain implements Parcelable {
-        Primary, Secondary;
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
-            dest.writeInt(ordinal());
-        }
-
-        public static final Parcelable.Creator<LockDomain> CREATOR
-                = new Parcelable.Creator<>() {
-            public LockDomain createFromParcel(Parcel in) {
-                return LockDomain.values()[in.readInt()];
-            }
-
-            public LockDomain[] newArray(int size) {
-                return new LockDomain[size];
-            }
-        };
-    }
 
     public static String credentialTypeToString(int credentialType) {
         switch (credentialType) {
