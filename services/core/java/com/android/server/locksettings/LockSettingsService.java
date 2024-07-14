@@ -1961,7 +1961,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
             onSyntheticPasswordUnlocked(userId, sp);
             if (lockDomain == Secondary) {
-                sp = mSpManager.newSyntheticPassword(userId, false);
+                sp = mSpManager.newSyntheticPassword(userId, Secondary);
             }
             setLockCredentialWithSpLocked(credential, lockDomain, sp, userId);
             sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent, lockDomain);
@@ -3063,7 +3063,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     SyntheticPasswordManager.NULL_PROTECTOR_ID,
                     "Cannot reinitialize SP");
 
-            SyntheticPassword sp = createNoneProtectorWithNewSpAndSetCurrent(userId, true);
+            SyntheticPassword sp = createNoneProtectorWithNewSpAndSetCurrent(userId, Primary);
             setCeStorageProtection(userId, sp);
             if (FIX_UNLOCKED_DEVICE_REQUIRED_KEYS) {
                 initKeystoreSuperKeys(userId, sp, /* allowExisting= */ false);
@@ -3074,7 +3074,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // !isCredentialSharableWithParent() so this will create for credential shareable users
             // even though they don't have secondary.
             // TODO: Add isCredentialShareable argument?
-            createNoneProtectorWithNewSpAndSetCurrent(userId, false);
+            createNoneProtectorWithNewSpAndSetCurrent(userId, Secondary);
 
             return sp;
         }
@@ -3082,13 +3082,13 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     @GuardedBy("mSpManager")
     private SyntheticPassword createNoneProtectorWithNewSpAndSetCurrent(int userId,
-            boolean primary) {
-        SyntheticPassword sp = mSpManager.newSyntheticPassword(userId, primary);
+            LockDomain lockDomain) {
+        SyntheticPassword sp = mSpManager.newSyntheticPassword(userId, lockDomain);
         long protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
-                LockscreenCredential.createNone(), primary, sp, userId);
-        setCurrentLskfBasedProtectorId(protectorId, userId, primary ? Primary : Secondary);
+                LockscreenCredential.createNone(), lockDomain, sp, userId);
+        setCurrentLskfBasedProtectorId(protectorId, userId, lockDomain);
         Slogf.i(TAG, "Successfully initialized %s synthetic password for user %d",
-                primary ? "primary" : "secondary", userId);
+                lockDomain == Primary ? "primary" : "secondary", userId);
         return sp;
     }
 
@@ -3220,7 +3220,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         final int savedCredentialType = getCredentialTypeInternal(userId, lockDomain);
         final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, lockDomain);
         final long newProtectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
-                credential, lockDomain == Primary, sp, userId);
+                credential, lockDomain, sp, userId);
         Map<Integer, LockscreenCredential> profilePasswords = null;
         if (lockDomain == Primary) {
             if (!credential.isNone()) {
@@ -3261,7 +3261,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             if (credential.isNone() && !isCredentialSharableWithParent(userId) &&
                     isUserSecure(userId, Secondary)) {
                 setLockCredentialWithSpLocked(credential, Secondary,
-                        mSpManager.newSyntheticPassword(userId, false), userId);
+                        mSpManager.newSyntheticPassword(userId, Secondary), userId);
                 // This must be called after removeBiometricsForUser has been called for userId and
                 // for all profiles, otherwise it can deadlock.
                 notifyPasswordChanged(credential, Secondary, userId);

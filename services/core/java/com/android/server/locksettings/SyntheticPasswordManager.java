@@ -841,12 +841,12 @@ class SyntheticPasswordManager {
      * handles this.  This makes it so that all the user's initial SP state files, including the
      * initial LSKF-based protector, are efficiently created with only a single {@link syncState()}.
      */
-    SyntheticPassword newSyntheticPassword(int userId, boolean primary) {
-        if (primary) {
+    SyntheticPassword newSyntheticPassword(int userId, LockDomain lockDomain) {
+        if (lockDomain == Primary) {
             clearSidForUser(userId);
         }
         SyntheticPassword result = SyntheticPassword.create();
-        if (primary) {
+        if (lockDomain == Primary) {
             saveEscrowData(result, userId);
         }
         return result;
@@ -1024,13 +1024,13 @@ class SyntheticPasswordManager {
      * @throws IllegalStateException on failure
      */
     public long createLskfBasedProtector(IGateKeeperService gatekeeper,
-            LockscreenCredential credential, boolean primary, SyntheticPassword sp, int userId) {
+            LockscreenCredential credential, LockDomain lockDomain, SyntheticPassword sp, int userId) {
         // TODO: Collisions possible?
         long protectorId = generateProtectorId();
 
         int pinLength = PIN_LENGTH_UNAVAILABLE;
         if (isAutoPinConfirmationFeatureAvailable()) {
-            pinLength = derivePinLength(credential.size(), credential.isPin(), userId, primary);
+            pinLength = derivePinLength(credential.size(), credential.isPin(), userId, lockDomain);
         }
         // There's no need to store password data about an empty LSKF.
         PasswordData pwd = credential.isNone() ? null :
@@ -1040,7 +1040,7 @@ class SyntheticPasswordManager {
         final byte[] protectorSecret;
 
         Slogf.i(TAG, "Creating LSKF-based protector %016x for user %d; primary %b", protectorId,
-                userId, primary);
+                userId, lockDomain == Primary);
 
         final IWeaver weaver = getWeaverService();
         if (weaver != null) {
@@ -1056,7 +1056,7 @@ class SyntheticPasswordManager {
             }
             saveWeaverSlot(weaverSlot, protectorId, userId);
             mPasswordSlotManager.markSlotInUse(weaverSlot);
-            if (primary) {
+            if (lockDomain == Primary) {
                 // No need to pass in quality since the credential type already encodes sufficient
                 // info
                 synchronizeWeaverFrpPassword(pwd, 0, userId, weaverSlot);
@@ -1076,14 +1076,14 @@ class SyntheticPasswordManager {
                 // In case GK enrollment leaves persistent state around (in RPMB), this will nuke
                 // them to prevent them from accumulating and causing problems.
                 try {
-                    gatekeeper.clearSecureUserId(fakeUserId(userId, primary ? Primary : Secondary));
+                    gatekeeper.clearSecureUserId(fakeUserId(userId, lockDomain));
                 } catch (RemoteException ignore) {
                     Slog.w(TAG, "Failed to clear SID from gatekeeper");
                 }
                 Slogf.i(TAG, "Enrolling LSKF for user %d into Gatekeeper", userId);
                 GateKeeperResponse response;
                 try {
-                    response = gatekeeper.enroll(fakeUserId(userId, primary ? Primary : Secondary), null, null,
+                    response = gatekeeper.enroll(fakeUserId(userId, lockDomain), null, null,
                             stretchedLskfToGkPassword(stretchedLskf));
                 } catch (RemoteException e) {
                     throw new IllegalStateException("Failed to enroll LSKF for new SP protector"
@@ -1099,7 +1099,7 @@ class SyntheticPasswordManager {
             protectorSecret = transformUnderSecdiscardable(stretchedLskf,
                     createSecdiscardable(protectorId, userId));
             // No need to pass in quality since the credential type already encodes sufficient info
-            if (primary) {
+            if (lockDomain == Primary) {
                 synchronizeGatekeeperFrpPassword(pwd, 0, userId);
             }
         }
@@ -1114,9 +1114,9 @@ class SyntheticPasswordManager {
     }
 
     private int derivePinLength(int sizeOfCredential, boolean isPinCredential, int userId,
-            boolean primary) {
+            LockDomain lockDomain) {
         if (!isPinCredential
-                || !mStorage.isAutoPinConfirmSettingEnabled(userId, primary)
+                || !mStorage.isAutoPinConfirmSettingEnabled(userId, lockDomain)
                 || sizeOfCredential < LockPatternUtils.MIN_AUTO_PIN_REQUIREMENT_LENGTH) {
             return PIN_LENGTH_UNAVAILABLE;
         }
@@ -1549,11 +1549,6 @@ class SyntheticPasswordManager {
         return result;
     }
 
-    public boolean refreshPinLengthOnDisk(PasswordMetrics passwordMetrics,
-            long protectorId, int userId, LockDomain lockDomain) {
-        return refreshPinLengthOnDisk(passwordMetrics, protectorId, userId, lockDomain == Primary);
-    }
-
     /**
      * {@link LockPatternUtils#refreshStoredPinLength(int)}
      * @param passwordMetrics passwordMetrics object containing the cached pin length
@@ -1562,7 +1557,7 @@ class SyntheticPasswordManager {
      * @return true/false depending on whether PIN length has been saved on disk
      */
     public boolean refreshPinLengthOnDisk(PasswordMetrics passwordMetrics,
-            long protectorId, int userId, boolean primary) {
+            long protectorId, int userId, LockDomain lockDomain) {
         if (!isAutoPinConfirmationFeatureAvailable()) {
             return false;
         }
@@ -1574,7 +1569,7 @@ class SyntheticPasswordManager {
 
         PasswordData pwd = PasswordData.fromBytes(pwdDataBytes);
         int pinLength = derivePinLength(passwordMetrics.length,
-                passwordMetrics.credType == CREDENTIAL_TYPE_PIN, userId, primary);
+                passwordMetrics.credType == CREDENTIAL_TYPE_PIN, userId, lockDomain);
         if (pwd.pinLength != pinLength) {
             pwd.pinLength = pinLength;
             saveState(PASSWORD_DATA_NAME, pwd.toBytes(), protectorId, userId);

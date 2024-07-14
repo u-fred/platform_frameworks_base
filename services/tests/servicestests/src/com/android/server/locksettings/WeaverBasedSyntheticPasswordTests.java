@@ -79,9 +79,9 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         assertEquals(0, mPasswordSlotManager.getUsedSlots().size());
 
         SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
-                primary);
+                primary ? Primary : Secondary);
         long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
-                pin, primary, sp, userId);
+                pin, primary ? Primary : Secondary, sp, userId);
 
         assertEquals(1, mPasswordSlotManager.getUsedSlots().size());
         if (primary) {
