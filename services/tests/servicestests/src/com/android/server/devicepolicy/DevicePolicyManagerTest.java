@@ -55,6 +55,7 @@ import static android.net.ConnectivityManager.PROFILE_NETWORK_PREFERENCE_ENTERPR
 import static android.net.ConnectivityManager.PROFILE_NETWORK_PREFERENCE_ENTERPRISE_NO_FALLBACK;
 import static android.net.InetAddresses.parseNumericAddress;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
@@ -5479,14 +5480,14 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getPasswordQuality(null, userId, false));
+                () -> dpm.getPasswordQuality(null, userId, Secondary));
     }
 
     @Test
     public void getPasswordQuality_SecondaryForSpecialUser_ThrowsException() {
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.getPasswordQuality(null, USER_FRP, false));
+                () -> dpm.getPasswordQuality(null, USER_FRP, Secondary));
     }
 
     @Test
@@ -5498,7 +5499,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getPasswordQuality(null, DOES_NOT_EXIST_USER_ID, false))
+        assertThat(dpm.getPasswordQuality(null, DOES_NOT_EXIST_USER_ID, Secondary))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
     }
 
@@ -5513,7 +5514,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(userId);
 
-        assertThat(dpm.getPasswordQuality(null, userId, false))
+        assertThat(dpm.getPasswordQuality(null, userId, Secondary))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
     }
 
