@@ -1786,8 +1786,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      */
     private void sendCredentialsOnChangeIfRequired(
             LockscreenCredential credential, int userId, boolean isLockTiedToParent,
-            boolean primary) {
-        if (!primary) {
+            LockDomain lockDomain) {
+        if (lockDomain == Secondary) {
             return;
         }
         // A profile whose lock screen is being tied to its parent's will either have a randomly
@@ -1962,7 +1962,8 @@ public class LockSettingsService extends ILockSettings.Stub {
                 sp = mSpManager.newSyntheticPassword(userId, false);
             }
             setLockCredentialWithSpLocked(credential, primary, sp, userId);
-            sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent, primary);
+            sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent,
+                    primary ? Primary : Secondary);
             return true;
         }
     }
