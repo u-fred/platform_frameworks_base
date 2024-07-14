@@ -464,7 +464,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (!isUserSecure(parent.id, Primary) && !profileUserPassword.isNone()) {
             Slogf.i(TAG, "Clearing password for profile user %d to match parent", profileUserId);
             setLockCredentialInternal(LockscreenCredential.createNone(), profileUserPassword,
-                    true, profileUserId, /* isLockTiedToParent= */ true);
+                    Primary, profileUserId, /* isLockTiedToParent= */ true);
             return;
         }
         final long parentSid;
@@ -481,7 +481,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             return;
         }
         try (LockscreenCredential unifiedProfilePassword = generateRandomProfilePassword()) {
-            setLockCredentialInternal(unifiedProfilePassword, profileUserPassword, true,
+            setLockCredentialInternal(unifiedProfilePassword, profileUserPassword, Primary,
                     profileUserId, /* isLockTiedToParent= */ true);
             tieProfileLockToParent(profileUserId, parent.id, unifiedProfilePassword);
             mUnifiedProfilePasswordCache.storePassword(profileUserId, unifiedProfilePassword,
@@ -1020,7 +1020,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                             DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED, userInfo.id);
 
                     mSpManager.migrateFrpPasswordLocked(
-                            getCurrentLskfBasedProtectorId(userInfo.id, true),
+                            getCurrentLskfBasedProtectorId(userInfo.id, Primary),
                             userInfo,
                             redactActualQualityToMostLenientEquivalentQuality(actualQuality));
                 }
@@ -1149,7 +1149,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.d(TAG, "User %d is secured; no migration needed", userId);
             return;
         }
-        long protectorId = getCurrentLskfBasedProtectorId(userId, true);
+        long protectorId = getCurrentLskfBasedProtectorId(userId, Primary);
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
             Slogf.i(TAG, "Migrating unsecured user %d to SP-based credential", userId);
             initializeSyntheticPassword(userId);
@@ -1173,7 +1173,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.d(TAG, "User %d is secured; no migration needed", userId);
             return;
         }
-        long protectorId = getCurrentLskfBasedProtectorId(userId, true);
+        long protectorId = getCurrentLskfBasedProtectorId(userId, Primary);
         if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
             Slogf.i(TAG, "Migrating unsecured user %d to SP-based credential", userId);
             initializeSyntheticPassword(userId);
@@ -1409,18 +1409,18 @@ public class LockSettingsService extends ILockSettings.Stub {
      *      B. PIN_LENGTH_UNAVAILABLE if pin length is not stored/available
      */
     @Override
-    public int getPinLength(int userId, LockDomain LockDomain) {
+    public int getPinLength(int userId, LockDomain lockDomain) {
         checkPasswordHavePermission();
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, LockDomain)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return PIN_LENGTH_UNAVAILABLE;
         }
 
-        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, LockDomain);
+        PasswordMetrics passwordMetrics = getUserPasswordMetrics(userId, lockDomain);
         if (passwordMetrics != null && passwordMetrics.credType == CREDENTIAL_TYPE_PIN) {
             return passwordMetrics.length;
         }
         synchronized (mSpManager) {
-            final long protectorId = getCurrentLskfBasedProtectorId(userId, LockDomain);
+            final long protectorId = getCurrentLskfBasedProtectorId(userId, lockDomain);
             if (protectorId == SyntheticPasswordManager.NULL_PROTECTOR_ID) {
                 // Only possible for new users during early boot (before onThirdPartyAppsStarted())
                 return PIN_LENGTH_UNAVAILABLE;
@@ -1727,7 +1727,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                             && profilePasswordMap.containsKey(profileUserId)) {
                         setLockCredentialInternal(LockscreenCredential.createNone(),
                                 profilePasswordMap.get(profileUserId),
-                                true,
+                                Primary,
                                 profileUserId,
                                 /* isLockTiedToParent= */ true);
                         mStorage.removeChildProfileLock(profileUserId);
@@ -1826,7 +1826,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     // should call setLockCredentialInternal.
     @Override
     public boolean setLockCredential(LockscreenCredential credential,
-            LockscreenCredential savedCredential, boolean primary, int userId) {
+            LockscreenCredential savedCredential, LockDomain lockDomain, int userId) {
 
         if (!mHasSecureLockScreen
                 && credential != null && credential.getType() != CREDENTIAL_TYPE_NONE) {
@@ -1834,7 +1834,8 @@ public class LockSettingsService extends ILockSettings.Stub {
                     "This operation requires secure lock screen feature");
         }
         if (!hasPermission(PERMISSION) && !hasPermission(SET_AND_VERIFY_LOCKSCREEN_CREDENTIALS)) {
-            if (hasPermission(SET_INITIAL_LOCK) && savedCredential.isNone() && primary) {
+            if (hasPermission(SET_INITIAL_LOCK) && savedCredential.isNone() &&
+                    lockDomain == Primary) {
                 // SET_INITIAL_LOCK can only be used if credential is not set.
             } else {
                 throw new SecurityException(
@@ -1855,7 +1856,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             // accept only the parent user credential on its public API interfaces, swap it
             // with the profile's random credential at that API boundary (i.e. here) and make
             // sure LSS internally does not special case profile with unififed challenge: b/80170828
-            if (!savedCredential.isNone() && isProfileWithUnifiedLock(userId) && primary) {
+            if (!savedCredential.isNone() && isProfileWithUnifiedLock(userId) &&
+                    lockDomain == Primary) {
                 // Verify the parent credential again, to make sure we have a fresh enough
                 // auth token such that getDecryptedPasswordForTiedProfile() inside
                 // setLockCredentialInternal() can function correctly.
@@ -1865,13 +1867,13 @@ public class LockSettingsService extends ILockSettings.Stub {
                 savedCredential = LockscreenCredential.createNone();
             }
             synchronized (mSeparateChallengeLock) {
-                if (!setLockCredentialInternal(credential, savedCredential, primary,
+                if (!setLockCredentialInternal(credential, savedCredential, lockDomain,
                         userId, /* isLockTiedToParent= */ false)) {
                     scheduleGc();
                     return false;
                 }
-                notifyPasswordChanged(credential, primary, userId);
-                if (primary) {
+                notifyPasswordChanged(credential, lockDomain, userId);
+                if (lockDomain == Primary) {
                     setSeparateProfileChallengeEnabledLocked(userId, true, /* unused */ null);
                 }
             }
@@ -1879,10 +1881,10 @@ public class LockSettingsService extends ILockSettings.Stub {
                 // Make sure the profile doesn't get locked straight after setting challenge.
                 setDeviceUnlockedForUser(userId);
             }
-            if (primary) {
+            if (lockDomain == Primary) {
                 notifySeparateProfileChallengeChanged(userId);
             }
-            onPostPasswordChanged(credential, primary, userId);
+            onPostPasswordChanged(credential, lockDomain, userId);
             scheduleGc();
             return true;
         } finally {
@@ -1899,22 +1901,22 @@ public class LockSettingsService extends ILockSettings.Stub {
      *     credentials are being tied to its parent's credentials.
      */
     private boolean setLockCredentialInternal(LockscreenCredential credential,
-            LockscreenCredential savedCredential, boolean primary, int userId,
+            LockscreenCredential savedCredential, LockDomain lockDomain, int userId,
             boolean isLockTiedToParent) {
         Objects.requireNonNull(credential);
         Objects.requireNonNull(savedCredential);
-        if (!primary && !(credential.getType() == CREDENTIAL_TYPE_PIN ||
+        if (lockDomain == Secondary && !(credential.getType() == CREDENTIAL_TYPE_PIN ||
                 credential.getType() == CREDENTIAL_TYPE_NONE)) {
             throw new IllegalArgumentException(
                     "Biometric second factor must be PIN or None");
         }
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId,
-                primary ? Primary : Secondary)) {
+        // TODO: Check this first?
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return false;
         }
 
         synchronized (mSpManager) {
-            if (!primary && !isUserSecure(userId, Primary)) {
+            if (lockDomain == Secondary && !isUserSecure(userId, Primary)) {
                 // Not using IllegalArgument as caller can't guarantee that user is secure at time
                 // this is executed.
                 Slog.w(TAG, "Must have primary password to set biometric second factor");
@@ -1936,7 +1938,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 }
             }
             // Always unlock current primary, even if setting secondary.
-            final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId, true);
+            final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId, Primary);
             AuthenticationResult authResult = mSpManager.unlockLskfBasedProtector(
                     getGateKeeperService(), currentPrimaryProtectorId, savedCredential, true,
                     userId, null);
@@ -1958,21 +1960,20 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
 
             onSyntheticPasswordUnlocked(userId, sp);
-            if (!primary) {
+            if (lockDomain == Secondary) {
                 sp = mSpManager.newSyntheticPassword(userId, false);
             }
-            setLockCredentialWithSpLocked(credential, primary, sp, userId);
-            sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent,
-                    primary ? Primary : Secondary);
+            setLockCredentialWithSpLocked(credential, lockDomain, sp, userId);
+            sendCredentialsOnChangeIfRequired(credential, userId, isLockTiedToParent, lockDomain);
             return true;
         }
     }
 
 
-    private void onPostPasswordChanged(LockscreenCredential newCredential, boolean primary,
+    private void onPostPasswordChanged(LockscreenCredential newCredential, LockDomain lockDomain,
             int userId) {
-        updatePasswordHistory(newCredential, userId, primary);
-        if (primary) {
+        updatePasswordHistory(newCredential, userId, lockDomain);
+        if (lockDomain == Primary) {
             mContext.getSystemService(TrustManager.class).reportEnabledTrustAgentsChanged(
                     userId);
             sendMainUserCredentialChangedNotificationIfNeeded(userId);
@@ -1988,7 +1989,7 @@ public class LockSettingsService extends ILockSettings.Stub {
      *
      */
     private void updatePasswordHistory(LockscreenCredential password, int userHandle,
-            boolean primary) {
+            LockDomain lockDomain) {
         if (password.isNone()) {
             return;
         }
@@ -1997,14 +1998,14 @@ public class LockSettingsService extends ILockSettings.Stub {
             return;
         }
         // Add the password to the password history.
-        String key = primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
+        String key = lockDomain == Primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
                 LockPatternUtils.PASSWORD_HISTORY_KEY_SECONDARY;
         String passwordHistory = getString(
                 key, /* defaultValue= */ null, userHandle);
         if (passwordHistory == null) {
             passwordHistory = "";
         }
-        int passwordHistoryLength = getRequestedPasswordHistoryLength(userHandle, primary);
+        int passwordHistoryLength = getRequestedPasswordHistoryLength(userHandle, lockDomain == Primary);
         if (passwordHistoryLength == 0) {
             passwordHistory = "";
         } else {
@@ -2280,7 +2281,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             }
             Slogf.i(TAG, "Unwrapping synthetic password for unsecured user %d", userId);
             AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
-                    getGateKeeperService(), getCurrentLskfBasedProtectorId(userId, true),
+                    getGateKeeperService(), getCurrentLskfBasedProtectorId(userId, Primary),
                     LockscreenCredential.createNone(), true, userId, null);
             if (result.syntheticPassword == null) {
                 Slogf.wtf(TAG, "Failed to unwrap synthetic password for unsecured user %d", userId);
@@ -2471,7 +2472,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 return response;
             }
 
-            long protectorId = getCurrentLskfBasedProtectorId(userId, primary);
+            long protectorId = getCurrentLskfBasedProtectorId(userId, primary ? Primary : Secondary);
             authResult = mSpManager.unlockLskfBasedProtector(
                     getGateKeeperService(), protectorId, credential, primary, userId,
                     progressCallback);
@@ -2615,7 +2616,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 return null;
             }
             return mSpManager.getPasswordMetrics(sp, getCurrentLskfBasedProtectorId(userHandle,
-                    true), userHandle);
+                    Primary), userHandle);
         }
     }
 
@@ -2623,14 +2624,14 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Call after {@link #setUserPasswordMetrics} so metrics are updated before
      * reporting the password changed.
      */
-    private void notifyPasswordChanged(LockscreenCredential newCredential, boolean primary,
+    private void notifyPasswordChanged(LockscreenCredential newCredential, LockDomain lockDomain,
             @UserIdInt int userId) {
         mHandler.post(() -> {
             mInjector.getDevicePolicyManager().reportPasswordChanged(
                     PasswordMetrics.computeForCredential(newCredential),
                     userId,
-                    primary);
-            if (primary) {
+                    lockDomain == Primary);
+            if (lockDomain == Primary) {
                 LocalServices.getService(WindowManagerInternal.class).reportPasswordChanged(userId);
             }
         });
@@ -3062,7 +3063,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     SyntheticPassword initializeSyntheticPassword(int userId) {
         synchronized (mSpManager) {
             Slogf.i(TAG, "Initializing synthetic passwords for user %d", userId);
-            Preconditions.checkState(getCurrentLskfBasedProtectorId(userId, true) ==
+            Preconditions.checkState(getCurrentLskfBasedProtectorId(userId, Primary) ==
                     SyntheticPasswordManager.NULL_PROTECTOR_ID,
                     "Cannot reinitialize SP");
 
@@ -3089,37 +3090,33 @@ public class LockSettingsService extends ILockSettings.Stub {
         SyntheticPassword sp = mSpManager.newSyntheticPassword(userId, primary);
         long protectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
                 LockscreenCredential.createNone(), primary, sp, userId);
-        setCurrentLskfBasedProtectorId(protectorId, userId, primary);
+        setCurrentLskfBasedProtectorId(protectorId, userId, primary ? Primary : Secondary);
         Slogf.i(TAG, "Successfully initialized %s synthetic password for user %d",
                 primary ? "primary" : "secondary", userId);
         return sp;
     }
 
-    private String getCurrentProtectorKeySuffix(boolean primary) {
-        if (primary) {
+    private String getCurrentProtectorKeySuffix(LockDomain lockDomain) {
+        if (lockDomain == Primary) {
             // This way we don't need to migrate existing protectors when user updates.
             return "";
         }
         return "-secondary";
     }
 
-    long getCurrentLskfBasedProtectorId(int userId, LockDomain lockDomain) {
-        return getCurrentLskfBasedProtectorId(userId, lockDomain == Primary);
-    }
-
     @VisibleForTesting
-    long getCurrentLskfBasedProtectorId(int userId, boolean primary) {
-        String keySuffix = getCurrentProtectorKeySuffix(primary);
+    long getCurrentLskfBasedProtectorId(int userId, LockDomain lockDomain) {
+        String keySuffix = getCurrentProtectorKeySuffix(lockDomain);
 
         return getLong(CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix,
                 SyntheticPasswordManager.NULL_PROTECTOR_ID, userId);
     }
 
     @VisibleForTesting
-    void setCurrentLskfBasedProtectorId(long newProtectorId, int userId, boolean primary) {
-        String keySuffix = getCurrentProtectorKeySuffix(primary);
+    void setCurrentLskfBasedProtectorId(long newProtectorId, int userId, LockDomain lockDomain) {
+        String keySuffix = getCurrentProtectorKeySuffix(lockDomain);
 
-        final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, primary);
+        final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, lockDomain);
         setLong(CURRENT_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, newProtectorId, userId);
         setLong(PREV_LSKF_BASED_PROTECTOR_ID_KEY_BASE + keySuffix, oldProtectorId, userId);
         setLong(LSKF_LAST_CHANGED_TIME_KEY_BASE + keySuffix, System.currentTimeMillis(),
@@ -3219,18 +3216,17 @@ public class LockSettingsService extends ILockSettings.Stub {
      * @param userId The user whose credential is being set.
      */
     @GuardedBy("mSpManager")
-    private long setLockCredentialWithSpLocked(LockscreenCredential credential, boolean primary,
-            SyntheticPassword sp, int userId) {
+    private long setLockCredentialWithSpLocked(LockscreenCredential credential,
+            LockDomain lockDomain, SyntheticPassword sp, int userId) {
         Slogf.i(TAG, "Changing lockscreen credential of user %d; newCredentialType=%s;" +
                         " primary=%b\n", userId, LockPatternUtils.credentialTypeToString(
-                                credential.getType()), primary);
-        final int savedCredentialType = getCredentialTypeInternal(userId, primary ? Primary :
-                Secondary);
-        final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, primary);
+                                credential.getType()), lockDomain == Primary);
+        final int savedCredentialType = getCredentialTypeInternal(userId, lockDomain);
+        final long oldProtectorId = getCurrentLskfBasedProtectorId(userId, lockDomain);
         final long newProtectorId = mSpManager.createLskfBasedProtector(getGateKeeperService(),
-                credential, primary, sp, userId);
+                credential, lockDomain == Primary, sp, userId);
         Map<Integer, LockscreenCredential> profilePasswords = null;
-        if (primary) {
+        if (lockDomain == Primary) {
             if (!credential.isNone()) {
                 // not needed by synchronizeUnifiedChallengeForProfiles()
                 profilePasswords = null;
@@ -3260,24 +3256,24 @@ public class LockSettingsService extends ILockSettings.Stub {
                 removeBiometricsForUser(userId);
             }
         }
-        setCurrentLskfBasedProtectorId(newProtectorId, userId, primary);
+        setCurrentLskfBasedProtectorId(newProtectorId, userId, lockDomain);
         LockPatternUtils.invalidateCredentialTypeCache();
-        if (primary) {
+        if (lockDomain == Primary) {
             synchronizeUnifiedChallengeForProfiles(userId, profilePasswords);
 
             // TODO: Check second factor support through LPU?
             if (credential.isNone() && !isCredentialSharableWithParent(userId) &&
                     isUserSecure(userId, Secondary)) {
-                setLockCredentialWithSpLocked(credential, false,
+                setLockCredentialWithSpLocked(credential, Secondary,
                         mSpManager.newSyntheticPassword(userId, false), userId);
                 // This must be called after removeBiometricsForUser has been called for userId and
                 // for all profiles, otherwise it can deadlock.
-                notifyPasswordChanged(credential, false, userId);
-                onPostPasswordChanged(credential, false, userId);
+                notifyPasswordChanged(credential, Secondary, userId);
+                onPostPasswordChanged(credential, Secondary, userId);
             }
         }
-        setUserPasswordMetrics(credential, userId, primary);
-        if (primary) {
+        setUserPasswordMetrics(credential, userId, lockDomain == Primary);
+        if (lockDomain == Primary) {
             mUnifiedProfilePasswordCache.removePassword(userId);
             // TODO: Not exactly sure why this is checking savedCredentialType.
             if (savedCredentialType != CREDENTIAL_TYPE_NONE) {
@@ -3406,7 +3402,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 }
             }
             synchronized (mSpManager) {
-                long protectorId = getCurrentLskfBasedProtectorId(userId, true);
+                long protectorId = getCurrentLskfBasedProtectorId(userId, Primary);
                 AuthenticationResult auth = mSpManager.unlockLskfBasedProtector(
                         getGateKeeperService(), protectorId, currentCredential, true, userId,
                         null);
@@ -3430,7 +3426,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             // LSKF-based one).
             SyntheticPassword sp = null;
             if (!isUserSecure(userId, Primary)) {
-                long protectorId = getCurrentLskfBasedProtectorId(userId, true);
+                long protectorId = getCurrentLskfBasedProtectorId(userId, Primary);
                 sp = mSpManager.unlockLskfBasedProtector(getGateKeeperService(), protectorId,
                         LockscreenCredential.createNone(), true, userId, null)
                         .syntheticPassword;
@@ -3477,8 +3473,8 @@ public class LockSettingsService extends ILockSettings.Stub {
 
     private boolean removeEscrowToken(long handle, int userId) {
         synchronized (mSpManager) {
-            if (handle == getCurrentLskfBasedProtectorId(userId, true) ||
-                    handle == getCurrentLskfBasedProtectorId(userId, false)) {
+            if (handle == getCurrentLskfBasedProtectorId(userId, Primary) ||
+                    handle == getCurrentLskfBasedProtectorId(userId, Secondary)) {
                 Slog.w(TAG, "Escrow token handle equals LSKF-based protector ID");
                 return false;
             }
@@ -3519,7 +3515,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 // the caller like DPMS), otherwise it can lead to deadlock.
                 mHandler.post(() -> unlockUser(userId));
             }
-            notifyPasswordChanged(credential, true, userId);
+            notifyPasswordChanged(credential, Primary, userId);
             notifySeparateProfileChallengeChanged(userId);
         }
         return result;
@@ -3545,7 +3541,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             return false;
         }
         onSyntheticPasswordUnlocked(userId, result.syntheticPassword);
-        setLockCredentialWithSpLocked(credential, true, result.syntheticPassword, userId);
+        setLockCredentialWithSpLocked(credential, Primary, result.syntheticPassword, userId);
         return true;
     }
 
@@ -3620,9 +3616,9 @@ public class LockSettingsService extends ILockSettings.Stub {
             pw.println("User " + userId);
             pw.increaseIndent();
             synchronized (mSpManager) {
-                String keySuffix = getCurrentProtectorKeySuffix(true);
+                String keySuffix = getCurrentProtectorKeySuffix(Primary);
                 pw.println(TextUtils.formatSimple("Primary LSKF-based SP protector ID: %016x",
-                        getCurrentLskfBasedProtectorId(userId, true)));
+                        getCurrentLskfBasedProtectorId(userId, Primary)));
                 pw.println(TextUtils.formatSimple(
                             "Primary LSKF last changed: %s (previous protector: %016x)",
                             timestampToString(getLong(LSKF_LAST_CHANGED_TIME_KEY_BASE + keySuffix,
@@ -3631,9 +3627,9 @@ public class LockSettingsService extends ILockSettings.Stub {
                                     userId)));
 
                 if (mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false)) {
-                    keySuffix = getCurrentProtectorKeySuffix(false);
+                    keySuffix = getCurrentProtectorKeySuffix(Secondary);
                     pw.println(TextUtils.formatSimple("Secondary LSKF-based SP protector ID: %016x",
-                            getCurrentLskfBasedProtectorId(userId, false)));
+                            getCurrentLskfBasedProtectorId(userId, Secondary)));
                     pw.println(TextUtils.formatSimple(
                             "Secondary LSKF last changed: %s (previous protector: %016x)",
                             timestampToString(getLong(LSKF_LAST_CHANGED_TIME_KEY_BASE + keySuffix,
@@ -3919,7 +3915,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     credential, tokenHandle, token, userId)) {
                 return false;
             }
-            onPostPasswordChanged(credential, true, userId);
+            onPostPasswordChanged(credential, Primary, userId);
             return true;
         }
 

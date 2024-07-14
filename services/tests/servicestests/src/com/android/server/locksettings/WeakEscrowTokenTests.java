@@ -16,6 +16,7 @@
 
 package com.android.server.locksettings;
 
+import static com.android.internal.widget.LockDomain.Primary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -76,7 +77,7 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
         IWeakEscrowTokenActivatedListener mockListener =
                 mock(IWeakEscrowTokenActivatedListener.Stub.class);
         LockscreenCredential password = newPassword("password");
-        mService.setLockCredential(password, nonePassword(), true, PRIMARY_USER_ID);
+        mService.setLockCredential(password, nonePassword(), Primary, PRIMARY_USER_ID);
 
         long handle = mService.addWeakEscrowToken(token, PRIMARY_USER_ID, mockListener);
         // Token not activated immediately since user password exists
@@ -99,7 +100,7 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
                 mock(IWeakEscrowTokenActivatedListener.Stub.class);
         LockscreenCredential password = newPassword("password");
         LockscreenCredential pattern = newPattern("123654");
-        mService.setLockCredential(password, nonePassword(), true, PRIMARY_USER_ID);
+        mService.setLockCredential(password, nonePassword(), Primary, PRIMARY_USER_ID);
         mService.registerWeakEscrowTokenRemovedListener(mockRemoveListener);
 
         long handle = mService.addWeakEscrowToken(token, PRIMARY_USER_ID, mockActivateListener);
@@ -158,7 +159,7 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
                 mock(IWeakEscrowTokenActivatedListener.Stub.class);
         LockscreenCredential password = newPassword("password");
         byte[] token = "some-high-entropy-secure-token".getBytes();
-        mService.setLockCredential(password, nonePassword(), true, PRIMARY_USER_ID);
+        mService.setLockCredential(password, nonePassword(), Primary, PRIMARY_USER_ID);
         // Disregard any reportPasswordChanged() invocations as part of credential setup.
         flushHandlerTasks();
         reset(mDevicePolicyManager);

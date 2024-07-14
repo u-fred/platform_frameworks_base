@@ -983,8 +983,8 @@ public class LockPatternUtils {
         }
 
         try {
-            if (!getLockSettings().setLockCredential(newCredential, savedCredential, primary,
-                    userHandle)) {
+            if (!getLockSettings().setLockCredential(newCredential, savedCredential,
+                    primary ? Primary : Secondary, userHandle)) {
                 return false;
             }
         } catch (RemoteException e) {

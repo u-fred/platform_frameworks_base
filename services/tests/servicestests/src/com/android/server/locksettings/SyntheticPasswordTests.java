@@ -19,6 +19,8 @@ package com.android.server.locksettings;
 import static android.content.pm.UserInfo.FLAG_FULL;
 import static android.content.pm.UserInfo.FLAG_MAIN;
 import static android.content.pm.UserInfo.FLAG_PRIMARY;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
@@ -170,7 +172,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     private void initSpAndSetCredential(int userId, LockscreenCredential credential)
             throws RemoteException {
         mService.initializeSyntheticPassword(userId);
-        assertTrue(mService.setLockCredential(credential, nonePassword(), true, userId));
+        assertTrue(mService.setLockCredential(credential, nonePassword(), Primary, userId));
         assertEquals(credential.getType(), mService.getCredentialType(userId, true));
     }
 
@@ -201,7 +203,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         setDeviceProvisioned(false);
         mService.initializeSyntheticPassword(PRIMARY_USER_ID);
         verify(mStorage.mPersistentDataBlockManager, never()).setFrpCredentialHandle(any());
-        mService.setLockCredential(newPassword("password"), nonePassword(), true, PRIMARY_USER_ID);
+        mService.setLockCredential(newPassword("password"), nonePassword(), Primary, PRIMARY_USER_ID);
         verify(mStorage.mPersistentDataBlockManager).setFrpCredentialHandle(any());
     }
 
@@ -212,7 +214,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
         initSpAndSetCredential(PRIMARY_USER_ID, password);
         long sid = mGateKeeperService.getSecureUserId(PRIMARY_USER_ID);
-        mService.setLockCredential(newPassword, password, true, PRIMARY_USER_ID);
+        mService.setLockCredential(newPassword, password, Primary, PRIMARY_USER_ID);
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
                 newPassword, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         assertEquals(sid, mGateKeeperService.getSecureUserId(PRIMARY_USER_ID));
@@ -240,11 +242,11 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         initSpAndSetCredential(PRIMARY_USER_ID, password);
         long sid = mGateKeeperService.getSecureUserId(PRIMARY_USER_ID);
         // clear password
-        mService.setLockCredential(nonePassword(), password, true, PRIMARY_USER_ID);
+        mService.setLockCredential(nonePassword(), password, Primary, PRIMARY_USER_ID);
         assertEquals(0 ,mGateKeeperService.getSecureUserId(PRIMARY_USER_ID));
 
         // set a new password
-        mService.setLockCredential(badPassword, nonePassword(), true, PRIMARY_USER_ID);
+        mService.setLockCredential(badPassword, nonePassword(), Primary, PRIMARY_USER_ID);
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
                 badPassword, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         assertNotEquals(sid, mGateKeeperService.getSecureUserId(PRIMARY_USER_ID));
@@ -256,7 +258,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         LockscreenCredential newPassword = newPassword("newPassword");
 
         initSpAndSetCredential(PRIMARY_USER_ID, password);
-        mService.setLockCredential(newPassword, password, true, PRIMARY_USER_ID);
+        mService.setLockCredential(newPassword, password, Primary, PRIMARY_USER_ID);
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
                 newPassword, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
 
@@ -302,7 +304,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
             throws RemoteException {
         LockscreenCredential password = newPassword("password");
         initSpAndSetCredential(PRIMARY_USER_ID, password);
-        mService.setLockCredential(nonePassword(), password, true, PRIMARY_USER_ID);
+        mService.setLockCredential(nonePassword(), password, Primary, PRIMARY_USER_ID);
 
         reset(mAuthSecretService);
         mService.unlockUserKeyIfUnsecured(PRIMARY_USER_ID);
@@ -402,7 +404,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         LockscreenCredential secondaryPin = newPin("123456");
         byte[] token = "some-high-entropy-secure-token".getBytes();
         initSpAndSetCredential(PRIMARY_USER_ID, password);
-        assertTrue(mService.setLockCredential(secondaryPin, password, false, PRIMARY_USER_ID));
+        assertTrue(mService.setLockCredential(secondaryPin, password, Secondary, PRIMARY_USER_ID));
         assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(PRIMARY_USER_ID, false));
         byte[] storageKey = mStorageManager.getUserUnlockToken(PRIMARY_USER_ID);
 
@@ -440,7 +442,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
                 password, true, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         assertTrue(mLocalService.isEscrowTokenActive(handle, PRIMARY_USER_ID));
 
-        mService.setLockCredential(pattern, password, true, PRIMARY_USER_ID);
+        mService.setLockCredential(pattern, password, Primary, PRIMARY_USER_ID);
 
         mLocalService.setLockCredentialWithToken(newPassword, handle, token, PRIMARY_USER_ID);
 
@@ -563,7 +565,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         byte[] hashFactor = mService.getHashFactor(password, PRIMARY_USER_ID);
         assertNotNull(hashFactor);
 
-        mService.setLockCredential(nonePassword(), password, true, PRIMARY_USER_ID);
+        mService.setLockCredential(nonePassword(), password, Primary, PRIMARY_USER_ID);
         byte[] newHashFactor = mService.getHashFactor(nonePassword(), PRIMARY_USER_ID);
         assertNotNull(newHashFactor);
         // Hash factor should never change after password change/removal
@@ -576,7 +578,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         mService.initializeSyntheticPassword(MANAGED_PROFILE_USER_ID);
 
         LockscreenCredential pattern = newPattern("1236");
-        mService.setLockCredential(pattern, nonePassword(), true, PRIMARY_USER_ID);
+        mService.setLockCredential(pattern, nonePassword(), Primary, PRIMARY_USER_ID);
         mService.setSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID, false, null);
         assertNotNull(mService.getHashFactor(null, MANAGED_PROFILE_USER_ID));
     }
@@ -588,8 +590,8 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
         LockscreenCredential primaryPassword = newPassword("primary");
         LockscreenCredential profilePassword = newPassword("profile");
-        mService.setLockCredential(primaryPassword, nonePassword(), true, PRIMARY_USER_ID);
-        mService.setLockCredential(profilePassword, nonePassword(), true, MANAGED_PROFILE_USER_ID);
+        mService.setLockCredential(primaryPassword, nonePassword(), Primary, PRIMARY_USER_ID);
+        mService.setLockCredential(profilePassword, nonePassword(), Primary, MANAGED_PROFILE_USER_ID);
         assertNotNull(
                 mService.getHashFactor(profilePassword, MANAGED_PROFILE_USER_ID));
     }
@@ -850,7 +852,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     public void testPasswordChange_NoOrphanedFilesLeft() throws Exception {
         LockscreenCredential password = newPassword("password");
         initSpAndSetCredential(PRIMARY_USER_ID, password);
-        assertTrue(mService.setLockCredential(password, password, true, PRIMARY_USER_ID));
+        assertTrue(mService.setLockCredential(password, password, Primary, PRIMARY_USER_ID));
         assertNoOrphanedFilesLeft(PRIMARY_USER_ID);
     }
 
@@ -869,9 +871,9 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     private void assertNoOrphanedFilesLeft(int userId) {
         String[] lskfProtectorPrefixes = new String[2];
         lskfProtectorPrefixes[0] = String.format("%016x",
-                mService.getCurrentLskfBasedProtectorId(userId, true));
+                mService.getCurrentLskfBasedProtectorId(userId, Primary));
         lskfProtectorPrefixes[1] = String.format("%016x",
-                mService.getCurrentLskfBasedProtectorId(userId, false));
+                mService.getCurrentLskfBasedProtectorId(userId, Secondary));
         File directory = mStorage.getSyntheticPasswordDirectoryForUser(userId);
         for (File file : directory.listFiles()) {
             String[] parts = file.getName().split("\\.");
