@@ -2590,8 +2590,8 @@ public class LockSettingsService extends ILockSettings.Stub {
      * @return passwordmetrics for the user or null if not available
      */
     @VisibleForTesting
-    PasswordMetrics getUserPasswordMetrics(int userHandle, boolean primary) {
-        if (!isUserSecure(userHandle, primary ? Primary : Secondary)) {
+    PasswordMetrics getUserPasswordMetrics(int userHandle, LockDomain lockDomain) {
+        if (!isUserSecure(userHandle, lockDomain)) {
             // for users without password, mUserPasswordMetrics might not be initialized
             // since the user never unlock the device manually. In this case, always
             // return a default metrics object. This is to distinguish this case from
@@ -2599,15 +2599,11 @@ public class LockSettingsService extends ILockSettings.Stub {
             return new PasswordMetrics(CREDENTIAL_TYPE_NONE);
         }
         synchronized (this) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 return mUserPasswordMetrics.get(userHandle);
             }
             return mUserBiometricSecondFactorMetrics.get(userHandle);
         }
-    }
-
-    PasswordMetrics getUserPasswordMetrics(int userHandle, LockDomain lockDomain) {
-        return getUserPasswordMetrics(userHandle, lockDomain == Primary);
     }
 
     private @Nullable PasswordMetrics loadPasswordMetrics(SyntheticPassword sp, int userHandle) {
@@ -3652,7 +3648,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             pw.println("Primary SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(
                     userId));
             pw.println(TextUtils.formatSimple("Primary Metrics: %s",
-                    getUserPasswordMetrics(userId, true) != null ? "known" : "unknown"));
+                    getUserPasswordMetrics(userId, Primary) != null ? "known" : "unknown"));
 
             if (mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false)) {
                 pw.println("Secondary Quality: " + credentialTypeToPasswordQuality(
@@ -3660,7 +3656,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                 pw.println("Secondary CredentialType: " + LockPatternUtils.credentialTypeToString(
                         getCredentialTypeInternal(userId, Secondary)));
                 pw.println(TextUtils.formatSimple("Secondary Metrics: %s",
-                        getUserPasswordMetrics(userId, false) != null ? "known" : "unknown"));
+                        getUserPasswordMetrics(userId, Secondary) != null ? "known" : "unknown"));
             }
 
             pw.decreaseIndent();
@@ -3936,7 +3932,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     Slog.w(TAG, "Querying password metrics for unified challenge profile: "
                             + userHandle);
                 }
-                return LockSettingsService.this.getUserPasswordMetrics(userHandle, true);
+                return LockSettingsService.this.getUserPasswordMetrics(userHandle, Primary);
             } finally {
                 Binder.restoreCallingIdentity(identity);
             }

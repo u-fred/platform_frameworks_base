@@ -594,15 +594,15 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         final LockscreenCredential primaryPassword = newPassword("primaryPassword");
         setCredential(userId, primaryPassword);
-        assertNotNull(mService.getUserPasswordMetrics(userId, true));
+        assertNotNull(mService.getUserPasswordMetrics(userId, Primary));
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, true));
+        assertNull(mService.getUserPasswordMetrics(userId, Primary));
 
         final LockscreenCredential secondaryPin = newPin("1111");
-        setCredential(userId, secondaryPin, primaryPassword, false);
-        assertNotNull(mService.getUserPasswordMetrics(userId, false));
+        setCredential(userId, secondaryPin, primaryPassword, Secondary);
+        assertNotNull(mService.getUserPasswordMetrics(userId, Secondary));
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, false));
+        assertNull(mService.getUserPasswordMetrics(userId, Secondary));
     }
 
     @Test
@@ -634,12 +634,12 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         final LockscreenCredential primaryPin = newPin("123456");
         setCredential(userId, primaryPin);
-        assertNotNull(mService.getUserPasswordMetrics(userId, true));
+        assertNotNull(mService.getUserPasswordMetrics(userId, Primary));
         assertEquals(6, mService.getPinLength(userId, true));
 
         final LockscreenCredential secondaryPin = newPin("1234");
         setCredential(userId, secondaryPin, primaryPin, false);
-        assertNotNull(mService.getUserPasswordMetrics(userId, false));
+        assertNotNull(mService.getUserPasswordMetrics(userId, Secondary));
         assertEquals(4, mService.getPinLength(userId, false));
     }
 
@@ -650,7 +650,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         mService.setCurrentLskfBasedProtectorId(NULL_PROTECTOR_ID, userId,
                 primary ? Primary : Secondary);
 
-        PasswordMetrics pm = mService.getUserPasswordMetrics(userId, primary);
+        PasswordMetrics pm = mService.getUserPasswordMetrics(userId, primary ? Primary : Secondary);
         assertEquals(CREDENTIAL_TYPE_NONE, pm.credType);
 
         long protectorId = mService.getCurrentLskfBasedProtectorId(userId, primary ? Primary :
@@ -670,14 +670,14 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         final LockscreenCredential primaryPin = newPin("123456");
         setCredential(userId, primaryPin);
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, true));
+        assertNull(mService.getUserPasswordMetrics(userId, Primary));
         assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(userId, true));
 
         setAutoPinConfirm(userId, false, false);
         final LockscreenCredential secondaryPin = newPin("654321");
         setCredential(userId, secondaryPin, primaryPin, false);
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, false));
+        assertNull(mService.getUserPasswordMetrics(userId, Secondary));
         assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(userId, false));
     }
 
@@ -689,14 +689,14 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         final LockscreenCredential primaryPin = newPin("123456");
         setCredential(userId, primaryPin);
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, true));
+        assertNull(mService.getUserPasswordMetrics(userId, Primary));
         assertEquals(6, mService.getPinLength(userId, true));
 
         setAutoPinConfirm(userId, false, true);
         final LockscreenCredential secondaryPin = newPin("654321");
         setCredential(userId, secondaryPin, primaryPin, false);
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, false));
+        assertNull(mService.getUserPasswordMetrics(userId, Secondary));
         assertEquals(6, mService.getPinLength(userId, false));
     }
 
@@ -741,7 +741,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         // Verify not already stored on disk.
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, primary));
+        assertNull(mService.getUserPasswordMetrics(userId, primary ? Primary : Secondary));
         assertEquals(PIN_LENGTH_UNAVAILABLE, mService.getPinLength(userId, primary));
 
         // Save credential to disk.
@@ -751,7 +751,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         // Verify credential was saved to disk.
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, primary));
+        assertNull(mService.getUserPasswordMetrics(userId, primary ? Primary : Secondary));
         assertEquals(6, mService.getPinLength(userId, primary));
     }
 
@@ -924,7 +924,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         Assert.assertNotEquals(secondarySp0, secondarySp1);
 
         PasswordMetrics pm = PasswordMetrics.computeForCredential(LockscreenCredential.createNone());
-        assertEquals(pm, mService.getUserPasswordMetrics(userId, false));
+        assertEquals(pm, mService.getUserPasswordMetrics(userId, Secondary));
         verify(mDevicePolicyManager, times(1)).reportPasswordChanged(pm, userId,
                 false);
     }
@@ -951,12 +951,12 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertNotNull(secondarySp0);
 
         assertEquals(CREDENTIAL_TYPE_NONE,
-                mService.getUserPasswordMetrics(userId, false).credType);
+                mService.getUserPasswordMetrics(userId, Secondary).credType);
 
         // Set secondary PIN.
         assertTrue(mService.setLockCredential(secondaryPin, primaryPin, Secondary, userId));
 
-        assertEquals(secondaryPinMetrics, mService.getUserPasswordMetrics(userId, false));
+        assertEquals(secondaryPinMetrics, mService.getUserPasswordMetrics(userId, Secondary));
         assertVerifyCredential(userId, secondaryPin, false);
         secondaryProtector = mService.getCurrentLskfBasedProtectorId(userId, Secondary);
         SyntheticPasswordManager.SyntheticPassword secondarySp1 =
@@ -983,22 +983,22 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void setLockCredential_onSuccess_addsPasswordMetrics() {
         assertEquals(CREDENTIAL_TYPE_NONE,
-                mService.getUserPasswordMetrics(PRIMARY_USER_ID, true).credType);
+                mService.getUserPasswordMetrics(PRIMARY_USER_ID, Primary).credType);
         final LockscreenCredential primaryPassword = newPassword("primaryPassword");
         final PasswordMetrics primaryMetrics = PasswordMetrics.computeForCredential(
                 primaryPassword);
         assertTrue(mService.setLockCredential(primaryPassword, nonePassword(), Primary,
                 PRIMARY_USER_ID));
-        assertEquals(primaryMetrics, mService.getUserPasswordMetrics(PRIMARY_USER_ID, true));
+        assertEquals(primaryMetrics, mService.getUserPasswordMetrics(PRIMARY_USER_ID, Primary));
 
         assertEquals(CREDENTIAL_TYPE_NONE,
-                mService.getUserPasswordMetrics(PRIMARY_USER_ID, false).credType);
+                mService.getUserPasswordMetrics(PRIMARY_USER_ID, Secondary).credType);
         final LockscreenCredential secondaryPin = newPin("1111");
         final PasswordMetrics secondaryMetrics = PasswordMetrics.computeForCredential(
                 secondaryPin);
         assertTrue(mService.setLockCredential(secondaryPin, primaryPassword, Secondary,
                 PRIMARY_USER_ID));
-        assertEquals(secondaryMetrics, mService.getUserPasswordMetrics(PRIMARY_USER_ID, false));
+        assertEquals(secondaryMetrics, mService.getUserPasswordMetrics(PRIMARY_USER_ID, Secondary));
     }
 
     @Test
@@ -1063,18 +1063,18 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
                 primaryPassword);
         setCredential(userId, primaryPassword);
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, true));
+        assertNull(mService.getUserPasswordMetrics(userId, Primary));
         mService.verifyCredential(primaryPassword, Primary, userId, 0);
-        assertEquals(primaryMetrics, mService.getUserPasswordMetrics(userId, true));
+        assertEquals(primaryMetrics, mService.getUserPasswordMetrics(userId, Primary));
 
         final LockscreenCredential secondaryPin = newPin("1111");
         final PasswordMetrics secondaryMetrics = PasswordMetrics.computeForCredential(
                 secondaryPin);
         setCredential(userId, secondaryPin, primaryPassword, false);
         mService.onUserStopped(userId);
-        assertNull(mService.getUserPasswordMetrics(userId, false));
+        assertNull(mService.getUserPasswordMetrics(userId, Secondary));
         mService.verifyCredential(secondaryPin, Secondary, userId, 0);
-        assertEquals(secondaryMetrics, mService.getUserPasswordMetrics(userId, false));
+        assertEquals(secondaryMetrics, mService.getUserPasswordMetrics(userId, Secondary));
     }
 
     private void checkPasswordHistoryLength(int userId, boolean primary, int expectedLen) {

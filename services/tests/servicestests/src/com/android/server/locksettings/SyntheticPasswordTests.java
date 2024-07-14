@@ -389,7 +389,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         // Verify DPM gets notified about new device lock
         flushHandlerTasks();
         final PasswordMetrics metric = PasswordMetrics.computeForCredential(pattern);
-        assertEquals(metric, mService.getUserPasswordMetrics(PRIMARY_USER_ID, true));
+        assertEquals(metric, mService.getUserPasswordMetrics(PRIMARY_USER_ID, Primary));
         // TODO: Primary/secondary.
         verify(mDevicePolicyManager).reportPasswordChanged(metric, PRIMARY_USER_ID, true);
 
