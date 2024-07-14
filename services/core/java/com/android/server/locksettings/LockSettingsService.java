@@ -1971,7 +1971,6 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
-
     private void onPostPasswordChanged(LockscreenCredential newCredential, LockDomain lockDomain,
             int userId) {
         updatePasswordHistory(newCredential, userId, lockDomain);
@@ -1988,7 +1987,6 @@ public class LockSettingsService extends ILockSettings.Stub {
      *
      * This must not be called while the mSpManager lock is held, as this calls into
      * DevicePolicyManagerService to get the requested password history length.
-     *
      */
     private void updatePasswordHistory(LockscreenCredential password, int userHandle,
             LockDomain lockDomain) {
@@ -3204,12 +3202,6 @@ public class LockSettingsService extends ILockSettings.Stub {
      * Also maintains the invariants described in {@link SyntheticPasswordManager} by enrolling /
      * deleting the synthetic password into Gatekeeper as the LSKF is set / cleared, and asking
      * Keystore to delete the user's auth-bound keys when the LSKF is cleared.
-     *
-     * @param credential The new credential to set.
-     * @param primary Whether to set the primary or biometric second factor credential. Must be true
-     *               if userId is user that can share credentials with parent.
-     * @param sp The synthetic password that is to be protected by credential.
-     * @param userId The user whose credential is being set.
      */
     @GuardedBy("mSpManager")
     private long setLockCredentialWithSpLocked(LockscreenCredential credential,
