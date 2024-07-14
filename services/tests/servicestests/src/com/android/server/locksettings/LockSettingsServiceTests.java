@@ -705,7 +705,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertExpectException(
                 SecondaryForCredSharableUserException.class,
                 null,
-                () -> mService.refreshStoredPinLength(MANAGED_PROFILE_USER_ID, false));
+                () -> mService.refreshStoredPinLength(MANAGED_PROFILE_USER_ID, Secondary));
     }
 
     @Test
@@ -713,13 +713,14 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertExpectException(
                 SecondaryForSpecialUserException.class,
                 null,
-                () -> mService.refreshStoredPinLength(USER_FRP, false));
+                () -> mService.refreshStoredPinLength(USER_FRP, Secondary));
     }
 
     @Test
     @Parameters({"true", "false"})
     public void refreshStoredPinLength_notExistingUser_returnsFalse(boolean primary) {
-        assertFalse(mService.refreshStoredPinLength(DOES_NOT_EXIST_USER_ID, primary));
+        assertFalse(mService.refreshStoredPinLength(DOES_NOT_EXIST_USER_ID,
+                primary ? Primary : Secondary));
     }
 
     @Test
@@ -748,7 +749,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         // Save credential to disk.
         assertVerifyCredential(userId, pin, primary);
         setAutoPinConfirm(userId, primary, true);
-        assertTrue(mService.refreshStoredPinLength(userId, primary));
+        assertTrue(mService.refreshStoredPinLength(userId, primary ? Primary : Secondary));
 
         // Verify credential was saved to disk.
         mService.onUserStopped(userId);
