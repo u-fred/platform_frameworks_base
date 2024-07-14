@@ -8138,18 +8138,18 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
     @Override
     public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
-            boolean primary) {
+            LockDomain lockDomain) {
         if (!mHasFeature || !mLockPatternUtils.hasSecureLockScreen()) {
             return;
         }
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(isSystemUid(caller));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return;
         }
         // Managed Profile password can only be changed when it has a separate challenge.
-        if (primary && !isSeparateProfileChallengeEnabled(userId)) {
+        if (lockDomain == Primary && !isSeparateProfileChallengeEnabled(userId)) {
             Preconditions.checkCallAuthorization(!isManagedProfile(userId), "You can "
                     + "not set the active password for a managed profile, userId = %d", userId);
         }
@@ -8158,7 +8158,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         final ArraySet<Integer> affectedUserIds = new ArraySet<>();
 
         synchronized (getLockObject()) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 policy.mFailedPasswordAttempts = 0;
                 affectedUserIds.add(userId);
                 affectedUserIds.addAll(updatePasswordValidityCheckpointLocked(

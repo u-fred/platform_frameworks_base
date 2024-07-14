@@ -9167,7 +9167,7 @@ public class DevicePolicyManager {
             boolean primary) {
         if (mService != null) {
             try {
-                mService.reportPasswordChanged(metrics, userId, primary);
+                mService.reportPasswordChanged(metrics, userId, primary ? Primary : Secondary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

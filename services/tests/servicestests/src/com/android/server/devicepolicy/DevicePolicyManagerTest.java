@@ -5378,7 +5378,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         assertExpectException(SecondaryForCredSharableUserException.class,
                 null,
                 () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
-                        MANAGED_PROFILE_USER_ID, false));
+                        MANAGED_PROFILE_USER_ID, Secondary));
     }
 
     @Test
@@ -5392,7 +5392,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         assertExpectException(SecondaryForSpecialUserException.class,
                 null,
                 () -> dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN),
-                        USER_FRP, false));
+                        USER_FRP, Secondary));
     }
 
     @Test
@@ -5406,7 +5406,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Should not throw.
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), DOES_NOT_EXIST_USER_ID,
-                false);
+                Secondary);
     }
 
     @Test
@@ -5429,7 +5429,8 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(1);
         reset(mServiceContext.spiedContext);
 
-        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), userId, primary);
+        dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), userId,
+                primary ? Primary : Secondary);
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(0);
