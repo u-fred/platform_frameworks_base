@@ -5628,7 +5628,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.getPasswordHistoryLength(null, userId, false));
+                () -> dpm.getPasswordHistoryLength(null, userId, Secondary));
     }
 
     @Test
@@ -5640,7 +5640,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(USER_FRP);
 
         assertThrows(SecondaryForSpecialUserException.class,
-                () -> dpm.getPasswordHistoryLength(null, USER_FRP, false));
+                () -> dpm.getPasswordHistoryLength(null, USER_FRP, Secondary));
     }
 
     @Test
@@ -5652,7 +5652,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(DOES_NOT_EXIST_USER_ID);
 
-        assertThat(dpm.getPasswordHistoryLength(null, DOES_NOT_EXIST_USER_ID, false))
+        assertThat(dpm.getPasswordHistoryLength(null, DOES_NOT_EXIST_USER_ID, Secondary))
                 .isEqualTo(0);
     }
 
@@ -5665,7 +5665,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .when(getServices().lockPatternUtils)
                 .checkUserSupportsBiometricSecondFactor(userId);
 
-        assertThat(dpm.getPasswordHistoryLength(null, userId, false))
+        assertThat(dpm.getPasswordHistoryLength(null, userId, Secondary))
                 .isEqualTo(0);
     }
 

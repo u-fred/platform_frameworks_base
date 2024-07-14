@@ -5563,23 +5563,23 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin) {
-        return getPasswordHistoryLength(admin, myUserId(), true);
+        return getPasswordHistoryLength(admin, myUserId(), Primary);
     }
 
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle) {
-        return getPasswordHistoryLength(admin, userHandle, true);
+        return getPasswordHistoryLength(admin, userHandle, Primary);
     }
 
     /** @hide */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle,
-            boolean primary) {
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
-                return mService.getPasswordHistoryLength(admin, userHandle, primary,
+                return mService.getPasswordHistoryLength(admin, userHandle, lockDomain == Primary,
                         mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();

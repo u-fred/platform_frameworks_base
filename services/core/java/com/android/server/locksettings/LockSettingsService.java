@@ -2005,7 +2005,7 @@ public class LockSettingsService extends ILockSettings.Stub {
         if (passwordHistory == null) {
             passwordHistory = "";
         }
-        int passwordHistoryLength = getRequestedPasswordHistoryLength(userHandle, lockDomain == Primary);
+        int passwordHistoryLength = getRequestedPasswordHistoryLength(userHandle, lockDomain);
         if (passwordHistoryLength == 0) {
             passwordHistory = "";
         } else {
@@ -2045,8 +2045,9 @@ public class LockSettingsService extends ILockSettings.Stub {
         return Long.toHexString(salt);
     }
 
-    private int getRequestedPasswordHistoryLength(int userId, boolean primary) {
-        return mInjector.getDevicePolicyManager().getPasswordHistoryLength(null, userId, primary);
+    private int getRequestedPasswordHistoryLength(int userId, LockDomain lockDomain) {
+        return mInjector.getDevicePolicyManager().getPasswordHistoryLength(null, userId,
+                lockDomain);
     }
 
     private UserManager getUserManagerFromCache(int userId) {
