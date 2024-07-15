@@ -940,7 +940,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         final LockscreenCredential secondaryPin = newPin("654321");
         PasswordMetrics secondaryPinMetrics = PasswordMetrics.computeForCredential(secondaryPin);
 
-        long primaryProtector = mService.getCurrentLskfBasedProtectorId(userId, Primary);
+        long primaryProtector = mService.getCurrentLskfBasedProtectorId(userId);
         SyntheticPasswordManager.SyntheticPassword primarySp =
                 mSpManager.unlockLskfBasedProtector(mGateKeeperService, primaryProtector,
                         primaryPin, userId, null).syntheticPassword;
