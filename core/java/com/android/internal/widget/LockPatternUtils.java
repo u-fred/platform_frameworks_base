@@ -554,7 +554,7 @@ public class LockPatternUtils {
             throw new SecondaryForSpecialUserException();
         }
         return getDevicePolicyManager().getMaximumFailedPasswordsForWipe(
-                null /* componentName */, userId, primary);
+                null /* componentName */, userId, primary ? Primary : Secondary);
     }
 
     /**
