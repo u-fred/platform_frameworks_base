@@ -18,6 +18,7 @@ package com.android.keyguard;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.util.Log;
@@ -130,7 +131,7 @@ public class KeyguardSecurityViewFlipperController
             mAsyncLayoutInflater.inflate(layoutId, mView,
                     (view, resId, parent) -> {
                         if (securityMode == SecurityMode.BiometricSecondFactorPin) {
-                            ((KeyguardPINView) view).setIsForPrimaryCredential(false);
+                            ((KeyguardPINView) view).setLockDomain(Secondary);
                             // By default, view ID is set to R.id.keyguard_pin_view for both regular
                             // and BSF PIN layouts.
                             // Use a distinct ID to prevent rest of the code from breaking due to

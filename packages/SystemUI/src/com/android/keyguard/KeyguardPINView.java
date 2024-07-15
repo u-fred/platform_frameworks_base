@@ -20,6 +20,8 @@ import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 import static com.android.internal.jank.InteractionJankMonitor.CUJ_LOCKSCREEN_PIN_APPEAR;
 import static com.android.internal.jank.InteractionJankMonitor.CUJ_LOCKSCREEN_PIN_DISAPPEAR;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_CLOSED;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_HALF_OPENED;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_UNKNOWN;
@@ -39,6 +41,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
 import com.android.app.animation.Interpolators;
+import com.android.internal.widget.LockDomain;
 import com.android.settingslib.animation.DisappearAnimationUtils;
 import com.android.systemui.res.R;
 import com.android.systemui.statusbar.policy.DevicePostureController.DevicePostureInt;
@@ -270,7 +273,7 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
 
     @Override
     public int getWrongPasswordStringId() {
-        return isForPrimaryCredential() ? R.string.kg_wrong_pin :
+        return mLockDomain == Primary ? R.string.kg_wrong_pin :
                 R.string.kg_wrong_biometric_second_factor_pin;
     }
 
@@ -346,20 +349,16 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
         }
     }
 
-    private boolean mIsForPrimaryCredential = true;
+    private LockDomain mLockDomain = Primary;
 
-    public void setIsForPrimaryCredential(boolean value) {
-        mIsForPrimaryCredential = value;
-    }
-
-    public boolean isForPrimaryCredential() {
-        return mIsForPrimaryCredential;
+    public void setLockDomain(LockDomain lockDomain) {
+        mLockDomain = lockDomain;
     }
 
     @Override
     protected int getPromptReasonStringRes(int reason) {
         // TODO: Would it be preferred to add this to the base method and use instanceof?
-        if (!mIsForPrimaryCredential) {
+        if (mLockDomain == Secondary) {
             // Without this can end up displaying a strong auth prompt even when SecurityMode is
             // BiometricSecondFactorPin. See allowedNonStrongAfterIdleTimeout in
             // KeyguardViewMediator#getBouncerPromptReason. This may be an upstream bug, would need
