@@ -9205,17 +9205,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle) {
-        reportSuccessfulPasswordAttempt(userHandle, true);
+        reportSuccessfulPasswordAttempt(userHandle, Primary);
     }
 
     /**
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
+    public void reportSuccessfulPasswordAttempt(int userHandle, LockDomain lockDomain) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulPasswordAttempt(userHandle, primary ? Primary : Secondary);
+                mService.reportSuccessfulPasswordAttempt(userHandle, lockDomain);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }

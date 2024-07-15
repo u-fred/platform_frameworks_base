@@ -487,7 +487,7 @@ public class LockPatternUtils {
             }
             throw new SecondaryForSpecialUserException();
         }
-        getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, primary);
+        getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary);
         if (primary) {
             getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
         } else if (forUnlock) {
