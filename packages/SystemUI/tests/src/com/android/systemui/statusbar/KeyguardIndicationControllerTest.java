@@ -71,6 +71,7 @@ import android.testing.TestableLooper;
 import androidx.test.filters.FlakyTest;
 import androidx.test.filters.SmallTest;
 
+import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.keyguard.TrustGrantFlags;
 import com.android.settingslib.fuelgauge.BatteryStatus;
 import com.android.systemui.dock.DockManager;
@@ -1061,7 +1062,7 @@ public class KeyguardIndicationControllerTest extends KeyguardIndicationControll
         // WHEN face auth succeeds
         when(mKeyguardUpdateMonitor.getIsFaceAuthenticated()).thenReturn(true);
         mController.getKeyguardCallback().onBiometricAuthenticated(0,
-                BiometricSourceType.FACE, false, false);
+                BiometricSourceType.FACE, false, KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled);
 
         // THEN 'face unlocked' then 'press unlock icon to open' message show
         String unlockedByFace = mContext.getString(R.string.keyguard_face_successful_unlock);
@@ -1085,7 +1086,7 @@ public class KeyguardIndicationControllerTest extends KeyguardIndicationControll
         // WHEN face authenticated
         when(mKeyguardUpdateMonitor.getIsFaceAuthenticated()).thenReturn(true);
         mController.getKeyguardCallback().onBiometricAuthenticated(0,
-                BiometricSourceType.FACE, false, false);
+                BiometricSourceType.FACE, false, KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled);
 
         // THEN show 'face unlocked' and 'swipe up to open' messages
         String unlockedByFace = mContext.getString(R.string.keyguard_face_successful_unlock);
@@ -1108,7 +1109,7 @@ public class KeyguardIndicationControllerTest extends KeyguardIndicationControll
         // WHEN face auth is successful
         when(mKeyguardUpdateMonitor.getIsFaceAuthenticated()).thenReturn(true);
         mController.getKeyguardCallback().onBiometricAuthenticated(0,
-                BiometricSourceType.FACE, false, false);
+                BiometricSourceType.FACE, false, KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled);
 
         // THEN show 'face unlocked' and 'swipe up to open' messages
         String unlockedByFace = mContext.getString(R.string.keyguard_face_successful_unlock);
@@ -1130,7 +1131,7 @@ public class KeyguardIndicationControllerTest extends KeyguardIndicationControll
         // WHEN face auth is successful
         when(mKeyguardUpdateMonitor.getIsFaceAuthenticated()).thenReturn(true);
         mController.getKeyguardCallback().onBiometricAuthenticated(0,
-                BiometricSourceType.FACE, false, false);
+                BiometricSourceType.FACE, false, KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled);
 
         // THEN show 'face unlocked' and 'swipe up to open' messages
         String unlockedByFace = mContext.getString(R.string.keyguard_face_successful_unlock);
@@ -1513,7 +1514,7 @@ public class KeyguardIndicationControllerTest extends KeyguardIndicationControll
         when(mKeyguardUpdateMonitor.getUserCanSkipBouncer(getCurrentUser()))
                 .thenReturn(true);
         mController.getKeyguardCallback().onBiometricAuthenticated(0,
-                BiometricSourceType.FACE, false, false);
+                BiometricSourceType.FACE, false, KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled);
         verifyIndicationMessage(
                 INDICATION_TYPE_BIOMETRIC_MESSAGE,
                 mContext.getString(R.string.keyguard_face_successful_unlock));

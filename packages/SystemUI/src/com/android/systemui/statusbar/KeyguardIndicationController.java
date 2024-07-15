@@ -1458,9 +1458,9 @@ public class KeyguardIndicationController {
 
         @Override
         public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
-                boolean isStrongBiometric, boolean isSecondFactorEnabled) {
+                boolean isStrongBiometric, SecondFactorStatus secondFactorStatus) {
             super.onBiometricAuthenticated(userId, biometricSourceType, isStrongBiometric,
-                    isSecondFactorEnabled);
+                    secondFactorStatus);
             hideBiometricMessage();
             // TODO: Will need to add face handling here when second factor for face implemented
             //  properly.

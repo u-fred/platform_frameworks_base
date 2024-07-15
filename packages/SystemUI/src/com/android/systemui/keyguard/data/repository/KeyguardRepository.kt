@@ -630,7 +630,7 @@ constructor(
                     userId: Int,
                     biometricSourceType: BiometricSourceType?,
                     isStrongBiometric: Boolean,
-                    isSecondFactorEnabled: Boolean
+                    secondFactorStatus: SecondFactorStatus
                 ) {
                     // TODO: Will need to add second factor handling here once this Flow is
                     //  used.

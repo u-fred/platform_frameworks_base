@@ -19,6 +19,7 @@ package com.android.systemui.statusbar.phone;
 import static android.app.StatusBarManager.DISABLE2_SYSTEM_ICONS;
 import static android.app.StatusBarManager.DISABLE_SYSTEM_INFO;
 
+import static com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled;
 import static com.android.systemui.statusbar.StatusBarState.KEYGUARD;
 import static com.android.systemui.Flags.updateUserSwitcherBackground;
 
@@ -196,11 +197,11 @@ public class KeyguardStatusBarViewController extends ViewController<KeyguardStat
                         int userId,
                         BiometricSourceType biometricSourceType,
                         boolean isStrongBiometric,
-                        boolean isSecondFactorEnabled) {
-                    // TODO: Review !isSecondFactorEnabled.
+                        SecondFactorStatus secondFactorStatus) {
+                    // TODO: Review secondFactorStatus.
                     if (mFirstBypassAttempt
                             && mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowed(
-                                    isStrongBiometric) && !isSecondFactorEnabled) {
+                                    isStrongBiometric) && secondFactorStatus == Disabled) {
                         mDelayShowingKeyguardStatusBar = true;
                     }
                 }

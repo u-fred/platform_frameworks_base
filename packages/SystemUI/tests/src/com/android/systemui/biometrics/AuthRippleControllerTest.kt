@@ -180,7 +180,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
             false /* isStrongBiometric */,
-            false)
+            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
 
         // THEN no ripple
         verify(rippleView, never()).startUnlockedRipple(any())
@@ -203,7 +203,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
             false /* isStrongBiometric */,
-            false)
+            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
 
         // THEN no ripple
         verify(rippleView, never()).startUnlockedRipple(any())
@@ -221,7 +221,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FACE /* type */,
             false /* isStrongBiometric */,
-            false)
+            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
         verify(rippleView, never()).startUnlockedRipple(any())
     }
 
@@ -237,7 +237,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
             false /* isStrongBiometric */,
-            false)
+            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
         verify(rippleView, never()).startUnlockedRipple(any())
     }
 

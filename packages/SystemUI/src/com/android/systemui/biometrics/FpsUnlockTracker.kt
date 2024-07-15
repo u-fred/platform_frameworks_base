@@ -65,11 +65,11 @@ constructor(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
                 isStrongBiometric: Boolean,
-                isSecondFactorEnabled: Boolean
+                secondFactorStatus: SecondFactorStatus
             ) {
                 if (biometricSourceType == FINGERPRINT) {
                     fpsAuthenticated = true
-                    if (!isSecondFactorEnabled) {
+                    if (secondFactorStatus == SecondFactorStatus.Disabled) {
                         // The base code is assuming a fingerprint auth means Keyguard is being
                         // exited, which is not always true.
                         onExitKeyguard()

@@ -456,7 +456,7 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
 
         @Override
         public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
-                boolean isStrongBiometric, boolean isSecondFactorEnabled) {
+                boolean isStrongBiometric, SecondFactorStatus secondFactorStatus) {
             Trace.beginSection("KeyguardUpdateMonitorCallback#onBiometricAuthenticated");
             // TODO: Review this. Typically we don't want to take an action on biometrics alone if
             //  second factor is enabled, but an update should be harmless.

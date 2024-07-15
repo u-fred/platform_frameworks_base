@@ -315,10 +315,10 @@ class AuthRippleController @Inject constructor(
                 userId: Int,
                 biometricSourceType: BiometricSourceType,
                 isStrongBiometric: Boolean,
-                isSecondFactorEnabled: Boolean
+                secondFactorStatus: SecondFactorStatus
             ) {
                 if (biometricSourceType == BiometricSourceType.FINGERPRINT) {
-                    if (isSecondFactorEnabled) {
+                    if (secondFactorStatus == SecondFactorStatus.Enabled) {
                         // Doing same thing as when going from 3rd fp failure to bouncer.
                         mView.retractDwellRipple()
                     } else {

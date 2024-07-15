@@ -158,7 +158,7 @@ constructor(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
                 isStrongBiometric: Boolean,
-                isSecondFactorEnabled: Boolean,
+                secondFactorStatus: SecondFactorStatus,
             ) {
                 // TODO: Might have to update this when BouncerMessageInteractor is used.
                 repository.setMessage(defaultMessage)

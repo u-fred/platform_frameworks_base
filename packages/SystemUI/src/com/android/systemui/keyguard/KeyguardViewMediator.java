@@ -760,7 +760,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
 
         @Override
         public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
-                boolean isStrongBiometric, boolean isSecondFactorEnabled) {
+                boolean isStrongBiometric, SecondFactorStatus secondFactorStatus) {
             if (mLockPatternUtils.isSecure(userId)) {
                 mLockPatternUtils.getDevicePolicyManager().reportSuccessfulBiometricAttempt(userId);
             }

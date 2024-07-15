@@ -818,7 +818,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricDetected(
                 eq(0), eq(BiometricSourceType.FINGERPRINT), eq(true));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean(), anyBoolean());
+                anyInt(), any(), anyBoolean(), any(KeyguardUpdateMonitorCallback.SecondFactorStatus.class));
     }
 
     @Test
@@ -835,7 +835,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricError(
                 eq(10), eq(""), eq(BiometricSourceType.FINGERPRINT));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean(), anyBoolean());
+                anyInt(), any(), anyBoolean(), any(KeyguardUpdateMonitorCallback.SecondFactorStatus.class));
     }
 
     @Test
@@ -848,7 +848,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricDetected(
                 eq(0), eq(BiometricSourceType.FACE), eq(false));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean(), anyBoolean());
+                anyInt(), any(), anyBoolean(), any(KeyguardUpdateMonitorCallback.SecondFactorStatus.class));
     }
 
     @Test
