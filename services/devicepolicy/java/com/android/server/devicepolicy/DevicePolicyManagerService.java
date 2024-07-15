@@ -4370,7 +4370,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         for (UserInfo userInfo : users) {
             final int currentUserId = userInfo.id;
             mPolicyCache.setPasswordQuality(currentUserId,
-                    getPasswordQuality(null, currentUserId, true, false));
+                    getPasswordQuality(null, currentUserId, Primary, false));
         }
     }
 
