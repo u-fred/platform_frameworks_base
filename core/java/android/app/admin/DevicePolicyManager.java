@@ -9240,22 +9240,8 @@ public class DevicePolicyManager {
       */
      @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
      public void reportSuccessfulBiometricAttempt(int userHandle) {
-         reportSuccessfulBiometricAttempt(userHandle, false);
+         reportSuccessfulBiometricAttempt(userHandle);
      }
-
-    /**
-     * @hide
-     */
-    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
-        if (mService != null) {
-            try {
-                mService.reportSuccessfulBiometricAttempt(userHandle, isSecondFactorEnabled);
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
-            }
-        }
-    }
 
     /**
      * Should be called when keyguard has been dismissed.

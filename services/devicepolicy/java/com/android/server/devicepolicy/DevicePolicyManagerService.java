@@ -8367,17 +8367,18 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled) {
+    public void reportSuccessfulBiometricAttempt(int userHandle) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, !isSecondFactorEnabled)) {
+
+        if (mLockPatternUtils.isBiometricSecondFactorEnabled(userHandle)) {
             return;
         }
 
-        if (mInjector.securityLogIsLoggingEnabled() && !isSecondFactorEnabled) {
+        if (mInjector.securityLogIsLoggingEnabled()) {
             // TODO: Add this log to LockPatternUtils#reportSuccessfulPasswordAttempt if second
             //  factor enabled?
             SecurityLog.writeEvent(SecurityLog.TAG_KEYGUARD_DISMISS_AUTH_ATTEMPT, /*result*/ 1,

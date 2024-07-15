@@ -175,7 +175,7 @@ interface IDevicePolicyManager {
     void reportFailedPasswordAttempt(int userHandle, in LockDomain lockDomain, boolean parent);
     void reportSuccessfulPasswordAttempt(int userHandle, in LockDomain lockDomain);
     void reportFailedBiometricAttempt(int userHandle);
-    void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled);
+    void reportSuccessfulBiometricAttempt(int userHandle);
     void reportKeyguardDismissed(int userHandle);
     void reportKeyguardSecured(int userHandle);
 
