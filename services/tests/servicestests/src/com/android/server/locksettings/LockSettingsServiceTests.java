@@ -522,7 +522,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void testPasswordHistoryLengthHonored() throws Exception {
         final int userId = PRIMARY_USER_ID;
-        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId), eq(true)))
+        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId), eq(Primary)))
                 .thenReturn(3);
         checkPasswordHistoryLength(userId, true, 0);
 
@@ -543,7 +543,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void testPasswordHistoryLengthHonoredSecondary() throws Exception {
         final int userId = PRIMARY_USER_ID;
-        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId), eq(false)))
+        when(mDevicePolicyManager.getPasswordHistoryLength(any(), eq(userId), eq(Secondary)))
                 .thenReturn(0);
 
         LockscreenCredential primaryPassword = newPassword("password");
