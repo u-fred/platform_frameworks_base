@@ -1404,6 +1404,13 @@ class SyntheticPasswordManager {
      * verification to refresh the SID and HardwareAuthToken maintained by the system.
      */
     public AuthenticationResult unlockLskfBasedProtector(IGateKeeperService gatekeeper,
+            long protectorId, @NonNull LockscreenCredential credential, int userId,
+            ICheckCredentialProgressCallback progressCallback) {
+        return unlockLskfBasedProtector(gatekeeper, protectorId, credential, Primary, userId,
+                progressCallback);
+    }
+
+    public AuthenticationResult unlockLskfBasedProtector(IGateKeeperService gatekeeper,
             long protectorId, @NonNull LockscreenCredential credential, LockDomain lockDomain,
             int userId, ICheckCredentialProgressCallback progressCallback) {
         AuthenticationResult result = new AuthenticationResult();

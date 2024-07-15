@@ -1157,8 +1157,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.i(TAG, "Existing unsecured user %d has a synthetic password; re-encrypting CE " +
                     "key with it", userId);
             AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
-                    getGateKeeperService(), protectorId, LockscreenCredential.createNone(), Primary,
-                    userId, null);
+                    getGateKeeperService(), protectorId, LockscreenCredential.createNone(), userId,
+                    null);
             if (result.syntheticPassword == null) {
                 Slogf.wtf(TAG, "Failed to unwrap synthetic password for unsecured user %d", userId);
                 return;
@@ -1181,8 +1181,8 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
         Slogf.i(TAG, "Existing unsecured user %d has a synthetic password", userId);
         AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
-                getGateKeeperService(), protectorId, LockscreenCredential.createNone(), Primary,
-                userId, null);
+                getGateKeeperService(), protectorId, LockscreenCredential.createNone(), userId,
+                null);
         SyntheticPassword sp = result.syntheticPassword;
         if (sp == null) {
             Slogf.wtf(TAG, "Failed to unwrap synthetic password for unsecured user %d", userId);
@@ -1942,8 +1942,8 @@ public class LockSettingsService extends ILockSettings.Stub {
             // Always unlock current primary, even if setting secondary.
             final long currentPrimaryProtectorId = getCurrentLskfBasedProtectorId(userId, Primary);
             AuthenticationResult authResult = mSpManager.unlockLskfBasedProtector(
-                    getGateKeeperService(), currentPrimaryProtectorId, savedCredential, Primary,
-                    userId, null);
+                    getGateKeeperService(), currentPrimaryProtectorId, savedCredential, userId,
+                    null);
             VerifyCredentialResponse response = authResult.gkResponse;
             SyntheticPassword sp = authResult.syntheticPassword;
 
@@ -2283,7 +2283,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             Slogf.i(TAG, "Unwrapping synthetic password for unsecured user %d", userId);
             AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
                     getGateKeeperService(), getCurrentLskfBasedProtectorId(userId, Primary),
-                    LockscreenCredential.createNone(), Primary, userId, null);
+                    LockscreenCredential.createNone(), userId, null);
             if (result.syntheticPassword == null) {
                 Slogf.wtf(TAG, "Failed to unwrap synthetic password for unsecured user %d", userId);
                 return;
@@ -3392,8 +3392,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             synchronized (mSpManager) {
                 long protectorId = getCurrentLskfBasedProtectorId(userId, Primary);
                 AuthenticationResult auth = mSpManager.unlockLskfBasedProtector(
-                        getGateKeeperService(), protectorId, currentCredential, Primary, userId,
-                        null);
+                        getGateKeeperService(), protectorId, currentCredential, userId, null);
                 if (auth.syntheticPassword == null) {
                     Slog.w(TAG, "Current credential is incorrect");
                     return null;
@@ -3416,7 +3415,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             if (!isUserSecure(userId)) {
                 long protectorId = getCurrentLskfBasedProtectorId(userId, Primary);
                 sp = mSpManager.unlockLskfBasedProtector(getGateKeeperService(), protectorId,
-                        LockscreenCredential.createNone(), Primary, userId, null)
+                        LockscreenCredential.createNone(), userId, null)
                         .syntheticPassword;
             }
             disableEscrowTokenOnNonManagedDevicesIfNeeded(userId);

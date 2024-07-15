@@ -943,7 +943,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         long primaryProtector = mService.getCurrentLskfBasedProtectorId(userId, Primary);
         SyntheticPasswordManager.SyntheticPassword primarySp =
                 mSpManager.unlockLskfBasedProtector(mGateKeeperService, primaryProtector,
-                        primaryPin, Primary, userId, null).syntheticPassword;
+                        primaryPin, userId, null).syntheticPassword;
         assertNotNull(primarySp);
 
         long secondaryProtector = mService.getCurrentLskfBasedProtectorId(userId, Secondary);

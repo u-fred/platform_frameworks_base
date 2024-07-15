@@ -109,7 +109,7 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         }
 
         result = mSpManager.unlockLskfBasedProtector(mGateKeeperService, protectorId, badPin,
-                primary, userId, null);
+                primary ? Primary : Secondary, userId, null);
         assertNull(result.syntheticPassword);
         assertEquals(VerifyCredentialResponse.ERROR, result.gkResponse);
     }
