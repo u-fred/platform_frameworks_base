@@ -168,7 +168,7 @@ public class KeyguardPatternViewController
                 boolean isValidPattern) {
             boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
             if (matched) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, true,true, 0);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, Primary,true, 0);
                 if (dismissKeyguard) {
                     mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Correct);
                     mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
@@ -177,7 +177,7 @@ public class KeyguardPatternViewController
             } else {
                 mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
                 if (isValidPattern) {
-                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, true,false, timeoutMs);
+                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, Primary,false, timeoutMs);
                     if (timeoutMs > 0) {
                         long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                                 userId, timeoutMs);

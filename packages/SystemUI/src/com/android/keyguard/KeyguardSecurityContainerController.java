@@ -69,6 +69,7 @@ import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.UiEventLogger;
 import com.android.internal.logging.nano.MetricsProto;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardSecurityContainer.BouncerUiEvent;
 import com.android.keyguard.KeyguardSecurityContainer.SwipeListener;
@@ -255,10 +256,10 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         }
 
         @Override
-        public void reportUnlockAttempt(int userId, boolean primary, boolean success,
+        public void reportUnlockAttempt(int userId, LockDomain lockDomain, boolean success,
                 int timeoutMs) {
             if (timeoutMs == 0 && !success) {
-                mBouncerMessageInteractor.onAuthIncorrectAttempt(primary);
+                mBouncerMessageInteractor.onAuthIncorrectAttempt(lockDomain);
             }
             int bouncerSide = SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__SIDE__DEFAULT;
             if (mView.isSidedSecurityMode()) {
@@ -271,7 +272,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__SUCCESS,
                         bouncerSide);
-                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary, true);
+                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId, lockDomain, true);
 
                 // Force a garbage collection in an attempt to erase any lockscreen password left in
                 // memory. Do it asynchronously with a 5-sec delay to avoid making the keyguard
@@ -289,7 +290,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__FAILURE,
                         bouncerSide);
-                reportFailedUnlockAttempt(userId, primary, timeoutMs);
+                reportFailedUnlockAttempt(userId, lockDomain, timeoutMs);
             }
             mMetricsLogger.write(new LogMaker(MetricsEvent.BOUNCER)
                     .setType(success ? MetricsEvent.TYPE_SUCCESS : MetricsEvent.TYPE_FAILURE));
@@ -1177,13 +1178,13 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                         /* colorState= */ null, /* animated= */ true), mFalsingA11yDelegate);
     }
 
-    public void reportFailedUnlockAttempt(int userId, boolean primary, int timeoutMs) {
+    public void reportFailedUnlockAttempt(int userId, LockDomain lockDomain, int timeoutMs) {
         // +1 for this time
-        int failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary) +
+        int failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId, lockDomain) +
                 1;
         if (DEBUG) Log.d(TAG, "reportFailedPatternAttempt: #" + failedAttempts);
 
-        if (primary) {
+        if (lockDomain == Primary) {
             final DevicePolicyManager dpm = mLockPatternUtils.getDevicePolicyManager();
             final int failedAttemptsBeforeWipe =
                     dpm.getMaximumFailedPasswordsForWipe(null, userId);
@@ -1216,14 +1217,14 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             }
         }
 
-        mLockPatternUtils.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
+        mLockPatternUtils.reportFailedPasswordAttempt(userId, lockDomain);
 
         if (timeoutMs > 0) {
-            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, primary ? Primary : Secondary);
+            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, lockDomain);
 
             if (!com.android.systemui.Flags.revampedBouncerMessages()) {
                 DialogInterface.OnClickListener onClick = null;
-                if (!primary) {
+                if (lockDomain == Secondary) {
                     onClick = (dialog, which) -> {
                         // This will usually be a no-op because
                         // onDevicePolicyManagerStateChanged will have fired, but keep it in
@@ -1234,7 +1235,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                         showPrimarySecurityScreen(false);
                     };
                 }
-                mView.showTimeoutDialog(userId, primary, timeoutMs, mLockPatternUtils,
+                mView.showTimeoutDialog(userId, lockDomain, timeoutMs, mLockPatternUtils,
                         mCurrentSecurityMode, onClick);
             }
         }

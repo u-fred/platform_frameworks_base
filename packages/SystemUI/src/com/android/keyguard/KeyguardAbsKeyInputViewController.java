@@ -30,6 +30,7 @@ import android.util.PluralsMessageFormatter;
 import android.view.KeyEvent;
 
 import com.android.internal.util.LatencyTracker;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternChecker;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
@@ -57,7 +58,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     protected AsyncTask<?, ?, ?> mPendingLockCheck;
     protected boolean mResumed;
     protected boolean mLockedOut;
-    protected boolean mIsForPrimaryCredential;
+    protected final LockDomain mLockDomain;
 
     private final KeyDownListener mKeyDownListener = (keyCode, keyEvent) -> {
         // Fingerprint sensor sends a KeyEvent.KEYCODE_UNKNOWN.
@@ -92,7 +93,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLatencyTracker = latencyTracker;
         mFalsingCollector = falsingCollector;
         mEmergencyButtonController = emergencyButtonController;
-        mIsForPrimaryCredential = securityMode != SecurityMode.BiometricSecondFactorPin;
+        if (securityMode == SecurityMode.BiometricSecondFactorPin) {
+            mLockDomain = Secondary;
+        } else {
+            mLockDomain = Primary;
+        }
     }
 
     abstract void resetState();
@@ -109,7 +114,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential ? Primary : Secondary);
+                mSelectedUserInteractor.getSelectedUserId(), mLockDomain);
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -182,7 +187,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mLockDomain,
                     true, 0);
             if (dismissKeyguard) {
                 mDismissing = true;
@@ -190,17 +195,17 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
                 // bypassSecondaryLockscreen for secondary as it's not done on normal fingerprint
                 // unlock.
                 getKeyguardSecurityCallback().dismiss(true, userId,
-                        !mIsForPrimaryCredential, getSecurityMode());
+                        mLockDomain == Secondary, getSecurityMode());
             }
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
             if (isValidPassword) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, mIsForPrimaryCredential,
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, mLockDomain,
                         false, timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, mIsForPrimaryCredential ? Primary : Secondary, timeoutMs);
-                    if (mIsForPrimaryCredential) {
+                            userId, mLockDomain, timeoutMs);
+                    if (mLockDomain == Primary) {
                         handleAttemptLockout(deadline);
                     }
 
@@ -242,7 +247,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mPendingLockCheck = LockPatternChecker.checkCredential(
                 mLockPatternUtils,
                 password,
-                mIsForPrimaryCredential ? Primary : Secondary,
+                mLockDomain,
                 userId,
                 new LockPatternChecker.OnCheckCallback() {
 

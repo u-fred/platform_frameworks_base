@@ -100,7 +100,7 @@ public abstract class KeyguardPinBasedInputViewController<T extends KeyguardPinB
 
         boolean showAnimations = !mLockPatternUtils
                 .isPinEnhancedPrivacyEnabled(mSelectedUserInteractor.getSelectedUserId(),
-                        mIsForPrimaryCredential ? Primary : Secondary);
+                        mLockDomain);
         mPasswordEntry.setShowPassword(showAnimations);
         for (NumPadKey button : mView.getButtons()) {
             button.setOnTouchListener((v, event) -> {

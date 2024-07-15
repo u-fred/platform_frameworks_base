@@ -92,6 +92,7 @@ import com.android.internal.jank.InteractionJankMonitor;
 import com.android.internal.logging.UiEvent;
 import com.android.internal.logging.UiEventLogger;
 import com.android.internal.util.UserIcons;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode;
 import com.android.settingslib.Utils;
@@ -704,7 +705,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
         mAlertDialog.show();
     }
 
-    void showTimeoutDialog(int userId, boolean primary, int timeoutMs,
+    void showTimeoutDialog(int userId, LockDomain lockDomain, int timeoutMs,
             LockPatternUtils lockPatternUtils, SecurityMode securityMode,
             DialogInterface.OnClickListener onClick) {
         int timeoutInSeconds = timeoutMs / 1000;
@@ -732,7 +733,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
 
         if (messageId != 0) {
             final String message = mContext.getString(messageId,
-                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary),
+                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId, lockDomain),
                     timeoutInSeconds);
             showDialog(null, message, onClick);
         }

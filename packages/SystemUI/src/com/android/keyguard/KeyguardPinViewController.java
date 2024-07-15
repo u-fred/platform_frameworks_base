@@ -75,7 +75,7 @@ public class KeyguardPinViewController
         view.setIsLockScreenLandscapeEnabled(mFeatureFlags.isEnabled(LOCKSCREEN_ENABLE_LANDSCAPE));
         mBackspaceKey = view.findViewById(R.id.delete_button);
         mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId(),
-                mIsForPrimaryCredential ? Primary : Secondary);
+                mLockDomain);
         mUiEventLogger = uiEventLogger;
     }
 
@@ -136,7 +136,7 @@ public class KeyguardPinViewController
 
     private void updateAutoConfirmationState() {
         mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential ? Primary : Secondary) >=
+                mSelectedUserInteractor.getSelectedUserId(), mLockDomain) >=
                 MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
@@ -193,7 +193,7 @@ public class KeyguardPinViewController
     private boolean isAutoPinConfirmEnabledInSettings() {
         //Checks if user has enabled the auto confirm in Settings
         return mLockPatternUtils.isAutoPinConfirmEnabled(
-                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential ? Primary : Secondary)
+                mSelectedUserInteractor.getSelectedUserId(), mLockDomain)
                 && mPinLength != LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
     }
 
@@ -217,7 +217,7 @@ public class KeyguardPinViewController
     @Override
     protected int getInitialMessageResId() {
         // TODO: Would it be preferred to add this to the base method and use instanceof?
-        if (mIsForPrimaryCredential) {
+        if (mLockDomain == Primary) {
             return super.getInitialMessageResId();
         } else {
             return R.string.keyguard_enter_your_biometric_second_factor_pin;
