@@ -173,7 +173,7 @@ interface IDevicePolicyManager {
 
     void reportPasswordChanged(in PasswordMetrics metrics, int userId, in LockDomain lockDomain);
     void reportFailedPasswordAttempt(int userHandle, in LockDomain lockDomain, boolean parent);
-    void reportSuccessfulPasswordAttempt(int userHandle, boolean primary);
+    void reportSuccessfulPasswordAttempt(int userHandle, in LockDomain lockDomain);
     void reportFailedBiometricAttempt(int userHandle);
     void reportSuccessfulBiometricAttempt(int userHandle, boolean isSecondFactorEnabled);
     void reportKeyguardDismissed(int userHandle);

@@ -8310,23 +8310,24 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
     }
 
     @Override
-    public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
+    public void reportSuccessfulPasswordAttempt(int userHandle, LockDomain lockDomain) {
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
 
         final CallerIdentity caller = getCallerIdentity();
         Preconditions.checkCallAuthorization(hasFullCrossUsersPermission(caller, userHandle));
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, primary)) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain)) {
             return;
         }
 
         synchronized (getLockObject()) {
             DevicePolicyData policy = getUserData(userHandle);
             boolean savePolicy = true;
-            if (primary && (policy.mFailedPasswordAttempts != 0 || policy.mPasswordOwner >= 0)) {
+            if (lockDomain == Primary &&
+                    (policy.mFailedPasswordAttempts != 0 || policy.mPasswordOwner >= 0)) {
                 policy.mFailedPasswordAttempts = 0;
                 policy.mPasswordOwner = -1;
-            } else if (!primary && policy.mFailedBiometricSecondFactorAttempts != 0) {
+            } else if (lockDomain == Secondary && policy.mFailedBiometricSecondFactorAttempts != 0) {
                 policy.mFailedBiometricSecondFactorAttempts = 0;
             } else {
                 savePolicy = false;
@@ -8335,7 +8336,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             if (savePolicy) {
                 mInjector.binderWithCleanCallingIdentity(() -> {
                     saveSettingsLocked(userHandle);
-                    if (mHasFeature && primary) {
+                    if (mHasFeature && lockDomain == Primary) {
                         sendAdminCommandForLockscreenPoliciesLocked(
                                 DeviceAdminReceiver.ACTION_PASSWORD_SUCCEEDED,
                                 DeviceAdminInfo.USES_POLICY_WATCH_LOGIN, userHandle);

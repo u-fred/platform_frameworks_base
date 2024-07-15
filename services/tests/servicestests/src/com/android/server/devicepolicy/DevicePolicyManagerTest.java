@@ -5276,7 +5276,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         assertThrows(SecondaryForCredSharableUserException.class,
-                () -> dpm.reportSuccessfulPasswordAttempt(userId, false));
+                () -> dpm.reportSuccessfulPasswordAttempt(userId, Secondary));
     }
 
     @Test
@@ -5286,7 +5286,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         assertExpectException(IllegalArgumentException.class,
                 "Invalid userId",
-                () -> dpm.reportSuccessfulPasswordAttempt(USER_FRP, false));
+                () -> dpm.reportSuccessfulPasswordAttempt(USER_FRP, Secondary));
     }
 
     @Test
@@ -5300,7 +5300,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .checkUserSupportsBiometricSecondFactor(userId);
 
         // Should not throw.
-        dpm.reportSuccessfulPasswordAttempt(userId, false);
+        dpm.reportSuccessfulPasswordAttempt(userId, Secondary);
     }
 
     @Test
@@ -5320,7 +5320,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(0);
         reset(mServiceContext.spiedContext);
 
-        dpm.reportSuccessfulPasswordAttempt(userId, primary);
+        dpm.reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary);
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(0);
@@ -5352,7 +5352,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(1);
         reset(mServiceContext.spiedContext);
 
-        dpm.reportSuccessfulPasswordAttempt(userId, primary);
+        dpm.reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary);
 
         assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
                 .isEqualTo(0);

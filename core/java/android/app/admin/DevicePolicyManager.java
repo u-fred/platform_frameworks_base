@@ -9214,7 +9214,7 @@ public class DevicePolicyManager {
     public void reportSuccessfulPasswordAttempt(int userHandle, boolean primary) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulPasswordAttempt(userHandle, primary);
+                mService.reportSuccessfulPasswordAttempt(userHandle, primary ? Primary : Secondary);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
