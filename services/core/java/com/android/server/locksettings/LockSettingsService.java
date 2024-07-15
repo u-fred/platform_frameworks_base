@@ -2624,7 +2624,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             mInjector.getDevicePolicyManager().reportPasswordChanged(
                     PasswordMetrics.computeForCredential(newCredential),
                     userId,
-                    lockDomain == Primary);
+                    lockDomain);
             if (lockDomain == Primary) {
                 LocalServices.getService(WindowManagerInternal.class).reportPasswordChanged(userId);
             }
