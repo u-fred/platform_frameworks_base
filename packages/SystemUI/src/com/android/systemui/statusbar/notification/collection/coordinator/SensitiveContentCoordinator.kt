@@ -76,7 +76,7 @@ class SensitiveContentCoordinatorImpl @Inject constructor(
         if (keyguardStateController.isKeyguardGoingAway ||
                 statusBarStateController.state == StatusBarState.KEYGUARD &&
                 keyguardUpdateMonitor.getUserUnlockedWithBiometricAndIsBypassing(
-                        selectedUserInteractor.getSelectedUserId(), false)) {
+                        selectedUserInteractor.getSelectedUserId())) {
             // don't update yet if:
             // - the keyguard is currently going away
             // - LS is about to be dismissed by a biometric that bypasses LS (avoid notif flash)

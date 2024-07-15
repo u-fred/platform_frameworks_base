@@ -1457,15 +1457,10 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     /**
      * Returns whether the user is unlocked with a biometric that is currently bypassing
      * the lock screen. If biometric second factor is enabled for the user then false is always
-     * returned, unless it is being ignored.
-     *
-     * @param ignoreSecondFactor if true then don't return false due to biometric second factor
-     *                           being enabled.
+     * returned.
      */
-    public boolean getUserUnlockedWithBiometricAndIsBypassing(int userId,
-            boolean ignoreSecondFactor) {
-        boolean isSecondFactorEnabled = mLockPatternUtils.isBiometricSecondFactorEnabled(userId);
-        if (!ignoreSecondFactor && isSecondFactorEnabled) {
+    public boolean getUserUnlockedWithBiometricAndIsBypassing(int userId) {
+        if (mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
             return false;
         }
 
