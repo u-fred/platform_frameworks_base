@@ -26,6 +26,7 @@ import androidx.test.filters.SmallTest
 import com.android.internal.logging.UiEventLogger
 import com.android.internal.util.LatencyTracker
 import com.android.internal.widget.LockPatternUtils
+import com.android.internal.widget.LockDomain.Secondary
 import com.android.internal.widget.LockscreenCredential
 import com.android.keyguard.KeyguardPinViewController.PinBouncerUiEvent
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode
@@ -244,9 +245,9 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     @Test
     fun testOnViewAttached_secondaryWithAutoPinConfirmationFailedPasswordAttemptsLessThan5() {
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        `when`(lockPatternUtils.getPinLength(anyInt(), eq(false))).thenReturn(6)
-        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(false))).thenReturn(true)
-        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), eq(false))).thenReturn(3)
+        `when`(lockPatternUtils.getPinLength(anyInt(), eq(Secondary))).thenReturn(6)
+        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(Secondary))).thenReturn(true)
+        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), eq(Secondary))).thenReturn(3)
         `when`(passwordTextView.text).thenReturn("")
 
         securityMode = SecurityMode.BiometricSecondFactorPin
@@ -279,9 +280,9 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     @Test
     fun testOnViewAttached_secondaryWithAutoPinConfirmationFailedPasswordAttemptsMoreThan5() {
         `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        `when`(lockPatternUtils.getPinLength(anyInt(), eq(false))).thenReturn(6)
-        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(false))).thenReturn(true)
-        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), eq(false))).thenReturn(6)
+        `when`(lockPatternUtils.getPinLength(anyInt(), eq(Secondary))).thenReturn(6)
+        `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(Secondary))).thenReturn(true)
+        `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), eq(Secondary))).thenReturn(6)
         `when`(passwordTextView.text).thenReturn("")
 
         securityMode = SecurityMode.BiometricSecondFactorPin
@@ -311,7 +312,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
         pinViewController.handleAttemptLockout(0)
 
-        verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt(), eq(false))
+        verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt(), eq(Secondary))
     }
 
     @Test
@@ -334,8 +335,8 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     @Test
     fun onUserInput_secondaryAutoConfirmation_attemptsUnlock() {
         whenever(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
-        whenever(lockPatternUtils.getPinLength(anyInt(), eq(false))).thenReturn(6)
-        whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(false))).thenReturn(true)
+        whenever(lockPatternUtils.getPinLength(anyInt(), eq(Secondary))).thenReturn(6)
+        whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(Secondary))).thenReturn(true)
         whenever(passwordTextView.text).thenReturn("000000")
         whenever(enterButton.visibility).thenReturn(View.INVISIBLE)
         whenever(mockKeyguardPinView.enteredCredential)

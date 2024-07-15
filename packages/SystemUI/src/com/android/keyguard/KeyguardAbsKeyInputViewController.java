@@ -18,6 +18,8 @@ package com.android.keyguard;
 
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
 import android.content.res.ColorStateList;
@@ -107,7 +109,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential);
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential ? Primary : Secondary);
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -197,7 +199,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
                         false, timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, mIsForPrimaryCredential, timeoutMs);
+                            userId, mIsForPrimaryCredential ? Primary : Secondary, timeoutMs);
                     if (mIsForPrimaryCredential) {
                         handleAttemptLockout(deadline);
                     }

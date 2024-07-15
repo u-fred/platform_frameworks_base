@@ -19,7 +19,7 @@ public class WrappedLockPatternUtils {
     }
 
     public boolean isCredentialsDisabledForUser(int userId) {
-        return mInner.isCredentialsDisabledForUser(userId, mLockDomain == LockDomain.Primary);
+        return mInner.isCredentialsDisabledForUser(userId, mLockDomain);
     }
 
     public PasswordMetrics getRequestedPasswordMetrics(int userId) {

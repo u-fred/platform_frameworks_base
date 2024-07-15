@@ -1,5 +1,8 @@
 package com.android.internal.widget;
 
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
+
 import android.annotation.NonNull;
 import android.os.AsyncTask;
 
@@ -70,7 +73,7 @@ public final class LockPatternChecker {
                 new AsyncTask<Void, Void, VerifyCredentialResponse>() {
             @Override
             protected VerifyCredentialResponse doInBackground(Void... args) {
-                return utils.verifyCredential(credentialCopy, primary, userId, flags);
+                return utils.verifyCredential(credentialCopy, primary ? Primary : Secondary, userId, flags);
             }
 
             @Override
@@ -109,7 +112,7 @@ public final class LockPatternChecker {
             @Override
             protected Boolean doInBackground(Void... args) {
                 try {
-                    return utils.checkCredential(credentialCopy, primary, userId,
+                    return utils.checkCredential(credentialCopy, primary ? Primary : Secondary, userId,
                             callback::onEarlyMatched);
                 } catch (RequestThrottledException ex) {
                     mThrottleTimeout = ex.getTimeoutMs();

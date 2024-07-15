@@ -31,6 +31,8 @@ import static androidx.constraintlayout.widget.ConstraintSet.START;
 import static androidx.constraintlayout.widget.ConstraintSet.TOP;
 import static androidx.constraintlayout.widget.ConstraintSet.WRAP_CONTENT;
 import static com.android.app.animation.InterpolatorsAndroidX.DECELERATE_QUINT;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.plugins.FalsingManager.LOW_PENALTY;
 import static java.lang.Integer.max;
 
@@ -730,7 +732,7 @@ public class KeyguardSecurityContainer extends ConstraintLayout {
 
         if (messageId != 0) {
             final String message = mContext.getString(messageId,
-                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary),
+                    lockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary),
                     timeoutInSeconds);
             showDialog(null, message, onClick);
         }

@@ -19,6 +19,8 @@ package com.android.keyguard;
 import static android.app.StatusBarManager.SESSION_KEYGUARD;
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISSIBLE_KEYGUARD;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_BIOMETRIC;
 import static com.android.keyguard.KeyguardSecurityContainer.BOUNCER_DISMISS_EXTENDED_ACCESS;
@@ -269,7 +271,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 SysUiStatsLog.write(SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED,
                         SysUiStatsLog.KEYGUARD_BOUNCER_PASSWORD_ENTERED__RESULT__SUCCESS,
                         bouncerSide);
-                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId, primary, true);
+                mLockPatternUtils.reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary, true);
 
                 // Force a garbage collection in an attempt to erase any lockscreen password left in
                 // memory. Do it asynchronously with a 5-sec delay to avoid making the keyguard
@@ -1177,7 +1179,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
 
     public void reportFailedUnlockAttempt(int userId, boolean primary, int timeoutMs) {
         // +1 for this time
-        int failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary) +
+        int failedAttempts = mLockPatternUtils.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary) +
                 1;
         if (DEBUG) Log.d(TAG, "reportFailedPatternAttempt: #" + failedAttempts);
 
@@ -1214,10 +1216,10 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             }
         }
 
-        mLockPatternUtils.reportFailedPasswordAttempt(userId, primary);
+        mLockPatternUtils.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
 
         if (timeoutMs > 0) {
-            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, primary);
+            mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, primary ? Primary : Secondary);
 
             if (!com.android.systemui.Flags.revampedBouncerMessages()) {
                 DialogInterface.OnClickListener onClick = null;

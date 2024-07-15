@@ -406,12 +406,11 @@ public class LockPatternUtils {
     }
 
     private int getRequestedPasswordHistoryLength(int userId) {
-        return getRequestedPasswordHistoryLength(userId, true);
+        return getRequestedPasswordHistoryLength(userId, Primary);
     }
 
-    private int getRequestedPasswordHistoryLength(int userId, boolean primary) {
-        return getDevicePolicyManager().getPasswordHistoryLength(null, userId,
-                primary ? Primary : Secondary);
+    private int getRequestedPasswordHistoryLength(int userId, LockDomain lockDomain) {
+        return getDevicePolicyManager().getPasswordHistoryLength(null, userId, lockDomain);
     }
 
     /**
@@ -452,43 +451,40 @@ public class LockPatternUtils {
 
     @UnsupportedAppUsage
     public void reportFailedPasswordAttempt(int userId) {
-        reportFailedPasswordAttempt(userId, true);
+        reportFailedPasswordAttempt(userId, Primary);
     }
 
-    public void reportFailedPasswordAttempt(int userId, boolean primary) {
+    public void reportFailedPasswordAttempt(int userId, LockDomain lockDomain) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 return;
             }
             throw new SecondaryForSpecialUserException();
         }
-        getDevicePolicyManager().reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
-        if (primary) {
+        getDevicePolicyManager().reportFailedPasswordAttempt(userId, lockDomain);
+        if (lockDomain == Primary) {
             getTrustManager().reportUnlockAttempt(false /* authenticated */, userId);
         }
     }
 
     @UnsupportedAppUsage
     public void reportSuccessfulPasswordAttempt(int userId) {
-        reportSuccessfulPasswordAttempt(userId, true, /** ignored **/ true);
+        reportSuccessfulPasswordAttempt(userId, Primary, /** ignored **/ true);
     }
 
     /**
-     * @param userId The user who made the successful attempt.
-     * @param primary Whether the successful attempt was for primary password or biometric second
-     *                factor.
      * @param forUnlock Whether the password was entered as part of an unlock process (Keyguard).
-     *                  Ignored if primary is true.
+     *                  Ignored if lockDomain is Primary.
      */
-    public void reportSuccessfulPasswordAttempt(int userId, boolean primary, boolean forUnlock) {
+    public void reportSuccessfulPasswordAttempt(int userId, LockDomain lockDomain, boolean forUnlock) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 return;
             }
             throw new SecondaryForSpecialUserException();
         }
-        getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary);
-        if (primary) {
+        getDevicePolicyManager().reportSuccessfulPasswordAttempt(userId, lockDomain);
+        if (lockDomain == Primary) {
             getTrustManager().reportUnlockAttempt(true /* authenticated */, userId);
         } else if (forUnlock) {
             // These two calls was suppressed in KeyguardUpdateMonitor#onFingerprintAuthenticated.
@@ -513,48 +509,48 @@ public class LockPatternUtils {
     }
 
     public void reportPasswordLockout(int timeoutMs, int userId) {
-        reportPasswordLockout(timeoutMs, userId, true);
+        reportPasswordLockout(timeoutMs, userId, Primary);
     }
-    public void reportPasswordLockout(int timeoutMs, int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+
+    public void reportPasswordLockout(int timeoutMs, int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return;
         }
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             return;
         }
-        if (primary) {
+        if (lockDomain == Primary) {
             getTrustManager().reportUnlockLockout(timeoutMs, userId);
         }
     }
 
     public int getCurrentFailedPasswordAttempts(int userId) {
-        return getCurrentFailedPasswordAttempts(userId, true);
+        return getCurrentFailedPasswordAttempts(userId, Primary);
     }
 
-    public int getCurrentFailedPasswordAttempts(int userId, boolean primary) {
+    public int getCurrentFailedPasswordAttempts(int userId, LockDomain lockDomain) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 return 0;
             }
             throw new SecondaryForSpecialUserException();
         }
-        return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId,
-                primary ? Primary : Secondary);
+        return getDevicePolicyManager().getCurrentFailedPasswordAttempts(userId, lockDomain);
     }
 
     public int getMaximumFailedPasswordsForWipe(int userId) {
-        return getMaximumFailedPasswordsForWipe(userId, true);
+        return getMaximumFailedPasswordsForWipe(userId, Primary);
     }
 
-    public int getMaximumFailedPasswordsForWipe(int userId, boolean primary) {
+    public int getMaximumFailedPasswordsForWipe(int userId, LockDomain lockDomain) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
-            if (primary) {
+            if (lockDomain == Primary) {
                 return 0;
             }
             throw new SecondaryForSpecialUserException();
         }
         return getDevicePolicyManager().getMaximumFailedPasswordsForWipe(
-                null /* componentName */, userId, primary ? Primary : Secondary);
+                null /* componentName */, userId, lockDomain);
     }
 
     /**
@@ -564,21 +560,21 @@ public class LockPatternUtils {
      * @param credential The credential to check.
      * @param userId The user whose credential is being verified
      * @param flags See {@link VerifyFlag}
-     * @throws IllegalStateException If called on the main thread.
+     * @throws IllegalStateException if called on the main thread.
      */
     @NonNull
     public VerifyCredentialResponse verifyCredential(@NonNull LockscreenCredential credential,
             int userId, @VerifyFlag int flags) {
-        return verifyCredential(credential, true, userId, flags);
+        return verifyCredential(credential, Primary, userId, flags);
     }
 
     @NonNull
     public VerifyCredentialResponse verifyCredential(@NonNull LockscreenCredential credential,
-            boolean primary, int userId, @VerifyFlag int flags) {
+            LockDomain lockDomain, int userId, @VerifyFlag int flags) {
         throwIfCalledOnMainThread();
         try {
             final VerifyCredentialResponse response = getLockSettings().verifyCredential(
-                    credential, primary ? Primary : Secondary, userId, flags);
+                    credential, lockDomain, userId, flags);
             if (response == null) {
                 return VerifyCredentialResponse.ERROR;
             } else {
@@ -633,16 +629,16 @@ public class LockPatternUtils {
     public boolean checkCredential(@NonNull LockscreenCredential credential, int userId,
             @Nullable CheckCredentialProgressCallback progressCallback)
             throws RequestThrottledException {
-        return checkCredential(credential, true, userId, progressCallback);
+        return checkCredential(credential, Primary, userId, progressCallback);
     }
 
-    public boolean checkCredential(@NonNull LockscreenCredential credential, boolean primary,
+    public boolean checkCredential(@NonNull LockscreenCredential credential, LockDomain lockDomain,
             int userId, @Nullable CheckCredentialProgressCallback progressCallback)
             throws RequestThrottledException {
         throwIfCalledOnMainThread();
         try {
             VerifyCredentialResponse response = getLockSettings().checkCredential(
-                    credential, primary ? Primary : Secondary, userId, wrapCallback(progressCallback));
+                    credential, lockDomain, userId, wrapCallback(progressCallback));
             if (response == null) {
                 return false;
             } else if (response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK) {
@@ -712,25 +708,25 @@ public class LockPatternUtils {
      * @return Whether the password matches any in the history.
      */
     public boolean checkPasswordHistory(byte[] passwordToCheck, byte[] hashFactor, int userId) {
-        return checkPasswordHistory(passwordToCheck, hashFactor, userId, true);
+        return checkPasswordHistory(passwordToCheck, hashFactor, userId, Primary);
     }
 
     public boolean checkPasswordHistory(byte[] passwordToCheck, byte[] hashFactor, int userId,
-            boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+            LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return false;
         }
         if (passwordToCheck == null || passwordToCheck.length == 0) {
             Log.e(TAG, "checkPasswordHistory: empty password");
             return false;
         }
-        String key = primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
+        String key = lockDomain == Primary ? LockPatternUtils.PASSWORD_HISTORY_KEY :
                 LockPatternUtils.PASSWORD_HISTORY_KEY_SECONDARY;
         String passwordHistory = getString(key, userId);
         if (TextUtils.isEmpty(passwordHistory)) {
             return false;
         }
-        int passwordHistoryLength = getRequestedPasswordHistoryLength(userId, primary);
+        int passwordHistoryLength = getRequestedPasswordHistoryLength(userId, lockDomain);
         if(passwordHistoryLength == 0) {
             return false;
         }
@@ -756,12 +752,12 @@ public class LockPatternUtils {
      *       B. PIN_LENGTH_UNAVAILABLE if it is not available or if an exception occurs
      */
     public int getPinLength(int userId) {
-        return getPinLength(userId, true);
+        return getPinLength(userId, Primary);
     }
 
-    public int getPinLength(int userId, boolean primary) {
+    public int getPinLength(int userId, LockDomain lockDomain) {
         try {
-            return getLockSettings().getPinLength(userId, primary ? Primary : Secondary);
+            return getLockSettings().getPinLength(userId, lockDomain);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not fetch PIN length " + e);
             return PIN_LENGTH_UNAVAILABLE;
@@ -778,12 +774,12 @@ public class LockPatternUtils {
      * @return true/false depending on whether PIN length has been saved or not
      */
     public boolean refreshStoredPinLength(int userId) {
-        return refreshStoredPinLength(userId, true);
+        return refreshStoredPinLength(userId, Primary);
     }
 
-    public boolean refreshStoredPinLength(int userId, boolean primary) {
+    public boolean refreshStoredPinLength(int userId, LockDomain lockDomain) {
         try {
-            return getLockSettings().refreshStoredPinLength(userId, primary ? Primary : Secondary);
+            return getLockSettings().refreshStoredPinLength(userId, lockDomain);
         } catch (RemoteException e) {
             Log.e(TAG, "Could not store PIN length on disk " + e);
             return false;
@@ -797,18 +793,18 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public int getActivePasswordQuality(int userId) {
-        return getActivePasswordQuality(userId, true);
+        return getActivePasswordQuality(userId, Primary);
     }
 
-    public int getActivePasswordQuality(int userId, boolean primary) {
-        return getKeyguardStoredPasswordQuality(userId, primary);
+    public int getActivePasswordQuality(int userId, LockDomain lockDomain) {
+        return getKeyguardStoredPasswordQuality(userId, lockDomain);
     }
 
     public boolean isBiometricSecondFactorEnabled(int userId) {
         if (!checkUserSupportsBiometricSecondFactor(userId, false)) {
             return false;
         }
-        return getActivePasswordQuality(userId, false) == PASSWORD_QUALITY_NUMERIC;
+        return getActivePasswordQuality(userId, Secondary) == PASSWORD_QUALITY_NUMERIC;
     }
 
     /**
@@ -842,15 +838,15 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public boolean isLockScreenDisabled(int userId) {
-        return isLockScreenDisabled(userId, true);
+        return isLockScreenDisabled(userId, Primary);
     }
 
-    public boolean isLockScreenDisabled(int userId, boolean primary) {
-        if (isSecure(userId, primary)) {
+    public boolean isLockScreenDisabled(int userId, LockDomain lockDomain) {
+        if (isSecure(userId, lockDomain)) {
             return false;
         }
 
-        if (!primary) {
+        if (lockDomain == Secondary) {
             // When primary is !secure, the lockscreen is either enabled ("Swipe") or disabled
             // ("None"). For secondary there is no situation where swipe makes sense, so always
             // disable it. Don't need to implement setLockScreenDisabled for secondary as it is
@@ -874,14 +870,14 @@ public class LockPatternUtils {
      * @param userId user ID of the user this has effect on
      */
     public void setAutoPinConfirm(boolean enabled, int userId) {
-        setAutoPinConfirm(enabled, userId, true);
+        setAutoPinConfirm(enabled, userId, Primary);
     }
 
-    public void setAutoPinConfirm(boolean enabled, int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public void setAutoPinConfirm(boolean enabled, int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return;
         }
-        String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
+        String key = lockDomain == Primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
         setBoolean(key, enabled, userId);
     }
 
@@ -893,14 +889,14 @@ public class LockPatternUtils {
      * @return true, if the entered pin should be auto confirmed
      */
     public boolean isAutoPinConfirmEnabled(int userId) {
-        return isAutoPinConfirmEnabled(userId, true);
+        return isAutoPinConfirmEnabled(userId, Primary);
     }
 
-    public boolean isAutoPinConfirmEnabled(int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public boolean isAutoPinConfirmEnabled(int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return false;
         }
-        String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
+        String key = lockDomain == Primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
         return getBoolean(key, /* defaultValue= */ false, userId);
     }
 
@@ -968,7 +964,7 @@ public class LockPatternUtils {
      */
     public boolean setLockCredential(@NonNull LockscreenCredential newCredential,
             @NonNull LockscreenCredential savedCredential, int userHandle) {
-        return setLockCredential(newCredential, savedCredential, true, userHandle);
+        return setLockCredential(newCredential, savedCredential, Primary, userHandle);
     }
 
     /**
@@ -978,15 +974,15 @@ public class LockPatternUtils {
      * @param lockDomain Whether setting primary or biometric second factor credential.
      */
     public boolean setLockCredential(@NonNull LockscreenCredential newCredential,
-            @NonNull LockscreenCredential savedCredential, boolean primary, int userHandle) {
+            @NonNull LockscreenCredential savedCredential, LockDomain lockDomain, int userHandle) {
         if (!hasSecureLockScreen() && newCredential.getType() != CREDENTIAL_TYPE_NONE) {
             throw new UnsupportedOperationException(
                     "This operation requires the lock screen feature.");
         }
 
         try {
-            if (!getLockSettings().setLockCredential(newCredential, savedCredential,
-                    primary ? Primary : Secondary, userHandle)) {
+            if (!getLockSettings().setLockCredential(newCredential, savedCredential, lockDomain,
+                    userHandle)) {
                 return false;
             }
         } catch (RemoteException e) {
@@ -1066,12 +1062,12 @@ public class LockPatternUtils {
     @UnsupportedAppUsage
     @Deprecated
     public int getKeyguardStoredPasswordQuality(int userHandle) {
-        return getKeyguardStoredPasswordQuality(userHandle, true);
+        return getKeyguardStoredPasswordQuality(userHandle, Primary);
     }
 
     @Deprecated
-    public int getKeyguardStoredPasswordQuality(int userHandle, boolean primary) {
-        return credentialTypeToPasswordQuality(getCredentialTypeForUser(userHandle, primary));
+    public int getKeyguardStoredPasswordQuality(int userHandle, LockDomain lockDomain) {
+        return credentialTypeToPasswordQuality(getCredentialTypeForUser(userHandle, lockDomain));
     }
 
     /**
@@ -1202,8 +1198,8 @@ public class LockPatternUtils {
         return true;
     }
 
-    public boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId, boolean primary) {
-        if (primary) {
+    public boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId, LockDomain lockDomain) {
+        if (lockDomain == Primary) {
             return true;
         }
         return checkUserSupportsBiometricSecondFactor(userId);
@@ -1266,17 +1262,16 @@ public class LockPatternUtils {
      * Retrieve the credential type of a user.
      */
     class CredendialTypeQueryHandler extends PropertyInvalidatedCache.QueryHandler<Integer, Integer> {
-        private final boolean isPrimaryCredential;
+        private final LockDomain mLockDomain;
 
-        CredendialTypeQueryHandler(boolean isPrimaryCredential) {
-            this.isPrimaryCredential = isPrimaryCredential;
+        CredendialTypeQueryHandler(LockDomain lockDomain) {
+            this.mLockDomain = lockDomain;
         }
 
         @Override
         public Integer apply(Integer userHandle) {
             try {
-                return getLockSettings().getCredentialType(userHandle, isPrimaryCredential ?
-                        Primary : Secondary);
+                return getLockSettings().getCredentialType(userHandle, mLockDomain);
             } catch (RemoteException re) {
                 Log.e(TAG, "failed to get credential type", re);
                 return CREDENTIAL_TYPE_NONE;
@@ -1298,11 +1293,13 @@ public class LockPatternUtils {
      */
     private final PropertyInvalidatedCache<Integer, Integer> mPrimaryCredentialTypeCache =
             new PropertyInvalidatedCache<>(4, PropertyInvalidatedCache.MODULE_SYSTEM,
-                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API, new CredendialTypeQueryHandler(true));
+                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API,
+                    new CredendialTypeQueryHandler(Primary));
 
     private final PropertyInvalidatedCache<Integer, Integer> mSecondaryCredentialTypeCache =
             new PropertyInvalidatedCache<>(4, PropertyInvalidatedCache.MODULE_SYSTEM,
-                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API, new CredendialTypeQueryHandler(false));
+                    CREDENTIAL_TYPE_API, CREDENTIAL_TYPE_API,
+                    new CredendialTypeQueryHandler(Secondary));
 
     /**
      * Invalidate the credential type cache
@@ -1319,11 +1316,11 @@ public class LockPatternUtils {
      * {@link #CREDENTIAL_TYPE_PASSWORD}
      */
     public @CredentialType int getCredentialTypeForUser(int userHandle) {
-        return getCredentialTypeForUser(userHandle, true);
+        return getCredentialTypeForUser(userHandle, Primary);
     }
 
-    public @CredentialType int getCredentialTypeForUser(int userHandle, boolean primaryCredential) {
-        var cache = primaryCredential ? mPrimaryCredentialTypeCache : mSecondaryCredentialTypeCache;
+    public @CredentialType int getCredentialTypeForUser(int userHandle, LockDomain lockDomain) {
+        var cache = lockDomain == Primary ? mPrimaryCredentialTypeCache : mSecondaryCredentialTypeCache;
         return cache.query(userHandle);
     }
 
@@ -1333,11 +1330,11 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public boolean isSecure(int userId) {
-        return isSecure(userId, true);
+        return isSecure(userId, Primary);
     }
 
-    public boolean isSecure(int userId, boolean primary) {
-        int type = getCredentialTypeForUser(userId, primary);
+    public boolean isSecure(int userId, LockDomain lockDomain) {
+        int type = getCredentialTypeForUser(userId, lockDomain);
         return type != CREDENTIAL_TYPE_NONE;
     }
 
@@ -1379,14 +1376,14 @@ public class LockPatternUtils {
      * @return Whether enhanced pin privacy is enabled.
      */
     public boolean isPinEnhancedPrivacyEnabled(int userId) {
-        return isPinEnhancedPrivacyEnabled(userId, true);
+        return isPinEnhancedPrivacyEnabled(userId, Primary);
     }
 
-    public boolean isPinEnhancedPrivacyEnabled(int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public boolean isPinEnhancedPrivacyEnabled(int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return true;
         }
-        String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
+        String key = lockDomain == Primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
         return getBoolean(key, true, userId);
     }
 
@@ -1394,14 +1391,14 @@ public class LockPatternUtils {
      * Set whether enhanced pin privacy is enabled.
      */
     public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId) {
-        setPinEnhancedPrivacyEnabled(enabled, userId, true);
+        setPinEnhancedPrivacyEnabled(enabled, userId, Primary);
     }
 
-    public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public void setPinEnhancedPrivacyEnabled(boolean enabled, int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return;
         }
-        String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
+        String key = lockDomain == Primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
         setBoolean(key, enabled, userId);
     }
 
@@ -1409,14 +1406,14 @@ public class LockPatternUtils {
      * @return Whether enhanced pin privacy was ever chosen.
      */
     public boolean isPinEnhancedPrivacyEverChosen(int userId) {
-        return isPinEnhancedPrivacyEverChosen(userId, true);
+        return isPinEnhancedPrivacyEverChosen(userId, Primary);
     }
 
-    public boolean isPinEnhancedPrivacyEverChosen(int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public boolean isPinEnhancedPrivacyEverChosen(int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return false;
         }
-        String key = primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
+        String key = lockDomain == Primary ? LOCK_PIN_ENHANCED_PRIVACY : LOCK_PIN_ENHANCED_PRIVACY_SECONDARY;
         return getString(key, userId) != null;
     }
 
@@ -1427,11 +1424,11 @@ public class LockPatternUtils {
      */
     @UnsupportedAppUsage
     public long setLockoutAttemptDeadline(int userId, int timeoutMs) {
-        return setLockoutAttemptDeadline(userId, true, timeoutMs);
+        return setLockoutAttemptDeadline(userId, Primary, timeoutMs);
     }
 
-    public long setLockoutAttemptDeadline(int userId, boolean primary, int timeoutMs) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public long setLockoutAttemptDeadline(int userId, LockDomain lockDomain, int timeoutMs) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             // We can't follow the base behaviour and add to deadlines even if user does not exist
             // because the user could later be created as a non-secondary-supporting user and then
             // we've violated constraints.
@@ -1445,7 +1442,7 @@ public class LockPatternUtils {
             return deadline;
         }
 
-        SparseLongArray deadlines = primary ?
+        SparseLongArray deadlines = lockDomain == Primary ?
                 mPrimaryLockoutDeadlines : mBiometricSecondFactorLockoutDeadlines;
         deadlines.put(userId, deadline);
 
@@ -1458,14 +1455,14 @@ public class LockPatternUtils {
      *   enter a pattern.
      */
     public long getLockoutAttemptDeadline(int userId) {
-        return getLockoutAttemptDeadline(userId, true);
+        return getLockoutAttemptDeadline(userId, Primary);
     }
 
-    public long getLockoutAttemptDeadline(int userId, boolean primary) {
-        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, primary)) {
+    public long getLockoutAttemptDeadline(int userId, LockDomain lockDomain) {
+        if (!checkUserSupportsBiometricSecondFactorIfSecondary(userId, lockDomain)) {
             return 0L;
         }
-        SparseLongArray deadlines = primary ? mPrimaryLockoutDeadlines :
+        SparseLongArray deadlines = lockDomain == Primary ? mPrimaryLockoutDeadlines :
                 mBiometricSecondFactorLockoutDeadlines;
         final long deadline = deadlines.get(userId, 0L);
         final long now = SystemClock.elapsedRealtime();
@@ -1704,12 +1701,12 @@ public class LockPatternUtils {
      * Whether the user is not allowed to set any credentials via PASSWORD_QUALITY_MANAGED.
      */
     public boolean isCredentialsDisabledForUser(int userId) {
-        return isCredentialsDisabledForUser(userId, true);
+        return isCredentialsDisabledForUser(userId, Primary);
     }
 
-    public boolean isCredentialsDisabledForUser(int userId, boolean primary) {
+    public boolean isCredentialsDisabledForUser(int userId, LockDomain lockDomain) {
         return getDevicePolicyManager().getPasswordQuality(/* admin= */ null, userId,
-                primary ? Primary : Secondary) == PASSWORD_QUALITY_MANAGED;
+               lockDomain) == PASSWORD_QUALITY_MANAGED;
     }
 
     /**

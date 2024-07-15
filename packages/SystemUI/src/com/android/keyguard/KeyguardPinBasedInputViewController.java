@@ -16,6 +16,8 @@
 
 package com.android.keyguard;
 
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.Flags.pinInputFieldStyledFocusState;
 import static com.android.systemui.util.kotlin.JavaAdapterKt.collectFlow;
 
@@ -98,7 +100,7 @@ public abstract class KeyguardPinBasedInputViewController<T extends KeyguardPinB
 
         boolean showAnimations = !mLockPatternUtils
                 .isPinEnhancedPrivacyEnabled(mSelectedUserInteractor.getSelectedUserId(),
-                        mIsForPrimaryCredential);
+                        mIsForPrimaryCredential ? Primary : Secondary);
         mPasswordEntry.setShowPassword(showAnimations);
         for (NumPadKey button : mView.getButtons()) {
             button.setOnTouchListener((v, event) -> {

@@ -16,6 +16,8 @@
 
 package com.android.keyguard;
 
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.view.View;
@@ -73,7 +75,7 @@ public class KeyguardPinViewController
         view.setIsLockScreenLandscapeEnabled(mFeatureFlags.isEnabled(LOCKSCREEN_ENABLE_LANDSCAPE));
         mBackspaceKey = view.findViewById(R.id.delete_button);
         mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId(),
-                mIsForPrimaryCredential);
+                mIsForPrimaryCredential ? Primary : Secondary);
         mUiEventLogger = uiEventLogger;
     }
 
@@ -134,7 +136,7 @@ public class KeyguardPinViewController
 
     private void updateAutoConfirmationState() {
         mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential) >=
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential ? Primary : Secondary) >=
                 MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
@@ -191,7 +193,7 @@ public class KeyguardPinViewController
     private boolean isAutoPinConfirmEnabledInSettings() {
         //Checks if user has enabled the auto confirm in Settings
         return mLockPatternUtils.isAutoPinConfirmEnabled(
-                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential)
+                mSelectedUserInteractor.getSelectedUserId(), mIsForPrimaryCredential ? Primary : Secondary)
                 && mPinLength != LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
     }
 

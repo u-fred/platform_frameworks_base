@@ -16,6 +16,8 @@
 
 package com.android.providers.settings;
 
+import static com.android.internal.widget.LockDomain.Secondary;
+
 import android.annotation.UserIdInt;
 import android.app.backup.BackupAgentHelper;
 import android.app.backup.BackupDataInput;
@@ -741,9 +743,9 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             }
             // TODO: This backup/restore is untested.
             if (lockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false) &&
-                    lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId, false)) {
+                    lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId, Secondary)) {
                 out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY);
-                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, false) ? "1" : "0");
+                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, Secondary) ? "1" : "0");
             }
             // End marker
             out.writeUTF("");
@@ -1022,7 +1024,7 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                         break;
                     case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY:
                         lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId,
-                                false);
+                                Secondary);
                         break;
                 }
             }
