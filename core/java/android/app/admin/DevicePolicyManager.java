@@ -9235,13 +9235,19 @@ public class DevicePolicyManager {
         }
     }
 
-     /**
-      * @hide
-      */
-     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-     public void reportSuccessfulBiometricAttempt(int userHandle) {
-         reportSuccessfulBiometricAttempt(userHandle);
-     }
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportSuccessfulBiometricAttempt(int userHandle) {
+        if (mService != null) {
+            try {
+                mService.reportSuccessfulBiometricAttempt(userHandle);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+    }
 
     /**
      * Should be called when keyguard has been dismissed.
