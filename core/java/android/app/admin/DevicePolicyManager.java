@@ -5943,15 +5943,15 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     public int getCurrentFailedPasswordAttempts(int userHandle) {
-        return getCurrentFailedPasswordAttempts(userHandle, true);
+        return getCurrentFailedPasswordAttempts(userHandle, Primary);
     }
 
     /** @hide */
-    public int getCurrentFailedPasswordAttempts(int userHandle, boolean primary) {
+    public int getCurrentFailedPasswordAttempts(int userHandle, LockDomain lockDomain) {
         if (mService != null) {
             try {
                 return mService.getCurrentFailedPasswordAttempts(
-                        mContext.getPackageName(), primary ? Primary : Secondary, userHandle, mParentInstance);
+                        mContext.getPackageName(), lockDomain, userHandle, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
