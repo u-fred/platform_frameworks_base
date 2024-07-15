@@ -18,6 +18,7 @@ package com.android.keyguard;
 
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.content.res.ColorStateList;
@@ -128,7 +129,7 @@ public class KeyguardPatternViewController
             mPendingLockCheck = LockPatternChecker.checkCredential(
                     mLockPatternUtils,
                     LockscreenCredential.createPattern(pattern),
-                    true,
+                    Primary,
                     userId,
                     new LockPatternChecker.OnCheckCallback() {
 
