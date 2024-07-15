@@ -898,7 +898,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             finish = true;
             eventSubtype = BOUNCER_DISMISS_EXTENDED_ACCESS;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_EXTENDED_ACCESS;
-        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId, false)) {
+        } else if (mUpdateMonitor.getUserUnlockedWithBiometric(targetUserId)) {
             // This will prevent finishing for face even though there's currently no UI for face
             // second factor.
             finish = true;

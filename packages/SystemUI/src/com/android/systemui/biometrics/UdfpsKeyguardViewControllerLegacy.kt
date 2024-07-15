@@ -477,7 +477,7 @@ open class UdfpsKeyguardViewControllerLegacy(
         }
         if (
             keyguardUpdateMonitor.getUserUnlockedWithBiometric(
-                selectedUserInteractor.getSelectedUserId(), true
+                selectedUserInteractor.getSelectedUserId()
             )
         ) {
             // If the device was unlocked by a biometric, immediately hide the UDFPS icon to avoid

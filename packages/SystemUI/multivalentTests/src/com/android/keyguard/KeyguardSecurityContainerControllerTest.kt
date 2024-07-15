@@ -493,7 +493,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_DeviceNotSecure() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
@@ -535,7 +535,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_Swipe() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
@@ -558,7 +558,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_Swipe_userNotSetup() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
@@ -583,7 +583,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_Password() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
@@ -609,7 +609,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     fun showNextSecurityScreenOrFinish_SimPin_SimPin() {
         // GIVEN the current security method is SimPin
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
             .thenReturn(false)
         underTest.showSecurityScreen(SecurityMode.SimPin)
 
@@ -633,7 +633,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
     @Test
     fun showNextSecurityScreenOrFinish_BiometricUnlockedWithSecondFactorEnabled_DoesNotFinish() {
         whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
-        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID, false))
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
                 .thenReturn(true)
         whenever(lockPatternUtils.isBiometricSecondFactorEnabled(TARGET_USER_ID)).thenReturn(true)
         underTest.showSecurityScreen(SecurityMode.PIN)

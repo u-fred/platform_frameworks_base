@@ -268,13 +268,13 @@ public class LockIconViewControllerTest extends LockIconViewControllerBaseTest {
 
         // GIVEN user has unlocked with a biometric auth (ie: face auth)
         // and biometric running state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(true);
         mKeyguardUpdateMonitorCallback.onBiometricRunningStateChanged(false,
                 BiometricSourceType.FACE);
         reset(mLockIconView);
 
         // WHEN the unlocked state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(false);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(false);
         mKeyguardStateCallback.onUnlockedChanged();
 
         // THEN the lock icon is shown
@@ -290,14 +290,14 @@ public class LockIconViewControllerTest extends LockIconViewControllerBaseTest {
 
         // GIVEN user has unlocked with a biometric auth (ie: face auth)
         // and biometric running state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(true);
         mKeyguardUpdateMonitorCallback.onBiometricRunningStateChanged(false,
                 BiometricSourceType.FACE);
         reset(mLockIconView);
         when(mLockIconView.isVisibleToUser()).thenReturn(false);
 
         // WHEN the unlocked state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(false);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(false);
         mKeyguardStateCallback.onUnlockedChanged();
 
         // THEN the lock icon is shown
@@ -313,7 +313,7 @@ public class LockIconViewControllerTest extends LockIconViewControllerBaseTest {
 
         // GIVEN user has unlocked with a biometric auth (ie: face auth)
         // and biometric running state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(true);
         mKeyguardUpdateMonitorCallback.onBiometricRunningStateChanged(false,
                 BiometricSourceType.FACE);
         reset(mLockIconView);
@@ -321,7 +321,7 @@ public class LockIconViewControllerTest extends LockIconViewControllerBaseTest {
         when(mPrimaryBouncerInteractor.isAnimatingAway()).thenReturn(true);
 
         // WHEN the unlocked state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(false);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(false);
         mKeyguardStateCallback.onUnlockedChanged();
 
         // THEN the lock icon is shown
@@ -337,7 +337,7 @@ public class LockIconViewControllerTest extends LockIconViewControllerBaseTest {
 
         // GIVEN user has unlocked with a biometric auth (ie: face auth)
         // and biometric running state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(true);
         mKeyguardUpdateMonitorCallback.onBiometricRunningStateChanged(false,
                 BiometricSourceType.FACE);
         reset(mLockIconView);
@@ -345,7 +345,7 @@ public class LockIconViewControllerTest extends LockIconViewControllerBaseTest {
         when(mPrimaryBouncerInteractor.isAnimatingAway()).thenReturn(false);
 
         // WHEN the unlocked state changes
-        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt(), eq(false))).thenReturn(false);
+        when(mKeyguardUpdateMonitor.getUserUnlockedWithBiometric(anyInt())).thenReturn(false);
         mKeyguardStateCallback.onUnlockedChanged();
 
         // THEN the lock icon is shown
