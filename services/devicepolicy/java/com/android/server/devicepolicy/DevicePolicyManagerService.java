@@ -8353,6 +8353,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
     @Override
     public void reportFailedBiometricAttempt(int userHandle) {
+        // TODO: Call this after failed second factor?
         Preconditions.checkArgumentNonnegative(userHandle, "Invalid userId");
 
         final CallerIdentity caller = getCallerIdentity();
@@ -8360,7 +8361,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         Preconditions.checkCallAuthorization(hasCallingOrSelfPermission(BIND_DEVICE_ADMIN));
 
         if (mInjector.securityLogIsLoggingEnabled()) {
-            // Future code might do something we need to be notified of.
             SecurityLog.writeEvent(SecurityLog.TAG_KEYGUARD_DISMISS_AUTH_ATTEMPT, /*result*/ 0,
                     /*method strength*/ 0);
         }
