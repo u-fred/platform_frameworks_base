@@ -5546,12 +5546,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
     private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userHandle,
             LockDomain lockDomain) {
-        return checkUserSupportsBiometricSecondFactorIfSecondary(userHandle, lockDomain == Primary);
-    }
-
-    private boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userHandle,
-            boolean primary) {
-        if (primary) {
+        if (lockDomain == Primary) {
             return true;
         }
         return mInjector.binderWithCleanCallingIdentity(() ->
