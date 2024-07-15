@@ -4719,14 +4719,15 @@ public class DevicePolicyManager {
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     public int getPasswordQuality(@Nullable ComponentName admin, int userHandle) {
-        return getPasswordQuality(admin, userHandle, true);
+        return getPasswordQuality(admin, userHandle, Primary);
     }
 
     /** @hide */
-    public int getPasswordQuality(@Nullable ComponentName admin, int userHandle, boolean primary) {
+    public int getPasswordQuality(@Nullable ComponentName admin, int userHandle,
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
-                return mService.getPasswordQuality(admin, userHandle, primary ? Primary : Secondary,
+                return mService.getPasswordQuality(admin, userHandle, lockDomain,
                         mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();

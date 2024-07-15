@@ -1707,8 +1707,8 @@ public class LockPatternUtils {
     }
 
     public boolean isCredentialsDisabledForUser(int userId, boolean primary) {
-        return getDevicePolicyManager().getPasswordQuality(/* admin= */ null, userId, primary)
-                == PASSWORD_QUALITY_MANAGED;
+        return getDevicePolicyManager().getPasswordQuality(/* admin= */ null, userId,
+                primary ? Primary : Secondary) == PASSWORD_QUALITY_MANAGED;
     }
 
     /**
