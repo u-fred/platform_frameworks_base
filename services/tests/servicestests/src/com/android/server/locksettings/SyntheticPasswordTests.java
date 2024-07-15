@@ -391,7 +391,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         final PasswordMetrics metric = PasswordMetrics.computeForCredential(pattern);
         assertEquals(metric, mService.getUserPasswordMetrics(PRIMARY_USER_ID, Primary));
         // TODO: Primary/secondary.
-        verify(mDevicePolicyManager).reportPasswordChanged(metric, PRIMARY_USER_ID, true);
+        verify(mDevicePolicyManager).reportPasswordChanged(metric, PRIMARY_USER_ID, Primary);
 
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
                 pattern, Primary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());

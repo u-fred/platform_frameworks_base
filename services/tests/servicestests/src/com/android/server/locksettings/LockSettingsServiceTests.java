@@ -928,7 +928,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         PasswordMetrics pm = PasswordMetrics.computeForCredential(LockscreenCredential.createNone());
         assertEquals(pm, mService.getUserPasswordMetrics(userId, Secondary));
         verify(mDevicePolicyManager, times(1)).reportPasswordChanged(pm, userId,
-                false);
+                Secondary);
     }
 
     @Test
@@ -969,7 +969,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         Assert.assertNotEquals(secondarySp1, primarySp);
 
         verify(mDevicePolicyManager, times(1)).reportPasswordChanged(
-                secondaryPinMetrics, userId, false);
+                secondaryPinMetrics, userId, Secondary);
     }
 
     @Test

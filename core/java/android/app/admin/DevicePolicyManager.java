@@ -9157,7 +9157,7 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
-        reportPasswordChanged(metrics, userId, true);
+        reportPasswordChanged(metrics, userId, Primary);
     }
 
     /**
@@ -9165,10 +9165,10 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
-            boolean primary) {
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
-                mService.reportPasswordChanged(metrics, userId, primary ? Primary : Secondary);
+                mService.reportPasswordChanged(metrics, userId, lockDomain);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
