@@ -9181,17 +9181,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportFailedPasswordAttempt(int userHandle) {
-        reportFailedPasswordAttempt(userHandle, true);
+        reportFailedPasswordAttempt(userHandle, Primary);
     }
 
     /**
      * @hide
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
-    public void reportFailedPasswordAttempt(int userHandle, boolean primary) {
+    public void reportFailedPasswordAttempt(int userHandle, LockDomain lockDomain) {
         if (mService != null) {
             try {
-                mService.reportFailedPasswordAttempt(userHandle, primary ? Primary : Secondary,
+                mService.reportFailedPasswordAttempt(userHandle, lockDomain,
                         mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
