@@ -552,7 +552,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                             /* authenticated= */ true,
                             selectedUserId,
                             /* bypassSecondaryLockScreen= */ true,
-                            mSecurityModel.getSecurityMode(selectedUserId, false));
+                            mSecurityModel.getSecurityMode(selectedUserId));
                     }
                 }
             );
@@ -618,7 +618,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
     public void showPrimarySecurityScreen(boolean turningOff) {
         if (DEBUG) Log.d(TAG, "show()");
         SecurityMode securityMode = whitelistIpcs(() -> mSecurityModel.getSecurityMode(
-                mSelectedUserInteractor.getSelectedUserId(), false));
+                mSelectedUserInteractor.getSelectedUserId()));
         if (DEBUG) Log.v(TAG, "showPrimarySecurityScreen(turningOff=" + turningOff + ")");
         showSecurityScreen(securityMode);
     }
@@ -777,7 +777,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         }
 
         SecurityMode trueCurrentSecurityMode = mSecurityModel.getSecurityMode(
-                mSelectedUserInteractor.getSelectedUserId(), false);
+                mSelectedUserInteractor.getSelectedUserId());
         if (trueCurrentSecurityMode != mCurrentSecurityMode &&
                 trueCurrentSecurityMode == BiometricSecondFactorPin) {
             // Do this here so that mCurrentSecurityMode is updated and in turn the call to
@@ -905,7 +905,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
             eventSubtype = BOUNCER_DISMISS_BIOMETRIC;
             uiEvent = BouncerUiEvent.BOUNCER_DISMISS_BIOMETRIC;
         } else if (SecurityMode.None == getCurrentSecurityMode()) {
-            SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId, false);
+            SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId);
             if (SecurityMode.None == securityMode) {
                 finish = true; // no security required
                 eventSubtype = BOUNCER_DISMISS_NONE_SECURITY;
@@ -935,8 +935,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                 case SimPin:
                 case SimPuk:
                     // Shortcut for SIM PIN/PUK to go to directly to user's security screen or home
-                    SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId,
-                            false);
+                    SecurityMode securityMode = mSecurityModel.getSecurityMode(targetUserId);
                     boolean isLockscreenDisabled = mLockPatternUtils.isLockScreenDisabled(
                             mSelectedUserInteractor.getSelectedUserId())
                             || !mDeviceProvisionedController.isUserSetup(targetUserId);
@@ -1319,7 +1318,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         if (mCurrentSecurityMode == SecurityMode.BiometricSecondFactorPin) {
             // Preload primary to avoid creating duplicate views/controllers in onPause().
             int currentUser = mSelectedUserInteractor.getSelectedUserId();
-            SecurityMode primarySecurityMode = mSecurityModel.getSecurityMode(currentUser, true);
+            SecurityMode primarySecurityMode = mSecurityModel.getSecurityMode(currentUser, Primary);
             mSecurityViewFlipperController.asynchronouslyInflateView(
                     primarySecurityMode, mKeyguardSecurityCallback, (c) -> {});
         } else {

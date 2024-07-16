@@ -124,7 +124,7 @@ class KeyguardTransitionScenariosTest : SysuiTestCase() {
         MockitoAnnotations.initMocks(this)
 
         // All tests pass without this.
-        whenever(keyguardSecurityModel.getSecurityMode(anyInt(), eq(false))).thenReturn(PIN)
+        whenever(keyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(PIN)
 
         mSetFlagsRule.enableFlags(FLAG_COMMUNAL_HUB)
         featureFlags = FakeFeatureFlags()

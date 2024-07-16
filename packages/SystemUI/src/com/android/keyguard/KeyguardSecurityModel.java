@@ -15,6 +15,7 @@
  */
 package com.android.keyguard;
 
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.DejankUtils.whitelistIpcs;
 
 import android.app.admin.DevicePolicyManager;
@@ -22,6 +23,7 @@ import android.content.res.Resources;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dagger.qualifiers.Main;
@@ -61,11 +63,15 @@ public class KeyguardSecurityModel {
         mKeyguardUpdateMonitor = keyguardUpdateMonitor;
     }
 
+    public SecurityMode getSecurityMode(int userId) {
+        return getSecurityMode(userId, Secondary);
+    }
+
     /**
-     * @param primaryModesOnly If true then don't include biometric second factor modes (currently
-     *                         only BiometricSecondFactorPin).
+     * @param lockDomain If Primary, only return primary modes. If Secondary, return the true
+     *                   mode whether it be a primary or secondary mode.
      */
-    public SecurityMode getSecurityMode(int userId, boolean primaryModesOnly) {
+    public SecurityMode getSecurityMode(int userId, LockDomain lockDomain) {
         if (mIsPukScreenAvailable && SubscriptionManager.isValidSubscriptionId(
                 mKeyguardUpdateMonitor.getNextSubIdForState(
                         TelephonyManager.SIM_STATE_PUK_REQUIRED))) {
@@ -78,7 +84,7 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
-        if (!primaryModesOnly &&
+        if (lockDomain == Secondary &&
                 mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId) &&
                 mKeyguardUpdateMonitor.isUnlockingWithFingerprintAllowed() &&
                 mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {

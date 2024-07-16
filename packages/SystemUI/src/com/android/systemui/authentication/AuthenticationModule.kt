@@ -34,6 +34,6 @@ object AuthenticationModule {
     fun getSecurityMode(
         model: KeyguardSecurityModel,
     ): Function<Int, KeyguardSecurityModel.SecurityMode> {
-        return Function { userId -> model.getSecurityMode(userId, true) }
+        return Function { userId -> model.getSecurityMode(userId) }
     }
 }

@@ -1214,7 +1214,7 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
      */
     public boolean isSecure() {
         return mKeyguardSecurityModel.getSecurityMode(
-                mSelectedUserInteractor.getSelectedUserId(), false)
+                mSelectedUserInteractor.getSelectedUserId())
                 != KeyguardSecurityModel.SecurityMode.None;
     }
 
@@ -1753,7 +1753,7 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
      */
     public boolean needsFullscreenBouncer() {
         KeyguardSecurityModel.SecurityMode mode = mKeyguardSecurityModel.getSecurityMode(
-                mSelectedUserInteractor.getSelectedUserId(), false);
+                mSelectedUserInteractor.getSelectedUserId());
         return mode == KeyguardSecurityModel.SecurityMode.SimPin
                 || mode == KeyguardSecurityModel.SecurityMode.SimPuk;
     }

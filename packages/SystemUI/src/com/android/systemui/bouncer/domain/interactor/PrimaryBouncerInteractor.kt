@@ -420,7 +420,7 @@ constructor(
     /** Returns whether the bouncer should be full screen. */
     private fun needsFullscreenBouncer(): Boolean {
         val mode: KeyguardSecurityModel.SecurityMode =
-            keyguardSecurityModel.getSecurityMode(selectedUserInteractor.getSelectedUserId(), false)
+            keyguardSecurityModel.getSecurityMode(selectedUserInteractor.getSelectedUserId())
         return mode == KeyguardSecurityModel.SecurityMode.SimPin ||
             mode == KeyguardSecurityModel.SecurityMode.SimPuk
     }

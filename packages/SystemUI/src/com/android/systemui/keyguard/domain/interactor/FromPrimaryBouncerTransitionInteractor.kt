@@ -238,7 +238,7 @@ constructor(
                     ) {
                         val securityMode =
                             keyguardSecurityModel.getSecurityMode(
-                                selectedUserInteractor.getSelectedUserId(), false
+                                selectedUserInteractor.getSelectedUserId()
                             )
                         // IME for password requires a slightly faster animation
                         val duration =
