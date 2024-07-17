@@ -84,7 +84,7 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
         assertFalse(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
         // Activate token (password gets migrated to SP at the same time)
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                password, Primary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+                password, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         // Verify token is activated and valid
         assertTrue(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
         assertTrue(mService.isWeakEscrowTokenValid(handle, token, PRIMARY_USER_ID));
@@ -107,7 +107,7 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
 
         // Activate token
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                password, Primary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+                password, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
 
         // Verify token removed
         assertTrue(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
@@ -166,7 +166,7 @@ public class WeakEscrowTokenTests extends BaseLockSettingsServiceTests{
 
         long handle = mService.addWeakEscrowToken(token, PRIMARY_USER_ID, mockActivateListener);
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                password, Primary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+                password, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
         assertTrue(mService.isWeakEscrowTokenActive(handle, PRIMARY_USER_ID));
         assertTrue(mService.isWeakEscrowTokenValid(handle, token, PRIMARY_USER_ID));
 

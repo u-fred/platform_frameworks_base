@@ -65,7 +65,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(USER_FRP));
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(newPin("1234"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPin("1234"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
     }
 
@@ -75,7 +75,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         assertEquals(CREDENTIAL_TYPE_PATTERN, mService.getCredentialType(USER_FRP));
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(newPattern("4321"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPattern("4321"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
     }
 
@@ -85,7 +85,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(USER_FRP));
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(newPassword("4321"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPassword("4321"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
     }
 
@@ -96,7 +96,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         assertEquals(CREDENTIAL_TYPE_PATTERN, mService.getCredentialType(USER_FRP));
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(newPattern("5678"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPattern("5678"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
     }
 
@@ -116,7 +116,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         setDeviceProvisioned(true);
         assertEquals(VerifyCredentialResponse.RESPONSE_ERROR,
-                mService.verifyCredential(newPin("1234"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPin("1234"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
     }
 
@@ -132,7 +132,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(USER_FRP));
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(newPin("1234"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPin("1234"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
 
     }
@@ -149,7 +149,7 @@ public class LockscreenFrpTest extends BaseLockSettingsServiceTests {
 
         assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(USER_FRP));
         assertEquals(VerifyCredentialResponse.RESPONSE_OK,
-                mService.verifyCredential(newPin("1234"), Primary, USER_FRP, 0 /* flags */)
+                mService.verifyCredential(newPin("1234"), USER_FRP, 0 /* flags */)
                         .getResponseCode());
     }
 
