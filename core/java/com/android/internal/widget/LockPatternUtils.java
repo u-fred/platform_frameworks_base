@@ -382,7 +382,7 @@ public class LockPatternUtils {
      * Returns aggregated (legacy) password quality requirement on the target user from all admins.
      */
     public PasswordMetrics getRequestedPasswordMetrics(int userId) {
-        return getRequestedPasswordMetrics(userId, Primary, false);
+        return getRequestedPasswordMetrics(userId, false);
     }
 
     public PasswordMetrics getRequestedPasswordMetrics(int userId, LockDomain lockDomain) {
