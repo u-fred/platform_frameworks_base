@@ -84,6 +84,7 @@ public class KeyguardSecurityModel {
             return SecurityMode.SimPin;
         }
 
+        // TODO: Investigate whether this has a performance impact.
         if (lockDomain == Secondary &&
                 mKeyguardUpdateMonitor.getUserAuthenticatedWithFingerprint(userId) &&
                 mKeyguardUpdateMonitor.isUnlockingWithFingerprintAllowed() &&
