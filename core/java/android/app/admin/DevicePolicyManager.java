@@ -5566,7 +5566,7 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin) {
-        return getPasswordHistoryLength(admin, myUserId(), Primary);
+        return getPasswordHistoryLength(admin, myUserId());
     }
 
     /** @hide per-user version */
