@@ -417,7 +417,7 @@ public class LockPatternUtils {
      * @return complexity level for the user.
      */
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId) {
-        return getRequestedPasswordComplexity(userId, Primary, false);
+        return getRequestedPasswordComplexity(userId,false);
     }
 
     public @DevicePolicyManager.PasswordComplexity int getRequestedPasswordComplexity(int userId,
