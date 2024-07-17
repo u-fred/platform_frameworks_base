@@ -1830,6 +1830,11 @@ public class LockSettingsService extends ILockSettings.Stub {
         return profiles;
     }
 
+    public boolean setLockCredential(LockscreenCredential credential,
+            LockscreenCredential savedCredential, int userId) {
+        return setLockCredential(credential, savedCredential, Primary, userId);
+    }
+
     // This method should be called by LockPatternUtil only, all internal methods in this class
     // should call setLockCredentialInternal.
     @Override

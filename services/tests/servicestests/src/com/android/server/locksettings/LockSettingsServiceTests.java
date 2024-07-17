@@ -102,22 +102,22 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetTooShortPatternFails() throws RemoteException {
-        mService.setLockCredential(newPattern("123"), nonePassword(), Primary, PRIMARY_USER_ID);
+        mService.setLockCredential(newPattern("123"), nonePassword(), PRIMARY_USER_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetTooShortPinFails() throws RemoteException {
-        mService.setLockCredential(newPin("123"), nonePassword(), Primary, PRIMARY_USER_ID);
+        mService.setLockCredential(newPin("123"), nonePassword(), PRIMARY_USER_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetTooShortPassword() throws RemoteException {
-        mService.setLockCredential(newPassword("123"), nonePassword(), Primary, PRIMARY_USER_ID);
+        mService.setLockCredential(newPassword("123"), nonePassword(), PRIMARY_USER_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetPasswordWithInvalidChars() throws RemoteException {
-        mService.setLockCredential(newPassword("§µ¿¶¥£"), nonePassword(), Primary, PRIMARY_USER_ID);
+        mService.setLockCredential(newPassword("§µ¿¶¥£"), nonePassword(), PRIMARY_USER_ID);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void testChangePasswordFailPrimaryUser() throws RemoteException {
         setCredential(PRIMARY_USER_ID, newPassword("password"));
-        assertFalse(mService.setLockCredential(newPassword("newpwd"), newPassword("badpwd"), Primary,
+        assertFalse(mService.setLockCredential(newPassword("newpwd"), newPassword("badpwd"),
                     PRIMARY_USER_ID));
         assertVerifyCredential(PRIMARY_USER_ID, newPassword("password"), true);
     }
@@ -495,7 +495,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         setUserSetupComplete(false);
         setSecureFrpMode(true);
         try {
-            mService.setLockCredential(newPassword("1234"), nonePassword(), Primary, PRIMARY_USER_ID);
+            mService.setLockCredential(newPassword("1234"), nonePassword(), PRIMARY_USER_ID);
             fail("Password shouldn't be changeable before FRP unlock");
         } catch (SecurityException e) { }
     }
@@ -911,7 +911,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
                         secondaryPin, Secondary, userId, null).syntheticPassword;
         assertNotNull(secondarySp0);
 
-        assertTrue(mService.setLockCredential(nonePassword(), primaryPin, Primary, userId));
+        assertTrue(mService.setLockCredential(nonePassword(), primaryPin, userId));
 
         assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialTypeForLockDomain(userId, Secondary));
         secondaryProtector = mService.getCurrentLskfBasedProtectorId(userId, Secondary);
@@ -985,8 +985,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         final LockscreenCredential primaryPassword = newPassword("primaryPassword");
         final PasswordMetrics primaryMetrics = PasswordMetrics.computeForCredential(
                 primaryPassword);
-        assertTrue(mService.setLockCredential(primaryPassword, nonePassword(), Primary,
-                PRIMARY_USER_ID));
+        assertTrue(mService.setLockCredential(primaryPassword, nonePassword(), PRIMARY_USER_ID));
         assertEquals(primaryMetrics, mService.getUserPasswordMetrics(PRIMARY_USER_ID, Primary));
 
         assertEquals(CREDENTIAL_TYPE_NONE,
@@ -1086,7 +1085,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
             int userId, LockscreenCredential credential) throws RemoteException {
         mService.mHasSecureLockScreen = false;
         try {
-            mService.setLockCredential(credential, nonePassword(), Primary, userId);
+            mService.setLockCredential(credential, nonePassword(), userId);
             fail("An exception should have been thrown.");
         } catch (UnsupportedOperationException e) {
             // Success - the exception was expected.
