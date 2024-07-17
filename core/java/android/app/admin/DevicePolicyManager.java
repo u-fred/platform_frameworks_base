@@ -4713,7 +4713,7 @@ public class DevicePolicyManager {
      */
     @Deprecated
     public int getPasswordQuality(@Nullable ComponentName admin) {
-        return getPasswordQuality(admin, myUserId(), Primary);
+        return getPasswordQuality(admin, myUserId());
     }
 
     /** @hide per-user version */
