@@ -5163,9 +5163,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         return getPasswordMinimumMetricsUnchecked(userHandle, lockDomain, deviceWideOnly);
     }
 
-    private PasswordMetrics getPasswordMinimumMetricsUnchecked(@UserIdInt int userId,
-            LockDomain lockDomain) {
-        return getPasswordMinimumMetricsUnchecked(userId, lockDomain, false);
+    private PasswordMetrics getPasswordMinimumMetricsUnchecked(@UserIdInt int userId) {
+        return getPasswordMinimumMetricsUnchecked(userId, Primary, false);
     }
 
     private PasswordMetrics getPasswordMinimumMetricsUnchecked(@UserIdInt int userId,
@@ -5345,8 +5344,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
      */
     private boolean isPasswordSufficientForUserWithoutCheckpointLocked(
             @NonNull PasswordMetrics metrics, @UserIdInt int userId) {
-        final int complexity = getAggregatedPasswordComplexityLocked(userId, Primary);
-        PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userId, Primary);
+        final int complexity = getAggregatedPasswordComplexityLocked(userId);
+        PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userId);
         final List<PasswordValidationError> passwordValidationErrors =
                 PasswordMetrics.validatePasswordMetrics(minMetrics, complexity, metrics);
         return passwordValidationErrors.isEmpty();
@@ -5474,9 +5473,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         }
     }
     @GuardedBy("getLockObject()")
-    private int getAggregatedPasswordComplexityLocked(@UserIdInt int userHandle,
-            LockDomain lockDomain) {
-        return getAggregatedPasswordComplexityLocked(userHandle, lockDomain, false);
+    private int getAggregatedPasswordComplexityLocked(@UserIdInt int userHandle) {
+        return getAggregatedPasswordComplexityLocked(userHandle, Primary, false);
     }
 
     @GuardedBy("getLockObject()")
@@ -5794,8 +5792,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             newCredential = LockscreenCredential.createPasswordOrNone(password);
         }
         synchronized (getLockObject()) {
-            final PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userHandle, Primary);
-            final int complexity = getAggregatedPasswordComplexityLocked(userHandle, Primary);
+            final PasswordMetrics minMetrics = getPasswordMinimumMetricsUnchecked(userHandle);
+            final int complexity = getAggregatedPasswordComplexityLocked(userHandle);
             final List<PasswordValidationError> validationErrors =
                     PasswordMetrics.validateCredential(minMetrics, complexity, newCredential);
             if (!validationErrors.isEmpty()) {
