@@ -5376,7 +5376,7 @@ public class DevicePolicyManager {
      * @hide
      */
     public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle) {
-        return getPasswordMinimumMetrics(userHandle, Primary, false);
+        return getPasswordMinimumMetrics(userHandle,false);
     }
 
     /**
