@@ -5825,7 +5825,7 @@ public class DevicePolicyManager {
      */
     @PasswordComplexity
     public int getAggregatedPasswordComplexityForUser(int userId) {
-        return getAggregatedPasswordComplexityForUser(userId, Primary, false);
+        return getAggregatedPasswordComplexityForUser(userId, false);
     }
 
     /**
