@@ -474,7 +474,8 @@ public class LockPatternUtils {
      * @param forUnlock Whether the password was entered as part of an unlock process (Keyguard).
      *                  Ignored if lockDomain is Primary.
      */
-    public void reportSuccessfulPasswordAttempt(int userId, LockDomain lockDomain, boolean forUnlock) {
+    public void reportSuccessfulPasswordAttempt(int userId, LockDomain lockDomain,
+            boolean forUnlock) {
         if (isSpecialUserId(mContext, userId, /* checkDeviceSupported= */ true)) {
             if (lockDomain == Primary) {
                 return;
