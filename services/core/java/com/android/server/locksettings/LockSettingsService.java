@@ -2604,6 +2604,11 @@ public class LockSettingsService extends ILockSettings.Stub {
      * @return passwordmetrics for the user or null if not available
      */
     @VisibleForTesting
+    PasswordMetrics getUserPasswordMetrics(int userHandle) {
+        return getUserPasswordMetrics(userHandle, Primary);
+    }
+
+    @VisibleForTesting
     PasswordMetrics getUserPasswordMetrics(int userHandle, LockDomain lockDomain) {
         if (!isUserSecure(userHandle, lockDomain)) {
             // for users without password, mUserPasswordMetrics might not be initialized
@@ -3660,7 +3665,7 @@ public class LockSettingsService extends ILockSettings.Stub {
             pw.println("Primary SeparateChallenge: " + getSeparateProfileChallengeEnabledInternal(
                     userId));
             pw.println(TextUtils.formatSimple("Primary Metrics: %s",
-                    getUserPasswordMetrics(userId, Primary) != null ? "known" : "unknown"));
+                    getUserPasswordMetrics(userId) != null ? "known" : "unknown"));
 
             if (mLockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false)) {
                 pw.println("Secondary Quality: " + credentialTypeToPasswordQuality(
@@ -3944,7 +3949,7 @@ public class LockSettingsService extends ILockSettings.Stub {
                     Slog.w(TAG, "Querying password metrics for unified challenge profile: "
                             + userHandle);
                 }
-                return LockSettingsService.this.getUserPasswordMetrics(userHandle, Primary);
+                return LockSettingsService.this.getUserPasswordMetrics(userHandle);
             } finally {
                 Binder.restoreCallingIdentity(identity);
             }
