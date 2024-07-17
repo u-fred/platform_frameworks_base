@@ -6042,7 +6042,7 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin) {
-        return getMaximumFailedPasswordsForWipe(admin, myUserId(), Primary);
+        return getMaximumFailedPasswordsForWipe(admin, myUserId());
     }
 
     /** @hide per-user version */
