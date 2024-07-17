@@ -405,10 +405,6 @@ public class LockPatternUtils {
                 deviceWideOnly);
     }
 
-    private int getRequestedPasswordHistoryLength(int userId) {
-        return getRequestedPasswordHistoryLength(userId, Primary);
-    }
-
     private int getRequestedPasswordHistoryLength(int userId, LockDomain lockDomain) {
         return getDevicePolicyManager().getPasswordHistoryLength(null, userId, lockDomain);
     }
