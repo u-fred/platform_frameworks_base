@@ -1,8 +1,5 @@
 package com.android.internal.widget;
 
-import static com.android.internal.widget.LockDomain.Primary;
-import static com.android.internal.widget.LockDomain.Secondary;
-
 import android.annotation.NonNull;
 import android.os.AsyncTask;
 
@@ -61,9 +58,8 @@ public final class LockPatternChecker {
      * @param flags See {@link LockPatternUtils.VerifyFlag}
      * @param callback The callback to be invoked with the verification result.
      */
-    public static AsyncTask<?, ?, ?> verifyCredential(final LockPatternUtils utils,
+    public static AsyncTask<?, ?, ?> verifyCredential(final WrappedLockPatternUtils utils,
             final LockscreenCredential credential,
-            final LockDomain lockDomain,
             final int userId,
             final @LockPatternUtils.VerifyFlag int flags,
             final OnVerifyCallback callback) {
@@ -73,7 +69,7 @@ public final class LockPatternChecker {
                 new AsyncTask<Void, Void, VerifyCredentialResponse>() {
             @Override
             protected VerifyCredentialResponse doInBackground(Void... args) {
-                return utils.verifyCredential(credentialCopy, lockDomain, userId, flags);
+                return utils.verifyCredential(credentialCopy, userId, flags);
             }
 
             @Override
@@ -99,9 +95,8 @@ public final class LockPatternChecker {
      * @param userId The user to check against the credential.
      * @param callback The callback to be invoked with the check result.
      */
-    public static AsyncTask<?, ?, ?> checkCredential(final LockPatternUtils utils,
+    public static AsyncTask<?, ?, ?> checkCredential(final WrappedLockPatternUtils utils,
             final LockscreenCredential credential,
-            final LockDomain lockDomain,
             final int userId,
             final OnCheckCallback callback) {
         // Create a copy of the credential since checking credential is asynchrounous.
@@ -112,8 +107,7 @@ public final class LockPatternChecker {
             @Override
             protected Boolean doInBackground(Void... args) {
                 try {
-                    return utils.checkCredential(credentialCopy, lockDomain, userId,
-                            callback::onEarlyMatched);
+                    return utils.checkCredential(credentialCopy, userId, callback::onEarlyMatched);
                 } catch (RequestThrottledException ex) {
                     mThrottleTimeout = ex.getTimeoutMs();
                     return false;

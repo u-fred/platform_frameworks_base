@@ -35,6 +35,7 @@ import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockPatternView;
 import com.android.internal.widget.LockPatternView.Cell;
 import com.android.internal.widget.LockscreenCredential;
+import com.android.internal.widget.WrappedLockPatternUtils;
 import com.android.keyguard.EmergencyButtonController.EmergencyButtonCallback;
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode;
 import com.android.systemui.classifier.FalsingClassifier;
@@ -127,9 +128,8 @@ public class KeyguardPatternViewController
             mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL);
             mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL_UNLOCKED);
             mPendingLockCheck = LockPatternChecker.checkCredential(
-                    mLockPatternUtils,
+                    new WrappedLockPatternUtils(mLockPatternUtils, Primary),
                     LockscreenCredential.createPattern(pattern),
-                    Primary,
                     userId,
                     new LockPatternChecker.OnCheckCallback() {
 

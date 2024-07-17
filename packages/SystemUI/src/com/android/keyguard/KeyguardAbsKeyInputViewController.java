@@ -34,6 +34,7 @@ import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternChecker;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
+import com.android.internal.widget.WrappedLockPatternUtils;
 import com.android.keyguard.EmergencyButtonController.EmergencyButtonCallback;
 import com.android.keyguard.KeyguardAbsKeyInputView.KeyDownListener;
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode;
@@ -245,9 +246,8 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
 
         mKeyguardUpdateMonitor.setCredentialAttempted();
         mPendingLockCheck = LockPatternChecker.checkCredential(
-                mLockPatternUtils,
+                new WrappedLockPatternUtils(mLockPatternUtils, mLockDomain),
                 password,
-                mLockDomain,
                 userId,
                 new LockPatternChecker.OnCheckCallback() {
 
