@@ -43,6 +43,7 @@ import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChang
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_LOCKOUT;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_FOR_UNATTENDED_UPDATE;
+import static com.android.internal.widget.LockPatternUtils.ThrowIfUserNotExist.DoNotThrow;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
 import static com.android.internal.widget.LockPatternUtils.USER_REPAIR_MODE;
 import static com.android.internal.widget.LockPatternUtils.VERIFY_FLAG_REQUEST_GK_PW_HANDLE;
@@ -2067,7 +2068,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     private boolean isCredentialSharableWithParent(int userId) {
-        return mLockPatternUtils.isCredentialSharableWithParent(userId, false);
+        return mLockPatternUtils.isCredentialSharableWithParent(userId, DoNotThrow);
     }
 
     /** Register the given WeakEscrowTokenRemovedListener. */
