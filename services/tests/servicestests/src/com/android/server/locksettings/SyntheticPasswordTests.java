@@ -406,7 +406,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         byte[] token = "some-high-entropy-secure-token".getBytes();
         initSpAndSetCredential(PRIMARY_USER_ID, password);
         assertTrue(mService.setLockCredential(secondaryPin, password, Secondary, PRIMARY_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialTypeForLockDomain(PRIMARY_USER_ID, Secondary));
+        assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(PRIMARY_USER_ID, Secondary));
         byte[] storageKey = mStorageManager.getUserUnlockToken(PRIMARY_USER_ID);
 
         long handle = mLocalService.addEscrowToken(token, PRIMARY_USER_ID, null);
@@ -417,7 +417,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         assertTrue(mLocalService.isEscrowTokenActive(handle, PRIMARY_USER_ID));
 
         mLocalService.setLockCredentialWithToken(nonePassword(), handle, token, PRIMARY_USER_ID);
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialTypeForLockDomain(PRIMARY_USER_ID, Secondary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(PRIMARY_USER_ID, Secondary));
         flushHandlerTasks(); // flush the unlockUser() call before changing password again
         mLocalService.setLockCredentialWithToken(pattern, handle, token,
                 PRIMARY_USER_ID);

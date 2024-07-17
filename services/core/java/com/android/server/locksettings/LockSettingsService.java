@@ -1456,18 +1456,17 @@ public class LockSettingsService extends ILockSettings.Stub {
         }
     }
 
+    public int getCredentialType(int userId) {
+        return getCredentialType(userId, Primary);
+    }
+
     /**
      * This API is cached; whenever the result would change,
      * {@link com.android.internal.widget.LockPatternUtils#invalidateCredentialTypeCache}
      * must be called.
      */
     @Override
-    public int getCredentialType(int userId) {
-        return getCredentialTypeForLockDomain(userId, Primary);
-    }
-
-    @Override
-    public int getCredentialTypeForLockDomain(int userId, LockDomain lockDomain) {
+    public int getCredentialType(int userId, LockDomain lockDomain) {
         checkPasswordHavePermission();
         return getCredentialTypeInternal(userId, lockDomain);
     }
