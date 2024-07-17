@@ -1317,7 +1317,7 @@ public class RecoverableKeyStoreManagerTest {
 
     @Test
     public void startRemoteLockscreenValidation_credentialsNotSet() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_NONE);
         try {
             mRecoverableKeyStoreManager.startRemoteLockscreenValidation(mLockSettingsService);
@@ -1325,11 +1325,11 @@ public class RecoverableKeyStoreManagerTest {
         } catch (IllegalStateException e) {
             assertThat(e.getMessage()).contains("not set");
         }
-        verify(mLockSettingsService).getCredentialType(mUserId, Primary);
+        verify(mLockSettingsService).getCredentialType(mUserId);
     }
     @Test
     public void startRemoteLockscreenValidation_checksPermission() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PIN);
 
         mRecoverableKeyStoreManager.startRemoteLockscreenValidation(mLockSettingsService);
@@ -1341,7 +1341,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void startRemoteLockscreenValidation_returnsCredentailsType() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PIN);
 
         RemoteLockscreenValidationSession request =
@@ -1349,11 +1349,11 @@ public class RecoverableKeyStoreManagerTest {
 
         assertThat(request.getLockType()).isEqualTo(KeyguardManager.PIN);
         assertThat(request.getRemainingAttempts()).isEqualTo(5);
-        verify(mLockSettingsService).getCredentialType(anyInt(), eq(Primary));
+        verify(mLockSettingsService).getCredentialType(anyInt());
     }
     @Test
     public void startRemoteLockscreenValidation_returnsRemainingAttempts() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PATTERN);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 3);
 
@@ -1365,7 +1365,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void startRemoteLockscreenValidation_password() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 7);
 
@@ -1377,7 +1377,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void validateRemoteLockscreen_noActiveSession() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
 
         RemoteLockscreenValidationResult result =
@@ -1389,7 +1389,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void validateRemoteLockscreen_decryptionError() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 4);
 
@@ -1406,7 +1406,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void validateRemoteLockscreen_zeroRemainingAttempts() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 5);
         mRecoverableKeyStoreManager.startRemoteLockscreenValidation(mLockSettingsService);
@@ -1421,7 +1421,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void validateRemoteLockscreen_guessValid() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 4);
         mRecoverableKeyStoreManager.startRemoteLockscreenValidation(mLockSettingsService);
@@ -1438,7 +1438,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void validateRemoteLockscreen_timeout() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 4);
 
@@ -1455,7 +1455,7 @@ public class RecoverableKeyStoreManagerTest {
     }
     @Test
     public void validateRemoteLockscreen_guessInvalid() throws Exception {
-        when(mLockSettingsService.getCredentialType(anyInt(), eq(Primary))).thenReturn(
+        when(mLockSettingsService.getCredentialType(anyInt())).thenReturn(
                 LockPatternUtils.CREDENTIAL_TYPE_PASSWORD);
         mRecoverableKeyStoreDb.setBadRemoteGuessCounter(mUserId, 4);
         mRecoverableKeyStoreManager.startRemoteLockscreenValidation(mLockSettingsService);

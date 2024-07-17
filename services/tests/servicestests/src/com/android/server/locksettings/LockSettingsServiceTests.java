@@ -48,7 +48,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.app.PropertyInvalidatedCache;
 import android.content.Intent;
 import android.app.admin.PasswordMetrics;
 import android.os.RemoteException;
@@ -241,21 +240,18 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         // Start with a profile with unified challenge, parent user has not password
         mService.setSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID, false, null);
         assertEquals(0, mGateKeeperService.getSecureUserId(MANAGED_PROFILE_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID,
-                Primary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID));
 
         // Set a separate challenge on the profile
         setCredential(MANAGED_PROFILE_USER_ID, newPassword("12345678"));
         assertNotEquals(0, mGateKeeperService.getSecureUserId(MANAGED_PROFILE_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(MANAGED_PROFILE_USER_ID,
-                Primary));
+        assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(MANAGED_PROFILE_USER_ID));
 
         // Now unify again, profile should become passwordless again
         mService.setSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID, false,
                 newPassword("12345678"));
         assertEquals(0, mGateKeeperService.getSecureUserId(MANAGED_PROFILE_USER_ID));
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID,
-                Primary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(MANAGED_PROFILE_USER_ID));
     }
 
     @Test
@@ -761,7 +757,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     public void getCredentialType_secondaryForSpecialUser_throwsException() {
         assertThrows(
                 SecondaryForSpecialUserException.class,
-                () -> mService.getCredentialType(USER_FRP, Secondary)
+                () -> mService.getCredentialTypeForLockDomain(USER_FRP, Secondary)
         );
     }
 
@@ -769,7 +765,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     public void getCredentialType_secondaryForManagedProfile_throwsException() {
         assertThrows(
                 SecondaryForCredSharableUserException.class,
-                () -> mService.getCredentialType(MANAGED_PROFILE_USER_ID, Secondary)
+                () -> mService.getCredentialTypeForLockDomain(MANAGED_PROFILE_USER_ID, Secondary)
         );
     }
 
@@ -777,7 +773,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Parameters({"true", "false"})
     public void getCredentialType_notExistingUser_returnsNone(boolean primary) {
         assertEquals(CREDENTIAL_TYPE_NONE,
-                mService.getCredentialType(DOES_NOT_EXIST_USER_ID, primary ? Primary : Secondary));
+                mService.getCredentialTypeForLockDomain(DOES_NOT_EXIST_USER_ID, primary ? Primary : Secondary));
     }
 
     @Test
@@ -790,7 +786,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
                 Secondary);
         assertEquals(NULL_PROTECTOR_ID, protectorId);
 
-        int credentialType = mService.getCredentialType(userId, primary ? Primary : Secondary);
+        int credentialType = mService.getCredentialTypeForLockDomain(userId, primary ? Primary : Secondary);
         assertEquals(CREDENTIAL_TYPE_NONE, credentialType);
     }
 
@@ -801,11 +797,11 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         // Use same PIN for primary and secondary.
         final LockscreenCredential pin = newPin("123456");
         setCredential(userId, pin);
-        int credentialType = mService.getCredentialType(userId, Primary);
+        int credentialType = mService.getCredentialType(userId);
         assertEquals(CREDENTIAL_TYPE_PIN, credentialType);
 
         setCredential(userId, pin, pin, false);
-        credentialType = mService.getCredentialType(userId, Secondary);
+        credentialType = mService.getCredentialTypeForLockDomain(userId, Secondary);
         assertEquals(CREDENTIAL_TYPE_PIN, credentialType);
     }
 
@@ -816,12 +812,12 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         // Use same PIN for primary and secondary.
         final LockscreenCredential password = newPassword("validpassword");
         setCredential(userId, password);
-        int credentialType = mService.getCredentialType(userId, Primary);
+        int credentialType = mService.getCredentialType(userId);
         assertEquals(CREDENTIAL_TYPE_PASSWORD, credentialType);
 
         final LockscreenCredential pin = newPin("123456");
         setCredential(userId, pin, password, false);
-        credentialType = mService.getCredentialType(userId, Secondary);
+        credentialType = mService.getCredentialTypeForLockDomain(userId, Secondary);
         assertEquals(CREDENTIAL_TYPE_PIN, credentialType);
     }
 
@@ -882,7 +878,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     public void setLockCredential_secondaryWithoutPrimary_returnsFalse() {
         int userId = PRIMARY_USER_ID;
 
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, Primary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId));
         final LockscreenCredential secondaryPin = newPin("123456");
         assertFalse(mService.setLockCredential(secondaryPin, nonePassword(), Secondary, userId));
     }
@@ -894,7 +890,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         final LockscreenCredential primaryPin = newPin("123456");
         setCredential(userId, primaryPin);
         final LockscreenCredential secondaryPin = newPin("654321");
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, Secondary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialTypeForLockDomain(userId, Secondary));
         assertFalse(mService.setLockCredential(secondaryPin, nonePassword(), Secondary, userId));
         setCredential(userId, secondaryPin, primaryPin, false);
         assertFalse(mService.setLockCredential(secondaryPin, secondaryPin, Secondary, userId));
@@ -917,7 +913,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         assertTrue(mService.setLockCredential(nonePassword(), primaryPin, Primary, userId));
 
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, Secondary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialTypeForLockDomain(userId, Secondary));
         secondaryProtector = mService.getCurrentLskfBasedProtectorId(userId, Secondary);
         SyntheticPasswordManager.SyntheticPassword secondarySp1 =
                 mSpManager.unlockLskfBasedProtector(mGateKeeperService, secondaryProtector,
@@ -1096,7 +1092,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
             // Success - the exception was expected.
         }
 
-        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, Primary));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId));
     }
 
     private void testChangeCredential(int userId, LockscreenCredential newCredential,
@@ -1114,16 +1110,16 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         assertEquals(GateKeeperResponse.RESPONSE_OK, response.getResponseCode());
         if (credential.isPassword()) {
-            assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialType(userId,
+            assertEquals(CREDENTIAL_TYPE_PASSWORD, mService.getCredentialTypeForLockDomain(userId,
                     primary ? Primary : Secondary));
         } else if (credential.isPin()) {
-            assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialType(userId,
+            assertEquals(CREDENTIAL_TYPE_PIN, mService.getCredentialTypeForLockDomain(userId,
                     primary ? Primary : Secondary));
         } else if (credential.isPattern()) {
-            assertEquals(CREDENTIAL_TYPE_PATTERN, mService.getCredentialType(userId,
+            assertEquals(CREDENTIAL_TYPE_PATTERN, mService.getCredentialTypeForLockDomain(userId,
                     primary ? Primary : Secondary));
         } else {
-            assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId,
+            assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialTypeForLockDomain(userId,
                     primary ? Primary : Secondary));
         }
         // check for bad credential
@@ -1171,7 +1167,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
             LockscreenCredential oldCredential, boolean primary) throws RemoteException {
         assertTrue(mService.setLockCredential(newCredential, oldCredential,
                 primary ? Primary : Secondary, userId));
-        assertEquals(newCredential.getType(), mService.getCredentialType(userId,
+        assertEquals(newCredential.getType(), mService.getCredentialTypeForLockDomain(userId,
                 primary ? Primary : Secondary));
         if (primary) {
             if (newCredential.isNone()) {

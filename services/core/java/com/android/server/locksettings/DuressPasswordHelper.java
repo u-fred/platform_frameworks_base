@@ -59,7 +59,7 @@ public class DuressPasswordHelper {
 
         int userId = UserHandle.USER_SYSTEM;
 
-        if (lockSettingsService.getCredentialType(userId, Primary) == CREDENTIAL_TYPE_NONE) {
+        if (lockSettingsService.getCredentialType(userId) == CREDENTIAL_TYPE_NONE) {
             if (!ownerCredential.isNone()) {
                 throw new IllegalArgumentException("!ownerCredential.isNone()");
             }

@@ -1019,7 +1019,7 @@ public class RecoverableKeyStoreManager {
         int savedCredentialType;
         final long token = Binder.clearCallingIdentity();
         try {
-            savedCredentialType = lockSettingsService.getCredentialType(userId, Primary);
+            savedCredentialType = lockSettingsService.getCredentialType(userId);
         } finally {
             Binder.restoreCallingIdentity(token);
         }
@@ -1079,7 +1079,7 @@ public class RecoverableKeyStoreManager {
         int savedCredentialType;
         final long token = Binder.clearCallingIdentity();
         try {
-            savedCredentialType = lockSettingsService.getCredentialType(userId, Primary);
+            savedCredentialType = lockSettingsService.getCredentialType(userId);
             int keyguardCredentialsType = lockPatternUtilsToKeyguardType(savedCredentialType);
             try (LockscreenCredential credential =
                     createLockscreenCredential(keyguardCredentialsType, decryptedCredentials)) {
