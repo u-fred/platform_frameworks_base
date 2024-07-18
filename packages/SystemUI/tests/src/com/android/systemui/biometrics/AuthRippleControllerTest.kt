@@ -26,6 +26,7 @@ import androidx.test.filters.SmallTest
 import com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSession
 import com.android.keyguard.KeyguardUpdateMonitor
 import com.android.keyguard.KeyguardUpdateMonitorCallback
+import com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus
 import com.android.keyguard.logging.KeyguardLogger
 import com.android.systemui.Flags
 import com.android.systemui.Flags.FLAG_LIGHT_REVEAL_MIGRATION
@@ -180,7 +181,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
             false /* isStrongBiometric */,
-            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
+            SecondFactorStatus.Disabled)
 
         // THEN no ripple
         verify(rippleView, never()).startUnlockedRipple(any())
@@ -203,7 +204,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
             false /* isStrongBiometric */,
-            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
+            SecondFactorStatus.Disabled)
 
         // THEN no ripple
         verify(rippleView, never()).startUnlockedRipple(any())
@@ -221,7 +222,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FACE /* type */,
             false /* isStrongBiometric */,
-            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
+            SecondFactorStatus.Disabled)
         verify(rippleView, never()).startUnlockedRipple(any())
     }
 
@@ -237,7 +238,7 @@ class AuthRippleControllerTest : SysuiTestCase() {
             0 /* userId */,
             BiometricSourceType.FINGERPRINT /* type */,
             false /* isStrongBiometric */,
-            KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled)
+            SecondFactorStatus.Disabled)
         verify(rippleView, never()).startUnlockedRipple(any())
     }
 
