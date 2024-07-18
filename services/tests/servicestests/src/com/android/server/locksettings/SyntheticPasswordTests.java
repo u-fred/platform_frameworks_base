@@ -49,6 +49,7 @@ import android.platform.test.annotations.Presubmit;
 
 import androidx.test.filters.SmallTest;
 
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 import com.android.server.locksettings.LockSettingsStorage.PersistentData;
@@ -85,78 +86,50 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
-    @Parameters({"true", "false"})
-    public void createLskfBasedProtector_autoConfirmPinEnabled_pinLengthStoredInClear(
-            boolean primary) {
-        final int userId = PRIMARY_USER_ID;
-        final LockscreenCredential pin = newPin("123456");
-        setAutoPinConfirm(userId, primary, true);
-        SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
-                primary ? Primary : Secondary);
-        long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
-                pin, primary ? Primary : Secondary, sp, userId);
-        assertEquals(6, mSpManager.getPinLength(protectorId, userId));
-    }
-
-    @Test
-    @Parameters({"true", "false"})
-    public void createLskfBasedProtector_autoConfirmPinDisabled_pinLengthNotStoredInClear(
-            boolean primary) {
-        final int userId = PRIMARY_USER_ID;
-        final LockscreenCredential pin = newPin("123456");
-        setAutoPinConfirm(userId, primary, false);
-        SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
-                primary ? Primary : Secondary);
-        long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
-                pin, primary ? Primary : Secondary, sp, userId);
-        assertEquals(PIN_LENGTH_UNAVAILABLE, mSpManager.getPinLength(protectorId, userId));
-    }
-
-    @Test
-    @Parameters({"true", "false"})
-    public void testNoneLskfBasedProtector(boolean primary) throws RemoteException {
+    @Parameters({"Primary", "Secondary"})
+    public void testNoneLskfBasedProtector(LockDomain lockDomain) throws RemoteException {
         final int USER_ID = 10;
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
-        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, primary ? Primary : Secondary);
-        assertFalse(lskfGatekeeperHandleExists(USER_ID, primary));
+        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, lockDomain);
+        assertFalse(lskfGatekeeperHandleExists(USER_ID, lockDomain));
         long protectorId = manager.createLskfBasedProtector(mGateKeeperService,
-                LockscreenCredential.createNone(), primary ? Primary : Secondary, sp, USER_ID);
-        assertFalse(lskfGatekeeperHandleExists(USER_ID, primary));
+                LockscreenCredential.createNone(), lockDomain, sp, USER_ID);
+        assertFalse(lskfGatekeeperHandleExists(USER_ID, lockDomain));
         assertFalse(manager.hasPasswordData(protectorId, USER_ID));
         assertFalse(manager.hasPasswordMetrics(protectorId, USER_ID));
 
         AuthenticationResult result = manager.unlockLskfBasedProtector(mGateKeeperService,
-                protectorId, LockscreenCredential.createNone(), primary ? Primary : Secondary,
+                protectorId, LockscreenCredential.createNone(), lockDomain,
                 USER_ID, null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
     }
 
     @Test
-    @Parameters({"true", "false"})
-    public void testNonNoneLskfBasedProtector(boolean primary) throws RemoteException {
+    @Parameters({"Primary", "Secondary"})
+    public void testNonNoneLskfBasedProtector(LockDomain lockDomain) throws RemoteException {
         final int USER_ID = PRIMARY_USER_ID;
         final LockscreenCredential password = newPassword("user-password");
         final LockscreenCredential badPassword = newPassword("bad-password");
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
-        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, primary ? Primary : Secondary);
+        SyntheticPassword sp = manager.newSyntheticPassword(USER_ID, lockDomain);
         assertEquals(LockSettingsStorage.PersistentData.NONE, mStorage.readPersistentDataBlock());
-        assertFalse(lskfGatekeeperHandleExists(USER_ID, primary));
+        assertFalse(lskfGatekeeperHandleExists(USER_ID, lockDomain));
         long protectorId = manager.createLskfBasedProtector(mGateKeeperService, password,
-                primary ? Primary : Secondary, sp, USER_ID);
-        assertTrue(lskfGatekeeperHandleExists(USER_ID, primary));
+                lockDomain, sp, USER_ID);
+        assertTrue(lskfGatekeeperHandleExists(USER_ID, lockDomain));
         assertTrue(manager.hasPasswordData(protectorId, USER_ID));
         assertTrue(manager.hasPasswordMetrics(protectorId, USER_ID));
-        if (primary) {
+        if (lockDomain == Primary) {
             Assert.assertNotEquals(PersistentData.NONE, mStorage.readPersistentDataBlock());
         } else {
             assertEquals(PersistentData.NONE, mStorage.readPersistentDataBlock());
         }
 
         AuthenticationResult result = manager.unlockLskfBasedProtector(mGateKeeperService,
-                protectorId, password, primary ? Primary : Secondary, USER_ID, null);
+                protectorId, password, lockDomain, USER_ID, null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
 
@@ -165,9 +138,10 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         assertNull(result.syntheticPassword);
     }
 
-    private boolean lskfGatekeeperHandleExists(int userId, boolean primary) throws RemoteException {
+    private boolean lskfGatekeeperHandleExists(int userId, LockDomain lockDomain)
+            throws RemoteException {
         return mGateKeeperService.getSecureUserId(SyntheticPasswordManager.fakeUserId(
-                userId, primary ? Primary : Secondary)) != 0;
+                userId, lockDomain)) != 0;
     }
 
     private void initSpAndSetCredential(int userId, LockscreenCredential credential)
@@ -390,7 +364,6 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         flushHandlerTasks();
         final PasswordMetrics metric = PasswordMetrics.computeForCredential(pattern);
         assertEquals(metric, mService.getUserPasswordMetrics(PRIMARY_USER_ID));
-        // TODO: Primary/secondary.
         verify(mDevicePolicyManager).reportPasswordChanged(metric, PRIMARY_USER_ID, Primary);
 
         assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
@@ -662,23 +635,23 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
-    @Parameters({"true", "false"})
-    public void testStorePinLengthOnDisk(boolean primary) {
+    @Parameters({"Primary", "Secondary"})
+    public void testStorePinLengthOnDisk(LockDomain lockDomain) {
         // There is some duplication with this and some tests in LockSettingsServiceTests.
 
         int userId = 1;
         LockscreenCredential lockscreenCredentialPin = LockscreenCredential.createPin("123456");
         MockSyntheticPasswordManager manager = new MockSyntheticPasswordManager(mContext, mStorage,
                 mGateKeeperService, mUserManager, mPasswordSlotManager);
-        SyntheticPassword sp = manager.newSyntheticPassword(userId, primary ? Primary : Secondary);
+        SyntheticPassword sp = manager.newSyntheticPassword(userId, lockDomain);
         long protectorId = manager.createLskfBasedProtector(mGateKeeperService,
-                lockscreenCredentialPin, primary ? Primary : Secondary, sp, userId);
+                lockscreenCredentialPin, lockDomain, sp, userId);
         PasswordMetrics passwordMetrics =
                 PasswordMetrics.computeForCredential(lockscreenCredentialPin);
-        setAutoPinConfirm(userId, primary, true);
+        setAutoPinConfirm(userId, lockDomain, true);
         //mService.setBoolean(AUTO_PIN_CONFIRM, true, 1);
         boolean result = manager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId,
-                primary ? Primary : Secondary);
+                lockDomain);
 
         assertEquals(manager.getPinLength(protectorId, userId), lockscreenCredentialPin.size());
         assertTrue(result);
@@ -866,6 +839,34 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
             mLocalService.removeEscrowToken(handle, PRIMARY_USER_ID);
         }
         assertNoOrphanedFilesLeft(PRIMARY_USER_ID);
+    }
+
+    @Test
+    @Parameters({"Primary", "Secondary"})
+    public void createLskfBasedProtector_autoConfirmPinEnabled_pinLengthStoredInClear(
+            LockDomain lockDomain) {
+        final int userId = PRIMARY_USER_ID;
+        final LockscreenCredential pin = newPin("123456");
+        setAutoPinConfirm(userId, lockDomain, true);
+        SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
+                lockDomain);
+        long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
+                pin, lockDomain, sp, userId);
+        assertEquals(6, mSpManager.getPinLength(protectorId, userId));
+    }
+
+    @Test
+    @Parameters({"Primary", "Secondary"})
+    public void createLskfBasedProtector_autoConfirmPinDisabled_pinLengthNotStoredInClear(
+            LockDomain lockDomain) {
+        final int userId = PRIMARY_USER_ID;
+        final LockscreenCredential pin = newPin("123456");
+        setAutoPinConfirm(userId, lockDomain, false);
+        SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
+                lockDomain);
+        long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
+                pin, lockDomain, sp, userId);
+        assertEquals(PIN_LENGTH_UNAVAILABLE, mSpManager.getPinLength(protectorId, userId));
     }
 
     private void assertNoOrphanedFilesLeft(int userId) {
