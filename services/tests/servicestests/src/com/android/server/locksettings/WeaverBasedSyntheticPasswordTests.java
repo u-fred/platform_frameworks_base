@@ -11,6 +11,7 @@ import android.platform.test.annotations.Presubmit;
 
 import androidx.test.filters.SmallTest;
 
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 import com.android.server.locksettings.LockSettingsStorage.PersistentData;
@@ -67,8 +68,8 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
     }
 
     @Test
-    @Parameters({"true", "false"})
-    public void createAndUnlockLskfBasedProtector_nonNone(boolean primary) {
+    @Parameters({"Primary", "Secondary"})
+    public void createAndUnlockLskfBasedProtector_nonNone(LockDomain lockDomain) {
         final int userId = PRIMARY_USER_ID;
         final LockscreenCredential pin = newPin("123456");
         final LockscreenCredential badPin = newPin("654321");
@@ -79,12 +80,12 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         assertEquals(0, mPasswordSlotManager.getUsedSlots().size());
 
         SyntheticPasswordManager.SyntheticPassword sp = mSpManager.newSyntheticPassword(userId,
-                primary ? Primary : Secondary);
+                lockDomain);
         long protectorId = mSpManager.createLskfBasedProtector(mGateKeeperService,
-                pin, primary ? Primary : Secondary, sp, userId);
+                pin, lockDomain, sp, userId);
 
         assertEquals(1, mPasswordSlotManager.getUsedSlots().size());
-        if (primary) {
+        if (lockDomain == Primary) {
             Assert.assertNotEquals(PersistentData.NONE, mStorage.readPersistentDataBlock());
         } else {
             assertEquals(PersistentData.NONE, mStorage.readPersistentDataBlock());
@@ -96,11 +97,11 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
 
         mSpManager.newSidForUser(mGateKeeperService, sp, userId);
         SyntheticPasswordManager.AuthenticationResult result = mSpManager.unlockLskfBasedProtector(
-                mGateKeeperService, protectorId, pin, primary ? Primary : Secondary, userId,
+                mGateKeeperService, protectorId, pin, lockDomain, userId,
                 null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
-        if (primary) {
+        if (lockDomain == Primary) {
             assertEquals(VerifyCredentialResponse.RESPONSE_OK, result.gkResponse.getResponseCode());
             assertNotNull(result.gkResponse.getGatekeeperHAT());
         } else {
@@ -109,7 +110,7 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         }
 
         result = mSpManager.unlockLskfBasedProtector(mGateKeeperService, protectorId, badPin,
-                primary ? Primary : Secondary, userId, null);
+                lockDomain, userId, null);
         assertNull(result.syntheticPassword);
         assertEquals(VerifyCredentialResponse.ERROR, result.gkResponse);
     }
