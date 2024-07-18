@@ -1024,8 +1024,8 @@ class SyntheticPasswordManager {
      * @throws IllegalStateException on failure
      */
     public long createLskfBasedProtector(IGateKeeperService gatekeeper,
-            LockscreenCredential credential, LockDomain lockDomain, SyntheticPassword sp, int userId) {
-        // TODO: Collisions possible?
+            LockscreenCredential credential, LockDomain lockDomain, SyntheticPassword sp,
+            int userId) {
         long protectorId = generateProtectorId();
 
         int pinLength = PIN_LENGTH_UNAVAILABLE;
@@ -1960,6 +1960,8 @@ class SyntheticPasswordManager {
     private static long generateProtectorId() {
         while (true) {
             final long result = SecureRandomUtils.randomLong();
+            // TODO: If it's believed that a collision with NULL_PRTOECTOR_ID is possible, then why
+            //  are we not also checking for collision with the existing protector IDs?
             if (result != NULL_PROTECTOR_ID) {
                 return result;
             }
