@@ -16,7 +16,6 @@
 
 package com.android.server.locksettings;
 
-import static com.android.internal.widget.LockDomain.Primary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
