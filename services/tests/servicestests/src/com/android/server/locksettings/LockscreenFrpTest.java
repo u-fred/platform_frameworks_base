@@ -15,7 +15,6 @@
  */
 package com.android.server.locksettings;
 
-import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
