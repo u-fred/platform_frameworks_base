@@ -398,6 +398,12 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
         startWakeAndUnlock(MODE_SHOW_BOUNCER);
     }
 
+    // Keep this overload to reduce amount of changes required in upstream tests.
+    public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
+            boolean isStrongBiometric) {
+        onBiometricAuthenticated(userId, biometricSourceType, isStrongBiometric, Disabled);
+    }
+
     @Override
     public void onBiometricAuthenticated(int userId, BiometricSourceType biometricSourceType,
             boolean isStrongBiometric, SecondFactorStatus secondFactorStatus) {
