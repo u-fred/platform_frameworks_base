@@ -16,7 +16,6 @@
 
 package com.android.systemui.biometrics;
 
-import static com.android.systemui.util.mockito.KotlinMockitoHelpersKt.eq;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
