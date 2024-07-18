@@ -56,11 +56,11 @@ import static android.net.ConnectivityManager.PROFILE_NETWORK_PREFERENCE_ENTERPR
 import static android.net.InetAddresses.parseNumericAddress;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.EscrowTokenStateChangeCallback;
-import static com.android.internal.widget.LockPatternUtils.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
 import static com.android.internal.widget.LockPatternUtils.SecondaryForSpecialUserException;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
@@ -152,6 +152,7 @@ import androidx.test.filters.SmallTest;
 
 import com.android.internal.R;
 import com.android.internal.messages.nano.SystemMessageProto;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.server.LocalServices;
@@ -179,6 +180,7 @@ import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -2133,14 +2135,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .isEqualTo(originalPasswordExpirationTimeout);
 
         if (isDeprecatedPasswordApisSupported()) {
-            int originalPasswordQuality = dpm.getPasswordQuality(admin1,
-                    ((DevicePolicyManagerTestable)dpm).myUserId());
+            int originalPasswordQuality = dpm.getPasswordQuality(admin1);
             assertExpectException(SecurityException.class, /* messageRegex= */ null,
                     () -> dpm.setPasswordQuality(admin1,
                             DevicePolicyManager.PASSWORD_QUALITY_NUMERIC));
-            assertThat(dpm.getPasswordQuality(admin1, ((DevicePolicyManagerTestable)dpm)
-                    .myUserId()))
-                    .isEqualTo(originalPasswordQuality);
+            assertThat(dpm.getPasswordQuality(admin1)).isEqualTo(originalPasswordQuality);
         }
     }
 
@@ -5242,25 +5241,25 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    @Parameters({ "true", "false" })
+    @Parameters({ "Primary", "Secondary" })
     public void reportFailedPasswordAttempt_Success_IncrementsGetCurrentFailedPasswordAttempts(
-            boolean primary) {
+            LockDomain lockDomain) {
         mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
-        if (!primary) {
+        if (lockDomain == Secondary) {
             doReturn(true)
                     .when(getServices().lockPatternUtils)
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(0);
 
-        dpm.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
+        dpm.reportFailedPasswordAttempt(userId, lockDomain);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(1);
     }
 
@@ -5304,25 +5303,26 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    @Parameters({ "true", "false" })
-    public void reportSuccessfulPassword_ZeroFailedAttemptCounter_DoesNotSave(boolean primary) {
+    @Parameters({ "Primary", "Secondary" })
+    public void reportSuccessfulPassword_ZeroFailedAttemptCounter_DoesNotSave(
+            LockDomain lockDomain) {
         mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
         mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
-        if (!primary) {
+        if (lockDomain == Secondary) {
             doReturn(true)
                     .when(getServices().lockPatternUtils)
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(0);
         reset(mServiceContext.spiedContext);
 
-        dpm.reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary);
+        dpm.reportSuccessfulPasswordAttempt(userId, lockDomain);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(0);
         // Should not save.
         verify(mServiceContext.spiedContext, times(0)).sendBroadcastAsUser(
@@ -5334,27 +5334,27 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    @Parameters({ "true", "false" })
+    @Parameters({ "Primary", "Secondary" })
     public void reportSuccessfulPassword_NonZeroFailedAttemptCounter_ResetsCounterAndSaves(
-            boolean primary) {
+            LockDomain lockDomain) {
         mServiceContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
         final int userId = UserHandle.getUserId(mServiceContext.binder.callingUid);
         mServiceContext.permissions.add(permission.BIND_DEVICE_ADMIN);
         mServiceContext.permissions.add(permission.ACCESS_KEYGUARD_SECURE_STORAGE);
-        if (!primary) {
+        if (lockDomain == Secondary) {
             doReturn(true)
                     .when(getServices().lockPatternUtils)
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        dpm.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        dpm.reportFailedPasswordAttempt(userId, lockDomain);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(1);
         reset(mServiceContext.spiedContext);
 
-        dpm.reportSuccessfulPasswordAttempt(userId, primary ? Primary : Secondary);
+        dpm.reportSuccessfulPasswordAttempt(userId, lockDomain);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(0);
         // Should save.
         verify(mServiceContext.spiedContext, times(1)).sendBroadcastAsUser(
@@ -5410,29 +5410,29 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    @Parameters({ "true", "false" })
-    public void reportPasswordChanged_Success_ResetsCounterAndSaves(boolean primary) {
+    @Parameters({ "Primary", "Secondary" })
+    public void reportPasswordChanged_Success_ResetsCounterAndSaves(LockDomain lockDomain) {
         mServiceContext.binder.callingUid = DpmMockContext.SYSTEM_UID;
         final int userId = UserHandle.getUserId(mContext.binder.callingUid);
-        if (!primary) {
+        if (lockDomain == Secondary) {
             doReturn(true)
                     .when(getServices().lockPatternUtils)
                     .checkUserSupportsBiometricSecondFactor(userId);
         }
 
-        // Only used when primary true.
+        // Only used when lockDomain is Primary.
         when(getServices().lockSettingsInternal.getUserPasswordMetrics(userId))
                 .thenReturn(new PasswordMetrics(CREDENTIAL_TYPE_NONE));
 
-        dpm.reportFailedPasswordAttempt(userId, primary ? Primary : Secondary);
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        dpm.reportFailedPasswordAttempt(userId, lockDomain);
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(1);
         reset(mServiceContext.spiedContext);
 
         dpm.reportPasswordChanged(new PasswordMetrics(CREDENTIAL_TYPE_PIN), userId,
-                primary ? Primary : Secondary);
+                lockDomain);
 
-        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, primary ? Primary : Secondary))
+        assertThat(dpm.getCurrentFailedPasswordAttempts(userId, lockDomain))
                 .isEqualTo(0);
         // Should save.
         verify(mServiceContext.spiedContext, times(1)).sendBroadcastAsUser(
@@ -6132,10 +6132,10 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         dpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_HIGH);
         parentDpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_LOW);
 
-        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  Primary))
-                .isEqualTo(PASSWORD_COMPLEXITY_LOW);
-        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM,  Secondary))
-                .isEqualTo(PASSWORD_COMPLEXITY_HIGH);
+        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM, Primary,
+                true)).isEqualTo(PASSWORD_COMPLEXITY_LOW);
+        assertThat(dpms.getAggregatedPasswordComplexityForUser(UserHandle.USER_SYSTEM, Primary,
+                false)).isEqualTo(PASSWORD_COMPLEXITY_HIGH);
     }
 
     @Test
@@ -6183,8 +6183,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 admin1.getPackageName(), managedProfileUserId);
 
         parentDpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
-        assertThat(parentDpm.getPasswordQuality(admin1,
-                ((DevicePolicyManagerTestable)parentDpm).myUserId()))
+        assertThat(parentDpm.getPasswordQuality(admin1))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
     }
 
@@ -6431,8 +6430,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
                 .thenReturn(new UserInfo(UserHandle.USER_SYSTEM, "user system", 0));
 
         dpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
-        assertThat(parentDpm.getPasswordQuality(null,
-                ((DevicePolicyManagerTestable)parentDpm).myUserId()))
+        assertThat(parentDpm.getPasswordQuality(null))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
     }
 
@@ -6445,8 +6443,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
         addManagedProfile(admin1, managedProfileAdminUid, admin1, VERSION_CODES.R);
 
         dpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
-        assertThat(parentDpm.getPasswordQuality(admin1,
-                ((DevicePolicyManagerTestable)parentDpm).myUserId()))
+        assertThat(parentDpm.getPasswordQuality(admin1))
                 .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
     }
 
@@ -8236,11 +8233,11 @@ public class DevicePolicyManagerTest extends DpmTestBase {
 
         // Test that calling setRequiredPasswordComplexity resets password quality.
         dpm.setPasswordQuality(admin1, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX);
-        assertThat(dpm.getPasswordQuality(admin1, ((DevicePolicyManagerTestable)dpm).myUserId()))
-                .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX);
+        assertThat(dpm.getPasswordQuality(admin1)).isEqualTo(
+                DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX);
         dpm.setRequiredPasswordComplexity(PASSWORD_COMPLEXITY_HIGH);
-        assertThat(dpm.getPasswordQuality(admin1, ((DevicePolicyManagerTestable)dpm).myUserId()))
-                .isEqualTo(DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
+        assertThat(dpm.getPasswordQuality(admin1)).isEqualTo(
+                DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
     }
 
     @Test
