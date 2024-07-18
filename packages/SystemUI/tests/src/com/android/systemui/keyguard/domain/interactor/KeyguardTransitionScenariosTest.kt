@@ -64,7 +64,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.never
@@ -123,7 +122,6 @@ class KeyguardTransitionScenariosTest : SysuiTestCase() {
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
-        // All tests pass without this.
         whenever(keyguardSecurityModel.getSecurityMode(anyInt())).thenReturn(PIN)
 
         mSetFlagsRule.enableFlags(FLAG_COMMUNAL_HUB)
