@@ -152,7 +152,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         testScope.runTest {
             init()
             val bouncerMessage by collectLastValue(underTest.bouncerMessage)
-            underTest.onAuthIncorrectAttempt(Primary)
+            underTest.onAuthIncorrectAttempt(LockDomain.Primary)
 
             assertThat(bouncerMessage).isNotNull()
             assertThat(primaryResMessage(bouncerMessage)).isEqualTo("Wrong PIN. Try again.")
@@ -163,7 +163,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         testScope.runTest {
             init()
             val bouncerMessage by collectLastValue(underTest.bouncerMessage)
-            underTest.onAuthIncorrectAttempt(Primary)
+            underTest.onAuthIncorrectAttempt(LockDomain.Primary)
             assertThat(primaryResMessage(bouncerMessage)).isEqualTo("Wrong PIN. Try again.")
 
             underTest.onPrimaryBouncerUserInput()
