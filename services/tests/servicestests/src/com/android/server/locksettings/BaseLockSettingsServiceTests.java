@@ -17,6 +17,7 @@
 package com.android.server.locksettings;
 
 import static android.os.UserManager.USER_TYPE_PROFILE_MANAGED;
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM;
 import static com.android.internal.widget.LockPatternUtils.AUTO_PIN_CONFIRM_SECONDARY;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
@@ -61,6 +62,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.internal.util.test.FakeSettingsProvider;
 import com.android.internal.util.test.FakeSettingsProviderRule;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockSettingsInternal;
 import com.android.internal.widget.LockscreenCredential;
@@ -312,8 +314,8 @@ public abstract class BaseLockSettingsServiceTests {
     }
 
     // TODO: Replace all manual calls with this.
-    protected void setAutoPinConfirm(int userId, boolean primary, boolean enabled) {
-        String key = primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
+    protected void setAutoPinConfirm(int userId, LockDomain lockDomain, boolean enabled) {
+        String key = lockDomain == Primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
         mService.setBoolean(key, enabled, userId);
         assertEquals(enabled, mService.getBoolean(key, false, userId));
     }
