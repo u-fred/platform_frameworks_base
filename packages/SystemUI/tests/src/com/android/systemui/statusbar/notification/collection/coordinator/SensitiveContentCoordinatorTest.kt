@@ -590,8 +590,7 @@ class SensitiveContentCoordinatorTest : SysuiTestCase() {
         whenever(dynamicPrivacyController.isDynamicallyUnlocked).thenReturn(true)
         whenever(statusBarStateController.getState()).thenReturn(StatusBarState.KEYGUARD)
         whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometricAndIsBypassing(any()))
-                .thenReturn(true)
-
+            .thenReturn(true)
         val entry = fakeNotification(2, true)
         whenever(sensitiveNotificationProtectionController.isSensitiveStateActive).thenReturn(true)
         whenever(sensitiveNotificationProtectionController.shouldProtectNotification(any()))
