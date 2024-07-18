@@ -118,6 +118,7 @@ import com.android.internal.util.LatencyTracker;
 import com.android.internal.widget.ILockSettings;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardUpdateMonitor.BiometricAuthenticated;
+import com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus;
 import com.android.keyguard.logging.KeyguardUpdateMonitorLogger;
 import com.android.settingslib.fuelgauge.BatteryStatus;
 import com.android.systemui.SysuiTestCase;
@@ -818,7 +819,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricDetected(
                 eq(0), eq(BiometricSourceType.FINGERPRINT), eq(true));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean(), any(KeyguardUpdateMonitorCallback.SecondFactorStatus.class));
+                anyInt(), any(), anyBoolean(), any(SecondFactorStatus.class));
     }
 
     @Test
@@ -835,7 +836,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricError(
                 eq(10), eq(""), eq(BiometricSourceType.FINGERPRINT));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean(), any(KeyguardUpdateMonitorCallback.SecondFactorStatus.class));
+                anyInt(), any(), anyBoolean(), any(SecondFactorStatus.class));
     }
 
     @Test
@@ -848,7 +849,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricDetected(
                 eq(0), eq(BiometricSourceType.FACE), eq(false));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean(), any(KeyguardUpdateMonitorCallback.SecondFactorStatus.class));
+                anyInt(), any(), anyBoolean(), any(SecondFactorStatus.class));
     }
 
     @Test
