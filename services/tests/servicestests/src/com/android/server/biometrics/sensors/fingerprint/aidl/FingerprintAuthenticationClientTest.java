@@ -616,7 +616,8 @@ public class FingerprintAuthenticationClientTest {
     }
 
     @Test
-    public void testOnAuthenticated_secondFactorEnabled_storesPendingAuthToken() throws RemoteException {
+    public void testOnAuthenticated_secondFactorEnabled_storesPendingAuthToken()
+            throws RemoteException {
         final FingerprintAuthenticationClient client = createClient(1 /* version */,
                 true /* allowBackgroundAuthentication */, mClientMonitorCallbackConverter,
                 mLockoutTracker, 0);
