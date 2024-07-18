@@ -16,6 +16,7 @@
 
 package com.android.keyguard;
 
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockDomain.Secondary;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -187,7 +188,7 @@ public class KeyguardAbsKeyInputViewControllerTest extends SysuiTestCase {
         mKeyguardAbsKeyInputViewController = createTestObject();
         reset(mLockPatternUtils);
         mKeyguardAbsKeyInputViewController.onViewAttached();
-        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt());
+        verify(mLockPatternUtils).getLockoutAttemptDeadline(anyInt(), eq(Primary));
     }
 
     @Test
