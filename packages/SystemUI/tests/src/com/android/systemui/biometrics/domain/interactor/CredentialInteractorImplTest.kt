@@ -123,7 +123,7 @@ class CredentialInteractorImplTest : SysuiTestCase() {
         whenever(lockPatternUtils.verifyGatekeeperPasswordHandle(anyLong(), anyLong(), eq(USER_ID)))
             .thenReturn(result)
         whenever(lockPatternUtils.setLockoutAttemptDeadline(anyInt(), anyInt())).thenAnswer {
-            systemClock.elapsedRealtime() + (it.arguments[2] as Int)
+            systemClock.elapsedRealtime() + (it.arguments[1] as Int)
         }
 
         // wrap in an async block so the test can advance the clock if throttling credential
