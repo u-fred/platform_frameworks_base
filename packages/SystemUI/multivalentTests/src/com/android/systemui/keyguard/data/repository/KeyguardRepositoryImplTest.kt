@@ -22,6 +22,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.keyguard.KeyguardUpdateMonitor
 import com.android.keyguard.KeyguardUpdateMonitorCallback
+import com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus
 import com.android.systemui.SysuiTestCase
 import com.android.systemui.biometrics.AuthController
 import com.android.systemui.biometrics.data.repository.FakeFacePropertyRepository
@@ -535,7 +536,8 @@ class KeyguardRepositoryImplTest : SysuiTestCase() {
                     BiometricSourceType.FINGERPRINT,
                 )
                 .onEach { biometricSourceType ->
-                    captor.value.onBiometricAuthenticated(0, biometricSourceType, false, false)
+                    captor.value.onBiometricAuthenticated(0, biometricSourceType, false,
+                        SecondFactorStatus.Disabled)
                     runCurrent()
                 }
 
