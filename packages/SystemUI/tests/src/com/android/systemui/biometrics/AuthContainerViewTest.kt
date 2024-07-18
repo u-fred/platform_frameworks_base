@@ -398,8 +398,6 @@ open class AuthContainerViewTest : SysuiTestCase() {
 
     @Test
     fun testShowCredentialUI_withCustomBp() {
-        // This fails but not related to any second factor change.
-
         val container = initializeFingerprintContainer(
                 authenticators = BiometricManager.Authenticators.DEVICE_CREDENTIAL,
                 isUsingContentView = true
