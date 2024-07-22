@@ -63,6 +63,8 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 import com.android.systemui.util.time.SystemClock;
 
+import dagger.Lazy;
+
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -73,7 +75,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import dagger.Lazy;
 import kotlinx.coroutines.ExperimentalCoroutinesApi;
 
 /**
