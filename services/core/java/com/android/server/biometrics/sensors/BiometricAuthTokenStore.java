@@ -9,7 +9,7 @@ import android.util.SparseArray;
  * waiting for second factor to succeed before being added to KeyStore.
  */
 public class BiometricAuthTokenStore {
-    // TODO: Zero tokens as soon as they are finished with? It's not done in base code.
+    // TODO: Zero tokens as soon as they are finished with? I don't think upstream does this.
 
     private static final String TAG = "BiometricAuthTokenStore";
 
