@@ -1202,7 +1202,8 @@ public class LockPatternUtils {
         return true;
     }
 
-    public boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId, LockDomain lockDomain) {
+    public boolean checkUserSupportsBiometricSecondFactorIfSecondary(int userId,
+            LockDomain lockDomain) {
         if (lockDomain == Primary) {
             return true;
         }
