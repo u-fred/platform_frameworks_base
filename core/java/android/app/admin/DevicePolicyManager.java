@@ -64,9 +64,9 @@ import static android.app.admin.flags.Flags.FLAG_IS_MTE_POLICY_ENFORCED;
 import static android.content.Intent.LOCAL_FLAG_FROM_SYSTEM;
 import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
+
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
 import static com.android.internal.widget.LockDomain.Primary;
-import static com.android.internal.widget.LockDomain.Secondary;
 
 import android.Manifest.permission;
 import android.accounts.Account;
@@ -5861,6 +5861,7 @@ public class DevicePolicyManager {
         }
     }
 
+
     /**
      * When called by a profile owner of a managed profile returns true if the profile uses unified
      * challenge with its parent user.
@@ -5906,7 +5907,6 @@ public class DevicePolicyManager {
         }
         return false;
     }
-
     /**
      * Retrieve the number of times the user has failed at entering a password since that last
      * successful password entry.
