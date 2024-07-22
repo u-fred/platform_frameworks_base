@@ -1554,6 +1554,8 @@ class SyntheticPasswordManager {
             // Perform verifyChallenge to refresh auth tokens for GK if user password exists.
             result.gkResponse = verifyChallenge(gatekeeper, result.syntheticPassword, 0L,
                     userId);
+        } else if (credential.isNone()) {
+            result.gkResponse = null;
         } else {
             result.gkResponse = VerifyCredentialResponse.OK;
         }
