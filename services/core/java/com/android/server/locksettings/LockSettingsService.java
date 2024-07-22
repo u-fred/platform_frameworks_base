@@ -2525,7 +2525,14 @@ public class LockSettingsService extends ILockSettings.Stub {
                 requireStrongAuth(STRONG_AUTH_REQUIRED_AFTER_LOCKOUT, userId);
             }
         }
+        // TODO: We will need to update AdaptiveAuthService to handle biometric second factor. Not
+        //  exactly clear how it should be done based on the available code.
+        //  Review all tests that enable FLAG_REPORT_PRIMARY_AUTH_ATTEMPTS.
         if (reportPrimaryAuthAttempts()) {
+            if (true) {
+                throw new IllegalStateException("reportPrimaryAuthFlagAttempts() is true but " +
+                        "second factor handling has not been added to AdaptiveAuthService");
+            }
             final boolean success =
                     response.getResponseCode() == VerifyCredentialResponse.RESPONSE_OK;
             notifyLockSettingsStateListeners(success, userId);
