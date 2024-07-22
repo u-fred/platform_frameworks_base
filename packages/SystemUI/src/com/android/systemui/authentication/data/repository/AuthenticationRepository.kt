@@ -43,6 +43,8 @@ import com.android.systemui.util.kotlin.onSubscriberAdded
 import com.android.systemui.util.time.SystemClock
 import dagger.Binds
 import dagger.Module
+import java.util.function.Function
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,8 +59,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.function.Function
-import javax.inject.Inject
 
 /** Defines interface for classes that can access authentication-related application state. */
 interface AuthenticationRepository {
@@ -207,8 +207,6 @@ constructor(
     override val isAutoConfirmFeatureEnabled: StateFlow<Boolean> =
         refreshingFlow(
             initialValue = false,
-            // TODO: Add primary arg to this call and create a second flow for secondary. Will need
-            //  to update
             getFreshValue = lockPatternUtils::isAutoPinConfirmEnabled,
         )
 
