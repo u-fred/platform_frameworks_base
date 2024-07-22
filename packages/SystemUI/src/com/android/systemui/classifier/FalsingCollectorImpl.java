@@ -107,8 +107,6 @@ class FalsingCollectorImpl implements FalsingCollector {
                         SecondFactorStatus secondFactorStatus) {
                     if (userId == mUserInteractor.get().getSelectedUserId()
                             && biometricSourceType == BiometricSourceType.FACE) {
-                        // TODO: Will need to update this if we implement second factor for face
-                        //  properly.
                         mFalsingDataProvider.setJustUnlockedWithFace(true);
                     }
                 }
