@@ -69,9 +69,9 @@ constructor(
             ) {
                 if (biometricSourceType == FINGERPRINT) {
                     fpsAuthenticated = true
+                    // Not sure why upstream doesn't check that user can actually unlock with
+                    // biometrics here.
                     if (secondFactorStatus == SecondFactorStatus.Disabled) {
-                        // The base code is assuming a fingerprint auth means Keyguard is being
-                        // exited, which is not always true.
                         onExitKeyguard()
                     }
                 }
