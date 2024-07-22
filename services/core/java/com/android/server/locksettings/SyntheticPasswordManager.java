@@ -1513,7 +1513,9 @@ class SyntheticPasswordManager {
                             pwd.credentialType = credential.getType();
                             saveState(PASSWORD_DATA_NAME, pwd.toBytes(), protectorId, userId);
                             syncState(userId);
-                            synchronizeGatekeeperFrpPassword(pwd, 0, userId);
+                            if (lockDomain == Primary) {
+                                synchronizeGatekeeperFrpPassword(pwd, 0, userId);
+                            }
                         } else {
                             Slog.w(TAG, "Fail to re-enroll user password for user " + userId);
                             // continue the flow anyway
