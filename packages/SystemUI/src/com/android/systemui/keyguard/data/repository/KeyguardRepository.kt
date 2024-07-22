@@ -632,8 +632,6 @@ constructor(
                     isStrongBiometric: Boolean,
                     secondFactorStatus: SecondFactorStatus
                 ) {
-                    // TODO: Will need to add second factor handling here once this Flow is
-                    //  used.
                     trySendWithFailureLogging(
                         BiometricUnlockSource.fromBiometricSourceType(biometricSourceType),
                         TAG,
