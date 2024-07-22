@@ -17,7 +17,6 @@
 package com.android.keyguard;
 
 import static com.android.internal.widget.LockDomain.Primary;
-import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.view.View;
