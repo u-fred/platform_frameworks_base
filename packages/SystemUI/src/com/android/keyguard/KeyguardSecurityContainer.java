@@ -20,6 +20,7 @@ import static android.app.admin.DevicePolicyResources.Strings.SystemUi.KEYGUARD_
 import static android.view.WindowInsets.Type.ime;
 import static android.view.WindowInsets.Type.systemBars;
 import static android.view.WindowInsetsAnimation.Callback.DISPATCH_MODE_STOP;
+
 import static androidx.constraintlayout.widget.ConstraintSet.BOTTOM;
 import static androidx.constraintlayout.widget.ConstraintSet.CHAIN_SPREAD;
 import static androidx.constraintlayout.widget.ConstraintSet.END;
@@ -30,10 +31,10 @@ import static androidx.constraintlayout.widget.ConstraintSet.RIGHT;
 import static androidx.constraintlayout.widget.ConstraintSet.START;
 import static androidx.constraintlayout.widget.ConstraintSet.TOP;
 import static androidx.constraintlayout.widget.ConstraintSet.WRAP_CONTENT;
+
 import static com.android.app.animation.InterpolatorsAndroidX.DECELERATE_QUINT;
-import static com.android.internal.widget.LockDomain.Primary;
-import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.plugins.FalsingManager.LOW_PENALTY;
+
 import static java.lang.Integer.max;
 
 import android.animation.Animator;
