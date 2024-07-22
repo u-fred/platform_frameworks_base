@@ -590,7 +590,7 @@ public class LockSettingsService extends ILockSettings.Stub {
 
         public SyntheticPasswordManager getSyntheticPasswordManager(LockSettingsStorage storage) {
             return new SyntheticPasswordManager(getContext(), storage, getUserManager(),
-                    new PasswordSlotManager());
+                    new PasswordSlotManager(), false);
         }
 
         public RebootEscrowManager getRebootEscrowManager(RebootEscrowManager.Callbacks callbacks,

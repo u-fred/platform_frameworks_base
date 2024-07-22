@@ -525,6 +525,9 @@ class SyntheticPasswordManager {
     private volatile IWeaver mWeaver;
     private WeaverConfig mWeaverConfig;
     private PasswordSlotManager mPasswordSlotManager;
+    // Set this to false until Weaver has enough slots to support a second factor for each possible
+    // user/profile that supports second factor.
+    private boolean mUseWeaverForSecondaryProtectors;
 
     private final UserManager mUserManager;
 
@@ -532,11 +535,18 @@ class SyntheticPasswordManager {
             new RemoteCallbackList<>();
 
     public SyntheticPasswordManager(Context context, LockSettingsStorage storage,
-            UserManager userManager, PasswordSlotManager passwordSlotManager) {
+            UserManager userManager, PasswordSlotManager passwordSlotManager,
+            boolean useWeaverForSecondaryProtectors) {
         mContext = context;
         mStorage = storage;
         mUserManager = userManager;
         mPasswordSlotManager = passwordSlotManager;
+        mUseWeaverForSecondaryProtectors = useWeaverForSecondaryProtectors;
+    }
+
+    @VisibleForTesting
+    public void setUseWeaverForSecondaryProtectors(boolean useWeaverForSecondaryProtectors) {
+        mUseWeaverForSecondaryProtectors = useWeaverForSecondaryProtectors;
     }
 
     private boolean isDeviceProvisioned() {
@@ -1043,7 +1053,7 @@ class SyntheticPasswordManager {
                 userId, lockDomain == Primary);
 
         final IWeaver weaver = getWeaverService();
-        if (weaver != null) {
+        if (weaver != null && (lockDomain == Primary || mUseWeaverForSecondaryProtectors)) {
             // Weaver is available, so make the protector use it to verify the LSKF.  Do this even
             // if the LSKF is empty, as that gives us support for securely deleting the protector.
             int weaverSlot = getNextAvailableWeaverSlot();
