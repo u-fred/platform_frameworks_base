@@ -1110,6 +1110,7 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         return !configDisabled || isTestHarness || fileOverride;
     }
 
+
     /**
      * Switches to the given security view unless it's already being shown, in which case
      * this is a no-op.
