@@ -95,7 +95,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     @Test
     public void testSetPasswordPrimaryUser() throws RemoteException {
-        setAndVerifyCredential(PRIMARY_USER_ID, newPassword("password"));
+        setAndVerifyCredential(PRIMARY_USER_ID, newPassword("password"), newPin("123456"));
     }
 
     @Test
@@ -139,6 +139,21 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
+    public void testChangeSecondaryPinPrimaryUser() throws RemoteException {
+        // Configure.
+        LockscreenCredential primaryPassword = newPassword("asdfghjk");
+        LockscreenCredential secondaryPin0 = newPin("123456");
+        LockscreenCredential secondaryPin1 = newPin("1234567");
+        setCredential(PRIMARY_USER_ID, primaryPassword);
+        setCredential(PRIMARY_USER_ID, secondaryPin0, primaryPassword, Secondary);
+        assertVerifyCredential(PRIMARY_USER_ID, secondaryPin0, Secondary);
+
+        // Change.
+        setCredential(PRIMARY_USER_ID, secondaryPin1, primaryPassword, Secondary);
+        assertVerifyCredential(PRIMARY_USER_ID, secondaryPin1, Secondary);
+    }
+
+    @Test
     public void testChangePatternPrimaryUser() throws RemoteException {
         testChangeCredential(PRIMARY_USER_ID, newPassword("password"), newPattern("1596321"));
     }
@@ -149,6 +164,28 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         assertFalse(mService.setLockCredential(newPassword("newpwd"), newPassword("badpwd"),
                     PRIMARY_USER_ID));
         assertVerifyCredential(PRIMARY_USER_ID, newPassword("password"), Primary);
+    }
+
+    @Test
+    public void testChangeSecondaryPinFailPrimaryUser() throws RemoteException {
+        // Configure.
+        int userId = PRIMARY_USER_ID;
+        LockscreenCredential primaryPassword = newPassword("password");
+        LockscreenCredential badPrimaryPassword = newPassword("badpassword");
+        LockscreenCredential secondaryPin0 = newPin("123456");
+        LockscreenCredential secondaryPin1 = newPin("1234567");
+        setCredential(userId, primaryPassword);
+
+        // Change from None.
+        assertFalse(mService.setLockCredential(secondaryPin0, badPrimaryPassword, Secondary,
+                userId));
+        assertEquals(CREDENTIAL_TYPE_NONE, mService.getCredentialType(userId, Secondary));
+
+        // Change from PIN.
+        setCredential(userId, secondaryPin0, primaryPassword, Secondary);
+        assertFalse(mService.setLockCredential(secondaryPin1, badPrimaryPassword, Secondary,
+                userId));
+        assertVerifyCredential(PRIMARY_USER_ID, secondaryPin0, Secondary);
     }
 
     @Test
@@ -260,13 +297,38 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void testSetLockCredential_forPrimaryUser_sendsFrpNotification() throws Exception {
         setCredential(PRIMARY_USER_ID, newPassword("password"));
-        checkRecordedFrpNotificationIntent();
+        checkRecordedFrpNotificationIntent(true);
+    }
+
+    @Test
+    public void testSetLockCredential_secondaryPin_doesNotSendFrpNotification() throws Exception {
+        LockscreenCredential primaryPassword = newPassword("password");
+        LockscreenCredential secondaryPin = newPin("123456");
+        setCredential(PRIMARY_USER_ID, primaryPassword);
+
+        mService.clearRecordedFrpNotificationData();
+        setCredential(PRIMARY_USER_ID, secondaryPin, primaryPassword, Secondary);
+        checkRecordedFrpNotificationIntent(false);
     }
 
     @Test
     public void testSetLockCredential_forPrimaryUser_sendsCredentials() throws Exception {
         setCredential(PRIMARY_USER_ID, newPassword("password"));
         verify(mRecoverableKeyStoreManager)
+                .lockScreenSecretChanged(CREDENTIAL_TYPE_PASSWORD, "password".getBytes(),
+                        PRIMARY_USER_ID);
+    }
+
+    @Test
+    public void testSetLockCredential_secondaryPin_doesNotSendCredentials() throws Exception {
+        LockscreenCredential primaryPassword = newPassword("password");
+        LockscreenCredential secondaryPin = newPin("123456");
+        setCredential(PRIMARY_USER_ID, primaryPassword);
+
+        reset(mRecoverableKeyStoreManager);
+
+        setCredential(PRIMARY_USER_ID, secondaryPin, primaryPassword, Secondary);
+        verify(mRecoverableKeyStoreManager, never())
                 .lockScreenSecretChanged(CREDENTIAL_TYPE_PASSWORD, "password".getBytes(),
                         PRIMARY_USER_ID);
     }
@@ -350,10 +412,21 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     @Test
     public void testClearLockCredential_sendsFrpNotification() throws Exception {
         setCredential(PRIMARY_USER_ID, newPassword("password"));
-        checkRecordedFrpNotificationIntent();
+        checkRecordedFrpNotificationIntent(true);
         mService.clearRecordedFrpNotificationData();
         clearCredential(PRIMARY_USER_ID, newPassword("password"));
-        checkRecordedFrpNotificationIntent();
+        checkRecordedFrpNotificationIntent(true);
+    }
+
+    @Test
+    public void testClearSecondaryLockCredential_DoesNotSendFrpNotification() throws Exception {
+        LockscreenCredential primaryPassword = newPassword("password");
+        LockscreenCredential secondaryPin = newPin("123456");
+        setCredential(PRIMARY_USER_ID, primaryPassword);
+        setCredential(PRIMARY_USER_ID, secondaryPin, primaryPassword, Secondary);
+        mService.clearRecordedFrpNotificationData();
+        clearCredential(PRIMARY_USER_ID, primaryPassword, Secondary);
+        checkRecordedFrpNotificationIntent(false);
     }
 
     @Test
@@ -400,6 +473,22 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         verify(mRecoverableKeyStoreManager)
                 .lockScreenSecretAvailable(
                         CREDENTIAL_TYPE_PASSWORD, password.getCredential(), PRIMARY_USER_ID);
+    }
+
+    @Test
+    public void testVerifyCredential_secondaryPin_DoesNotSendCredentials() throws Exception {
+        int userId = PRIMARY_USER_ID;
+        LockscreenCredential primaryPassword = newPassword("password");
+        LockscreenCredential secondaryPin = newPin("123456");
+        setAndVerifyCredential(userId, primaryPassword, secondaryPin);
+
+        reset(mRecoverableKeyStoreManager);
+
+        mService.verifyCredential(secondaryPin, PRIMARY_USER_ID, 0 /* flags */);
+
+        verify(mRecoverableKeyStoreManager, never())
+                .lockScreenSecretAvailable(
+                        anyInt(), any(byte[].class), anyInt());
     }
 
     @Test
@@ -570,7 +659,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         mService.setString(null, "value", 0);
     }
 
-    private void checkRecordedFrpNotificationIntent() {
+    private void checkRecordedFrpNotificationIntent(boolean expected) {
         if (android.security.Flags.frpEnforcement()) {
             Intent savedNotificationIntent = mService.getSavedFrpNotificationIntent();
             assertNotNull(savedNotificationIntent);
@@ -925,7 +1014,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
-    public void setLockCredential_secondaryPin_success() throws Exception {
+    public void setLockCredential_setSecondaryPin_success() throws Exception {
         int userId = PRIMARY_USER_ID;
 
         final LockscreenCredential primaryPin = newPin("123456");
@@ -1049,6 +1138,22 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     }
 
     @Test
+    public void verifyCredential_incorrectCredential_returnsError() throws Exception {
+        int userId = PRIMARY_USER_ID;
+
+        final LockscreenCredential badPassword = newPassword("badPassword");
+        final LockscreenCredential primaryPassword = newPassword("primaryPassword");
+        setCredential(userId, primaryPassword);
+        assertEquals(VerifyCredentialResponse.RESPONSE_ERROR, mService.verifyCredential(
+                badPassword, userId, 0).getResponseCode());
+
+        final LockscreenCredential secondaryPin = newPin("1111");
+        setCredential(userId, secondaryPin, primaryPassword, Secondary);
+        assertEquals(VerifyCredentialResponse.RESPONSE_ERROR, mService.verifyCredential(
+                badPassword, Secondary, userId, 0).getResponseCode());
+    }
+
+    @Test
     public void verifyCredential_correctCredential_addsPasswordMetrics() throws Exception {
         int userId = PRIMARY_USER_ID;
 
@@ -1131,8 +1236,17 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
     private void setAndVerifyCredential(int userId, LockscreenCredential newCredential)
             throws RemoteException {
-        setCredential(userId, newCredential);
-        assertVerifyCredential(userId, newCredential, Primary);
+        setAndVerifyCredential(userId, newCredential, null);
+    }
+
+    private void setAndVerifyCredential(int userId, LockscreenCredential newPrimaryCredential,
+            LockscreenCredential newSecondaryCredential) throws RemoteException {
+        setCredential(userId, newPrimaryCredential);
+        assertVerifyCredential(userId, newPrimaryCredential, Primary);
+        if (newSecondaryCredential != null) {
+            setCredential(userId, newSecondaryCredential, newPrimaryCredential, Secondary);
+            assertVerifyCredential(userId, newSecondaryCredential, Secondary);
+        }
     }
 
     private void setCredential(int userId, LockscreenCredential newCredential)
@@ -1140,14 +1254,14 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         setCredential(userId, newCredential, nonePassword());
     }
 
-    private void clearCredential(int userId, LockscreenCredential oldCredential)
+    private void clearCredential(int userId, LockscreenCredential currentPrimaryCredential)
             throws RemoteException {
-        clearCredential(userId, oldCredential, Primary);
+        clearCredential(userId, currentPrimaryCredential, Primary);
     }
 
-    private void clearCredential(int userId, LockscreenCredential oldCredential,
+    private void clearCredential(int userId, LockscreenCredential currentPrimaryCredential,
             LockDomain lockDomain) throws RemoteException {
-        setCredential(userId, nonePassword(), oldCredential, lockDomain);
+        setCredential(userId, nonePassword(), currentPrimaryCredential, lockDomain);
     }
 
     private void setCredential(int userId, LockscreenCredential newCredential,
