@@ -121,7 +121,6 @@ constructor(
             .stateIn(applicationScope, SharingStarted.Eagerly, false)
 
     private val currentSecurityMode
-        // TODO: Add BiometricSecondFactorPin messages.
         get() = securityModel.getSecurityMode(currentUserId)
     private val currentUserId
         get() = userRepository.getSelectedUserInfo().id
@@ -160,7 +159,6 @@ constructor(
                 isStrongBiometric: Boolean,
                 secondFactorStatus: SecondFactorStatus,
             ) {
-                // TODO: Might have to update this when BouncerMessageInteractor is used.
                 repository.setMessage(defaultMessage)
             }
         }
