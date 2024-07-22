@@ -62,7 +62,8 @@ interface IFingerprintService {
     long authenticate(IBinder token, long operationId, IFingerprintServiceReceiver receiver,
             in FingerprintAuthenticateOptions options);
 
-    // Add a pending hardware auth token to KeyStore.
+    // Add a pending hardware auth token to KeyStore. This should only be called after biometric
+    // second factor has succeeded.
     @EnforcePermission("USE_BIOMETRIC_INTERNAL")
     void addPendingAuthTokenToKeyStore(int userId);
 
