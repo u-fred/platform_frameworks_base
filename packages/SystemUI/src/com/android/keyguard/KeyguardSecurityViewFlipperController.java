@@ -107,7 +107,6 @@ public class KeyguardSecurityViewFlipperController
             }
         }
 
-        // TODO: Race condition, could end up with multiple of same controller type.
         asynchronouslyInflateView(securityMode, keyguardSecurityCallback, onViewInflatedCallback);
     }
 
