@@ -1971,8 +1971,9 @@ public class LockSettingsService extends ILockSettings.Stub {
                 throw new IllegalStateException("password change failed");
             }
 
-            onSyntheticPasswordUnlocked(userId, sp);
-            if (lockDomain == Secondary) {
+            if (lockDomain == Primary) {
+                onSyntheticPasswordUnlocked(userId, sp);
+            } else {
                 sp = mSpManager.newSyntheticPassword(userId, Secondary);
             }
             setLockCredentialWithSpLocked(credential, lockDomain, sp, userId);
