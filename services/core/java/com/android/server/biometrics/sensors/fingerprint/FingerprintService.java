@@ -99,6 +99,7 @@ import com.android.server.biometrics.sensors.fingerprint.aidl.FingerprintProvide
 import com.android.server.biometrics.sensors.fingerprint.hidl.Fingerprint21;
 import com.android.server.biometrics.sensors.fingerprint.hidl.Fingerprint21UdfpsMock;
 import com.android.server.companion.virtual.VirtualDeviceManagerInternal;
+
 import com.google.android.collect.Lists;
 
 import java.io.FileDescriptor;
