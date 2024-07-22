@@ -1,7 +1,6 @@
 package com.android.server.locksettings;
 
 import static com.android.internal.widget.LockDomain.Primary;
-import static com.android.internal.widget.LockDomain.Secondary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -47,6 +46,21 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         assertEquals(Sets.newHashSet(), mPasswordSlotManager.getUsedSlots());
         mStorage.writePersistentDataBlock(PersistentData.TYPE_SP_WEAVER, frpWeaverSlot, 0,
                 new byte[1]);
+        mService.initializeSyntheticPassword(userId); // This should allocate a Weaver slot.
+        assertEquals(Sets.newHashSet(1), mPasswordSlotManager.getUsedSlots());
+    }
+
+    @Test
+    public void testFrpWeaverSlotNotReusedWhenUsingWeaverForSecondFactor() {
+        mSpManager.setUseWeaverForSecondaryProtectors(true);
+
+        final int userId = SECONDARY_USER_ID;
+        final int frpWeaverSlot = 0;
+
+        setDeviceProvisioned(false);
+        assertEquals(Sets.newHashSet(), mPasswordSlotManager.getUsedSlots());
+        mStorage.writePersistentDataBlock(PersistentData.TYPE_SP_WEAVER, frpWeaverSlot, 0,
+                new byte[1]);
         mService.initializeSyntheticPassword(userId); // This should allocate 2 Weaver slots.
         assertEquals(Sets.newHashSet(1, 2), mPasswordSlotManager.getUsedSlots());
     }
@@ -63,6 +77,21 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
         assertEquals(Sets.newHashSet(), mPasswordSlotManager.getUsedSlots());
         mStorage.writePersistentDataBlock(PersistentData.TYPE_SP_WEAVER, frpWeaverSlot, 0,
                 new byte[1]);
+        mService.initializeSyntheticPassword(userId); // This should allocate a Weaver slot.
+        assertEquals(Sets.newHashSet(0), mPasswordSlotManager.getUsedSlots());
+    }
+
+    @Test
+    public void testFrpWeaverSlotReusedWhenUsingWeaverForSecondFactor() {
+        mSpManager.setUseWeaverForSecondaryProtectors(true);
+
+        final int userId = SECONDARY_USER_ID;
+        final int frpWeaverSlot = 0;
+
+        setDeviceProvisioned(true);
+        assertEquals(Sets.newHashSet(), mPasswordSlotManager.getUsedSlots());
+        mStorage.writePersistentDataBlock(PersistentData.TYPE_SP_WEAVER, frpWeaverSlot, 0,
+                new byte[1]);
         mService.initializeSyntheticPassword(userId); // This should allocate 2 Weaver slots.
         assertEquals(Sets.newHashSet(0, 1), mPasswordSlotManager.getUsedSlots());
     }
@@ -70,6 +99,8 @@ public class WeaverBasedSyntheticPasswordTests extends SyntheticPasswordTests {
     @Test
     @Parameters({"Primary", "Secondary"})
     public void createAndUnlockLskfBasedProtector_nonNone(LockDomain lockDomain) {
+        mSpManager.setUseWeaverForSecondaryProtectors(true);
+
         final int userId = PRIMARY_USER_ID;
         final LockscreenCredential pin = newPin("123456");
         final LockscreenCredential badPin = newPin("654321");
