@@ -16,6 +16,8 @@
 
 package com.android.providers.settings;
 
+import static com.android.internal.widget.LockDomain.Secondary;
+
 import android.annotation.UserIdInt;
 import android.app.backup.BackupAgentHelper;
 import android.app.backup.BackupDataInput;
@@ -184,6 +186,8 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             "power_button_instantly_locks";
     private static final String KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY =
             "pin_enhanced_privacy";
+    private static final String KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY =
+            "pin_enhanced_privacy_secondary";
 
     // Name of the temporary file we use during full backup/restore.  This is
     // stored in the full-backup tarfile as well, so should not be changed.
@@ -737,6 +741,12 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                 out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY);
                 out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId) ? "1" : "0");
             }
+            // TODO: This backup/restore is untested.
+            if (lockPatternUtils.checkUserSupportsBiometricSecondFactor(userId, false) &&
+                    lockPatternUtils.isPinEnhancedPrivacyEverChosen(userId, Secondary)) {
+                out.writeUTF(KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY);
+                out.writeUTF(lockPatternUtils.isPinEnhancedPrivacyEnabled(userId, Secondary) ? "1" : "0");
+            }
             // End marker
             out.writeUTF("");
             out.flush();
@@ -1011,6 +1021,10 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                         break;
                     case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY:
                         lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId);
+                        break;
+                    case KEY_LOCK_SETTINGS_PIN_ENHANCED_PRIVACY_SECONDARY:
+                        lockPatternUtils.setPinEnhancedPrivacyEnabled("1".equals(value), userId,
+                                Secondary);
                         break;
                 }
             }
