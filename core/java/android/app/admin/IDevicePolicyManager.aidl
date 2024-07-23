@@ -56,6 +56,7 @@ import android.telephony.data.ApnSetting;
 import com.android.internal.infra.AndroidFuture;
 import android.app.admin.DevicePolicyState;
 import android.app.admin.EnforcingAdmin;
+import com.android.internal.widget.LockDomain;
 
 import java.util.List;
 
@@ -65,7 +66,7 @@ import java.util.List;
  */
 interface IDevicePolicyManager {
     void setPasswordQuality(in ComponentName who, int quality, boolean parent);
-    int getPasswordQuality(in ComponentName who, int userHandle, boolean parent);
+    int getPasswordQuality(in ComponentName who, int userHandle, in LockDomain lockDomain, boolean parent);
 
     void setPasswordMinimumLength(in ComponentName who, int length, boolean parent);
     int getPasswordMinimumLength(in ComponentName who, int userHandle, boolean parent);
@@ -88,10 +89,10 @@ interface IDevicePolicyManager {
     void setPasswordMinimumNonLetter(in ComponentName who, int length, boolean parent);
     int getPasswordMinimumNonLetter(in ComponentName who, int userHandle, boolean parent);
 
-    PasswordMetrics getPasswordMinimumMetrics(int userHandle, boolean deviceWideOnly);
+    PasswordMetrics getPasswordMinimumMetrics(int userHandle, in LockDomain lockDomain, boolean deviceWideOnly);
 
     void setPasswordHistoryLength(in ComponentName who, int length, boolean parent);
-    int getPasswordHistoryLength(in ComponentName who, int userHandle, boolean parent);
+    int getPasswordHistoryLength(in ComponentName who, int userHandle, in LockDomain lockDomain, boolean parent);
 
     void setPasswordExpirationTimeout(in ComponentName who, String callerPackageName, long expiration, boolean parent);
     long getPasswordExpirationTimeout(in ComponentName who, int userHandle, boolean parent);
@@ -104,14 +105,14 @@ interface IDevicePolicyManager {
     int getPasswordComplexity(boolean parent);
     void setRequiredPasswordComplexity(String callerPackageName, int passwordComplexity, boolean parent);
     int getRequiredPasswordComplexity(String callerPackageName, boolean parent);
-    int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly);
+    int getAggregatedPasswordComplexityForUser(int userId, in LockDomain lockDomain, boolean deviceWideOnly);
     boolean isUsingUnifiedPassword(in ComponentName admin);
-    int getCurrentFailedPasswordAttempts(String callerPackageName, int userHandle, boolean parent);
+    int getCurrentFailedPasswordAttempts(String callerPackageName, in LockDomain lockDomain, int userHandle, boolean parent);
     int getProfileWithMinimumFailedPasswordsForWipe(int userHandle, boolean parent);
 
     void setMaximumFailedPasswordsForWipe(
         in ComponentName admin, String callerPackageName, int num, boolean parent);
-    int getMaximumFailedPasswordsForWipe(in ComponentName admin, int userHandle, boolean parent);
+    int getMaximumFailedPasswordsForWipe(in ComponentName admin, int userHandle, in LockDomain lockDomain, boolean parent);
 
     boolean resetPassword(String password, int flags);
 
@@ -170,9 +171,9 @@ interface IDevicePolicyManager {
     void forceRemoveActiveAdmin(in ComponentName policyReceiver, int userHandle);
     boolean hasGrantedPolicy(in ComponentName policyReceiver, int usesPolicy, int userHandle);
 
-    void reportPasswordChanged(in PasswordMetrics metrics, int userId);
-    void reportFailedPasswordAttempt(int userHandle, boolean parent);
-    void reportSuccessfulPasswordAttempt(int userHandle);
+    void reportPasswordChanged(in PasswordMetrics metrics, int userId, in LockDomain lockDomain);
+    void reportFailedPasswordAttempt(int userHandle, in LockDomain lockDomain, boolean parent);
+    void reportSuccessfulPasswordAttempt(int userHandle, in LockDomain lockDomain);
     void reportFailedBiometricAttempt(int userHandle);
     void reportSuccessfulBiometricAttempt(int userHandle);
     void reportKeyguardDismissed(int userHandle);
