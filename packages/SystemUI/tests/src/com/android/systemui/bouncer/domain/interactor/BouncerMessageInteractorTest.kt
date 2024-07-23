@@ -22,6 +22,7 @@ import android.testing.TestableLooper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.internal.widget.LockPatternUtils
+import com.android.internal.widget.LockDomain
 import com.android.keyguard.KeyguardSecurityModel
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode.PIN
 import com.android.keyguard.KeyguardUpdateMonitor
@@ -151,7 +152,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         testScope.runTest {
             init()
             val bouncerMessage by collectLastValue(underTest.bouncerMessage)
-            underTest.onPrimaryAuthIncorrectAttempt()
+            underTest.onAuthIncorrectAttempt(LockDomain.Primary)
 
             assertThat(bouncerMessage).isNotNull()
             assertThat(primaryResMessage(bouncerMessage)).isEqualTo("Wrong PIN. Try again.")
@@ -162,7 +163,7 @@ class BouncerMessageInteractorTest : SysuiTestCase() {
         testScope.runTest {
             init()
             val bouncerMessage by collectLastValue(underTest.bouncerMessage)
-            underTest.onPrimaryAuthIncorrectAttempt()
+            underTest.onAuthIncorrectAttempt(LockDomain.Primary)
             assertThat(primaryResMessage(bouncerMessage)).isEqualTo("Wrong PIN. Try again.")
 
             underTest.onPrimaryBouncerUserInput()

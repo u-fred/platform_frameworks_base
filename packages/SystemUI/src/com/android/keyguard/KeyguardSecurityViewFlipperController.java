@@ -18,6 +18,7 @@ package com.android.keyguard;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.util.Log;
@@ -128,6 +129,17 @@ public class KeyguardSecurityViewFlipperController
             }
             mAsyncLayoutInflater.inflate(layoutId, mView,
                     (view, resId, parent) -> {
+                        if (securityMode == SecurityMode.BiometricSecondFactorPin) {
+                            ((KeyguardPINView) view).setLockDomain(Secondary);
+                            // By default, view ID is set to R.id.keyguard_pin_view for both regular
+                            // and BSF PIN layouts.
+                            // Use a distinct ID to prevent rest of the code from breaking due to
+                            // duplicate IDs.
+                            //
+                            // 0x8000_0000 ID is outside the range of automatically defined view ID constants.
+                            view.setId(0x8000_0000);
+                        }
+
                         mView.addView(view);
                         KeyguardInputViewController<KeyguardInputView> childController =
                                 mKeyguardSecurityViewControllerFactory.create(
@@ -156,7 +168,9 @@ public class KeyguardSecurityViewFlipperController
         // TODO (b/297863911, b/297864907) - implement motion layout for other bouncers
         switch (securityMode) {
             case Pattern: return R.layout.keyguard_pattern_motion_layout;
-            case PIN: return R.layout.keyguard_pin_motion_layout;
+            case PIN:
+            case BiometricSecondFactorPin:
+                return R.layout.keyguard_pin_motion_layout;
             case Password: return R.layout.keyguard_password_motion_layout;
             case SimPin: return R.layout.keyguard_sim_pin_view;
             case SimPuk: return R.layout.keyguard_sim_puk_view;
@@ -168,7 +182,9 @@ public class KeyguardSecurityViewFlipperController
     private int getLegacyLayoutIdFor(SecurityMode securityMode) {
         switch (securityMode) {
             case Pattern: return R.layout.keyguard_pattern_view;
-            case PIN: return R.layout.keyguard_pin_view;
+            case PIN:
+            case BiometricSecondFactorPin:
+                return R.layout.keyguard_pin_view;
             case Password: return R.layout.keyguard_password_view;
             case SimPin: return R.layout.keyguard_sim_pin_view;
             case SimPuk: return R.layout.keyguard_sim_puk_view;

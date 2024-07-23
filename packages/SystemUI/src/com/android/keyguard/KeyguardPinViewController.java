@@ -16,6 +16,7 @@
 
 package com.android.keyguard;
 
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.view.View;
@@ -72,7 +73,8 @@ public class KeyguardPinViewController
         mFeatureFlags = featureFlags;
         view.setIsLockScreenLandscapeEnabled(mFeatureFlags.isEnabled(LOCKSCREEN_ENABLE_LANDSCAPE));
         mBackspaceKey = view.findViewById(R.id.delete_button);
-        mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId());
+        mPinLength = mLockPatternUtils.getPinLength(selectedUserInteractor.getSelectedUserId(),
+                mLockDomain);
         mUiEventLogger = uiEventLogger;
     }
 
@@ -133,7 +135,8 @@ public class KeyguardPinViewController
 
     private void updateAutoConfirmationState() {
         mDisabledAutoConfirmation = mLockPatternUtils.getCurrentFailedPasswordAttempts(
-                mSelectedUserInteractor.getSelectedUserId()) >= MIN_FAILED_PIN_ATTEMPTS;
+                mSelectedUserInteractor.getSelectedUserId(), mLockDomain) >=
+                MIN_FAILED_PIN_ATTEMPTS;
         updateOKButtonVisibility();
         updateBackSpaceVisibility();
         updatePinHinting();
@@ -189,7 +192,7 @@ public class KeyguardPinViewController
     private boolean isAutoPinConfirmEnabledInSettings() {
         //Checks if user has enabled the auto confirm in Settings
         return mLockPatternUtils.isAutoPinConfirmEnabled(
-                mSelectedUserInteractor.getSelectedUserId())
+                mSelectedUserInteractor.getSelectedUserId(), mLockDomain)
                 && mPinLength != LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
     }
 
@@ -207,6 +210,16 @@ public class KeyguardPinViewController
         @Override
         public int getId() {
             return mId;
+        }
+    }
+
+    @Override
+    protected int getInitialMessageResId() {
+        // TODO: Would it be preferred to add this to the base method and use instanceof?
+        if (mLockDomain == Primary) {
+            return super.getInitialMessageResId();
+        } else {
+            return R.string.keyguard_enter_your_biometric_second_factor_pin;
         }
     }
 }
