@@ -58,7 +58,7 @@ public final class LockPatternChecker {
      * @param flags See {@link LockPatternUtils.VerifyFlag}
      * @param callback The callback to be invoked with the verification result.
      */
-    public static AsyncTask<?, ?, ?> verifyCredential(final LockPatternUtils utils,
+    public static AsyncTask<?, ?, ?> verifyCredential(final WrappedLockPatternUtils utils,
             final LockscreenCredential credential,
             final int userId,
             final @LockPatternUtils.VerifyFlag int flags,
@@ -95,7 +95,7 @@ public final class LockPatternChecker {
      * @param userId The user to check against the credential.
      * @param callback The callback to be invoked with the check result.
      */
-    public static AsyncTask<?, ?, ?> checkCredential(final LockPatternUtils utils,
+    public static AsyncTask<?, ?, ?> checkCredential(final WrappedLockPatternUtils utils,
             final LockscreenCredential credential,
             final int userId,
             final OnCheckCallback callback) {
