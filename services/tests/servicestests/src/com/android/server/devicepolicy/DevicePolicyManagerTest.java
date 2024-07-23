@@ -194,7 +194,6 @@ import java.util.concurrent.TimeUnit;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 
-
 /**
  * Tests for DevicePolicyManager( and DevicePolicyManagerService).
  *
