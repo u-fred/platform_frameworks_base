@@ -19,6 +19,7 @@ package com.android.server.locksettings;
 import static android.content.pm.UserInfo.FLAG_FULL;
 import static android.content.pm.UserInfo.FLAG_MAIN;
 import static android.content.pm.UserInfo.FLAG_PRIMARY;
+
 import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_NONE;
@@ -26,6 +27,7 @@ import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSW
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PASSWORD_OR_PIN;
 import static com.android.internal.widget.LockPatternUtils.CREDENTIAL_TYPE_PIN;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,7 +49,6 @@ import android.app.PropertyInvalidatedCache;
 import android.app.admin.PasswordMetrics;
 import android.os.RemoteException;
 import android.platform.test.annotations.Presubmit;
-import android.service.gatekeeper.GateKeeperResponse;
 
 import androidx.test.filters.SmallTest;
 
@@ -59,6 +60,8 @@ import com.android.server.locksettings.SyntheticPasswordManager.AuthenticationRe
 import com.android.server.locksettings.SyntheticPasswordManager.PasswordData;
 import com.android.server.locksettings.SyntheticPasswordManager.SyntheticPassword;
 
+import libcore.util.HexEncoding;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +72,6 @@ import java.io.File;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
-import libcore.util.HexEncoding;
 
 /**
  * atest FrameworksServicesTests:SyntheticPasswordTests
