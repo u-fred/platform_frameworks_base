@@ -192,6 +192,7 @@ constructor(
                                 userId: Int,
                                 biometricSourceType: BiometricSourceType,
                                 isStrongBiometric: Boolean,
+                                secondFactorStatus: SecondFactorStatus,
                             ) {
                                 sendUpdateIfFingerprint(
                                     biometricSourceType,

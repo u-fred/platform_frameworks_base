@@ -629,7 +629,8 @@ constructor(
                 override fun onBiometricAuthenticated(
                     userId: Int,
                     biometricSourceType: BiometricSourceType?,
-                    isStrongBiometric: Boolean
+                    isStrongBiometric: Boolean,
+                    secondFactorStatus: SecondFactorStatus
                 ) {
                     trySendWithFailureLogging(
                         BiometricUnlockSource.fromBiometricSourceType(biometricSourceType),

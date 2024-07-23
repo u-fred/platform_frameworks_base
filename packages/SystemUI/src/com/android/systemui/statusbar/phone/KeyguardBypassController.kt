@@ -23,6 +23,7 @@ import android.hardware.biometrics.BiometricSourceType
 import android.provider.Settings
 import androidx.annotation.VisibleForTesting
 import com.android.app.tracing.ListenersTracing.forEachTraced
+import com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus
 import com.android.systemui.Dumpable
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.dagger.qualifiers.Application
@@ -80,7 +81,8 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
      */
     private data class PendingUnlock(
         val pendingUnlockType: BiometricSourceType,
-        val isStrongBiometric: Boolean
+        val isStrongBiometric: Boolean,
+        val secondFactorStatus: SecondFactorStatus
     )
 
     lateinit var unlockController: BiometricUnlockController
@@ -198,12 +200,14 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
      */
     fun onBiometricAuthenticated(
         biometricSourceType: BiometricSourceType,
-        isStrongBiometric: Boolean
+        isStrongBiometric: Boolean,
+        secondFactorStatus: SecondFactorStatus,
     ): Boolean {
         if (biometricSourceType == BiometricSourceType.FACE && bypassEnabled) {
             val can = canBypass()
             if (!can && (isPulseExpanding || qsExpanded)) {
-                pendingUnlock = PendingUnlock(biometricSourceType, isStrongBiometric)
+                pendingUnlock = PendingUnlock(biometricSourceType, isStrongBiometric,
+                        secondFactorStatus)
             }
             return can
         }
@@ -213,9 +217,10 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
     fun maybePerformPendingUnlock() {
         if (pendingUnlock != null) {
             if (onBiometricAuthenticated(pendingUnlock!!.pendingUnlockType,
-                            pendingUnlock!!.isStrongBiometric)) {
+                            pendingUnlock!!.isStrongBiometric,
+                            pendingUnlock!!.secondFactorStatus)) {
                 unlockController.startWakeAndUnlock(pendingUnlock!!.pendingUnlockType,
-                        pendingUnlock!!.isStrongBiometric)
+                        pendingUnlock!!.isStrongBiometric, pendingUnlock!!.secondFactorStatus)
                 pendingUnlock = null
             }
         }
@@ -254,6 +259,7 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
         if (pendingUnlock != null) {
             pw.println("  mPendingUnlock.pendingUnlockType: ${pendingUnlock!!.pendingUnlockType}")
             pw.println("  mPendingUnlock.isStrongBiometric: ${pendingUnlock!!.isStrongBiometric}")
+            pw.println("  mPendingUnlock.secondFactorStatus: ${pendingUnlock!!.secondFactorStatus}")
         } else {
             pw.println("  mPendingUnlock: $pendingUnlock")
         }

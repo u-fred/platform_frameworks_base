@@ -64,11 +64,16 @@ constructor(
             override fun onBiometricAuthenticated(
                 userId: Int,
                 biometricSourceType: BiometricSourceType?,
-                isStrongBiometric: Boolean
+                isStrongBiometric: Boolean,
+                secondFactorStatus: SecondFactorStatus
             ) {
                 if (biometricSourceType == FINGERPRINT) {
                     fpsAuthenticated = true
-                    onExitKeyguard()
+                    // Not sure why upstream doesn't check that user can actually unlock with
+                    // biometrics here.
+                    if (secondFactorStatus == SecondFactorStatus.Disabled) {
+                        onExitKeyguard()
+                    }
                 }
             }
 
