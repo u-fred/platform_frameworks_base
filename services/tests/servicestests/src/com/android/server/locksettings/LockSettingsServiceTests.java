@@ -29,8 +29,10 @@ import static com.android.internal.widget.LockPatternUtils.PASSWORD_HISTORY_KEY;
 import static com.android.internal.widget.LockPatternUtils.PASSWORD_HISTORY_KEY_SECONDARY;
 import static com.android.internal.widget.LockPatternUtils.PIN_LENGTH_UNAVAILABLE;
 import static com.android.internal.widget.LockPatternUtils.USER_FRP;
+
 import static com.android.server.locksettings.SyntheticPasswordManager.NULL_PROTECTOR_ID;
 import static com.android.server.testutils.TestUtils.assertExpectException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -49,8 +51,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.app.PropertyInvalidatedCache;
-import android.content.Intent;
 import android.app.admin.PasswordMetrics;
+import android.content.Intent;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.platform.test.annotations.Presubmit;
@@ -62,9 +64,9 @@ import androidx.test.filters.SmallTest;
 
 import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
-import com.android.internal.widget.LockSettingsStateListener;
 import com.android.internal.widget.LockPatternUtils.SecondaryForCredSharableUserException;
 import com.android.internal.widget.LockPatternUtils.SecondaryForSpecialUserException;
+import com.android.internal.widget.LockSettingsStateListener;
 import com.android.internal.widget.LockscreenCredential;
 import com.android.internal.widget.VerifyCredentialResponse;
 
