@@ -73,9 +73,11 @@ import android.os.ShellCallback;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
+import android.security.KeyStore;
 import android.util.EventLog;
 import android.util.Pair;
 import android.util.Slog;
+import android.util.SparseArray;
 import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.R;
@@ -358,6 +360,20 @@ public class FingerprintService extends SystemService {
             return provider.second.scheduleAuthenticate(token, operationId,
                     0 /* cookie */, new ClientMonitorCallbackConverter(receiver), options,
                     restricted, statsClient, isKeyguard);
+        }
+
+        @android.annotation.EnforcePermission(android.Manifest.permission.USE_BIOMETRIC_INTERNAL)
+        @Override // Binder call
+        public void addPendingAuthTokenToKeyStore(final int userId) {
+            super.addPendingAuthTokenToKeyStore_enforcePermission();
+            mBiometricContext.getAuthTokenStore().addPendingAuthTokenToKeyStore(userId);
+        }
+
+        @android.annotation.EnforcePermission(android.Manifest.permission.USE_BIOMETRIC_INTERNAL)
+        @Override // Binder call
+        public void clearPendingAuthTokens() {
+            super.clearPendingAuthTokens_enforcePermission();
+            mBiometricContext.getAuthTokenStore().clearPendingAuthTokens();
         }
 
         private long authenticateWithPrompt(
