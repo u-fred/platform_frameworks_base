@@ -782,7 +782,6 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         PasswordMetrics passwordMetrics =
                 PasswordMetrics.computeForCredential(lockscreenCredentialPin);
         setAutoPinConfirm(userId, lockDomain, true);
-        //mService.setBoolean(AUTO_PIN_CONFIRM, true, 1);
         boolean result = manager.refreshPinLengthOnDisk(passwordMetrics, protectorId, userId,
                 lockDomain);
 

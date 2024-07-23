@@ -245,8 +245,6 @@ public abstract class BaseLockSettingsServiceTests {
         when(mUserManager.getUserInfo(eq(TERTIARY_USER_ID))).thenReturn(mTertiaryUserInfo);
         when(mUserManagerInternal.getUserInfo(eq(TERTIARY_USER_ID))).thenReturn(mTertiaryUserInfo);
 
-
-
         final ArrayList<UserInfo> allUsers = new ArrayList<>(mPrimaryUserProfiles);
         allUsers.add(mSecondaryUserInfo);
         allUsers.add(mTertiaryUserInfo);
@@ -313,7 +311,6 @@ public abstract class BaseLockSettingsServiceTests {
                 Settings.Secure.SECURE_FRP_MODE, secure ? 1 : 0, UserHandle.USER_SYSTEM);
     }
 
-    // TODO: Replace all manual calls with this.
     protected void setAutoPinConfirm(int userId, LockDomain lockDomain, boolean enabled) {
         String key = lockDomain == Primary ? AUTO_PIN_CONFIRM : AUTO_PIN_CONFIRM_SECONDARY;
         mService.setBoolean(key, enabled, userId);
