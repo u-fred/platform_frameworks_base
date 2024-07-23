@@ -64,7 +64,6 @@ import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.security.KeyStore;
 import android.testing.TestableContext;
-import android.util.SparseArray;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
