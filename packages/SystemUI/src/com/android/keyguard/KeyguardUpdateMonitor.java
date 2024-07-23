@@ -41,6 +41,8 @@ import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STR
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_DPM_LOCK_NOW;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_LOCKOUT;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_USER_LOCKDOWN;
+import static com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus.Disabled;
+import static com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus.Enabled;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_OPENED;
 import static com.android.systemui.statusbar.policy.DevicePostureController.DEVICE_POSTURE_UNKNOWN;
 
@@ -110,6 +112,7 @@ import com.android.internal.logging.InstanceId;
 import com.android.internal.logging.UiEventLogger;
 import com.android.internal.util.LatencyTracker;
 import com.android.internal.widget.LockPatternUtils;
+import com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus;
 import com.android.keyguard.logging.KeyguardUpdateMonitorLogger;
 import com.android.settingslib.Utils;
 import com.android.settingslib.WirelessUtils;
@@ -868,6 +871,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                 new BiometricAuthenticated(true, isStrongBiometric));
         // Update/refresh trust state only if user can skip bouncer
         if (getUserCanSkipBouncer(userId)) {
+            // Called by LockPatternUtils#reportSuccessfulPasswordAttempt after second factor
+            // succeeds.
             mTrustManager.unlockedByBiometricForUser(userId, FINGERPRINT);
         }
         // Don't send cancel if authentication succeeds
@@ -877,8 +882,14 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         for (int i = 0; i < mCallbacks.size(); i++) {
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
-                cb.onBiometricAuthenticated(userId, FINGERPRINT,
-                        isStrongBiometric);
+                // secondFactorStatus param is redundant but will help prevent silent bugs
+                // being introduced by future code and is now something that all callbacks should
+                // consider.
+                SecondFactorStatus secondFactorStatus =
+                        mLockPatternUtils.isBiometricSecondFactorEnabled(userId) ?
+                        Enabled : Disabled;
+                cb.onBiometricAuthenticated(userId, FINGERPRINT, isStrongBiometric,
+                        secondFactorStatus);
             }
         }
 
@@ -888,8 +899,13 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         // Only authenticate fingerprint once when assistant is visible
         mAssistantVisible = false;
 
-        // Report unlock with strong or non-strong biometric
-        reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        if (!mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            // This can enable non-strong biometrics, which shouldn't happen until after the second
+            // factor succeeds. Called by LockPatternUtils#reportSuccessfulPasswordAttempt after
+            // second factor succeeds.
+            // TODO: Should this be done if we can skip bouncer even if second factor is enabled?
+            reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        }
 
         Trace.endSection();
     }
@@ -1150,17 +1166,25 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         for (int i = 0; i < mCallbacks.size(); i++) {
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
+                SecondFactorStatus secondFactorStatus =
+                        mLockPatternUtils.isBiometricSecondFactorEnabled(userId) ?
+                                Enabled : Disabled;
                 cb.onBiometricAuthenticated(userId,
                         FACE,
-                        isStrongBiometric);
+                        isStrongBiometric,
+                        secondFactorStatus);
             }
         }
 
         // Only authenticate face once when assistant is visible
         mAssistantVisible = false;
 
-        // Report unlock with strong or non-strong biometric
-        reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        if (!mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            // This can enable non-strong biometrics, which shouldn't happen until after the second
+            // factor succeeds. Called by LockPatternUtils#reportSuccessfulPasswordAttempt after
+            // second factor succeeds.
+            reportSuccessfulBiometricUnlock(isStrongBiometric, userId);
+        }
 
         Trace.endSection();
     }
@@ -1407,9 +1431,14 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
     }
 
     /**
-     * Returns whether the user is unlocked with biometrics.
+     * Returns whether the user is unlocked with biometrics. If biometric second factor is enabled
+     * for the user then false is always returned.
      */
     public boolean getUserUnlockedWithBiometric(int userId) {
+        if (mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            return false;
+        }
+
         BiometricAuthenticated fingerprint = mUserFingerprintAuthenticated.get(userId);
         boolean fingerprintAllowed = fingerprint != null && fingerprint.mAuthenticated
                 && isUnlockingWithBiometricAllowed(fingerprint.mIsStrongBiometric);
@@ -1418,6 +1447,14 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         return fingerprintAllowed || unlockedByFace;
     }
 
+    public boolean getUserAuthenticatedWithFingerprint(int userId) {
+        return mUserFingerprintAuthenticated.contains(userId);
+    }
+
+    public void setUserAuthenticatedWithFingerprint(int userId, boolean isStrongBiometric) {
+        mUserFingerprintAuthenticated.put(userId,
+                new BiometricAuthenticated(true, isStrongBiometric));
+    }
 
     /**
      * Returns whether the user is unlocked with face.
@@ -1430,9 +1467,14 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
 
     /**
      * Returns whether the user is unlocked with a biometric that is currently bypassing
-     * the lock screen.
+     * the lock screen. If biometric second factor is enabled for the user then false is always
+     * returned.
      */
     public boolean getUserUnlockedWithBiometricAndIsBypassing(int userId) {
+        if (mLockPatternUtils.isBiometricSecondFactorEnabled(userId)) {
+            return false;
+        }
+
         BiometricAuthenticated fingerprint = mUserFingerprintAuthenticated.get(userId);
         // fingerprint always bypasses
         boolean fingerprintAllowed = fingerprint != null && fingerprint.mAuthenticated
@@ -2393,6 +2435,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
                                 List<FingerprintSensorPropertiesInternal> sensors)
                                 throws RemoteException {
                             mFingerprintSensorProperties = sensors;
+                            mLockPatternUtils.setFingerprintIsStrongBiometric(isFingerprintClass3());
                             updateFingerprintListeningState(BIOMETRIC_ACTION_UPDATE);
                             mLogger.d("FingerprintManager onAllAuthenticatorsRegistered");
                         }
@@ -3670,11 +3713,15 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
         clearFingerprintRecognized(unlockedUser);
     }
 
-    private void clearFingerprintRecognized(int unlockedUser) {
+    protected void clearFingerprintRecognized(int unlockedUser) {
         Assert.isMainThread();
         mUserFingerprintAuthenticated.clear();
         mTrustManager.clearAllBiometricRecognized(FINGERPRINT, unlockedUser);
         mLogger.d("clearFingerprintRecognized");
+
+        if (mFpm != null) {
+            mFpm.clearPendingAuthTokens();
+        }
 
         for (int i = 0; i < mCallbacks.size(); i++) {
             KeyguardUpdateMonitorCallback cb = mCallbacks.get(i).get();
