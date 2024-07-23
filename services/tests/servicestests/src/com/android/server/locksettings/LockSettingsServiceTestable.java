@@ -153,8 +153,9 @@ public class LockSettingsServiceTestable extends LockSettingsService {
         }
 
         @Override
-        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lss,
-                LockSettingsStorage sm, SyntheticPasswordManager spm) {
+        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lockSettingsService,
+                LockSettingsStorage lockSettingsStorage,
+                SyntheticPasswordManager syntheticPasswordManager) {
             return mock(DuressPasswordHelper.class);
         }
     }

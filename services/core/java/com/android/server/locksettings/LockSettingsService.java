@@ -603,9 +603,11 @@ public class LockSettingsService extends ILockSettings.Stub {
             return new LockPatternUtils(mContext);
         }
 
-        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lss,
-                LockSettingsStorage sm, SyntheticPasswordManager spm) {
-            return new DuressPasswordHelper(lss, sm, spm);
+        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lockSettingsService,
+                LockSettingsStorage lockSettingsStorage,
+                SyntheticPasswordManager syntheticPasswordManager) {
+            return new DuressPasswordHelper(lockSettingsService, lockSettingsStorage,
+                    syntheticPasswordManager);
         }
 
         public int binderGetCallingUid() {
