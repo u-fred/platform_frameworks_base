@@ -370,6 +370,8 @@ constructor(
     private suspend fun getAuthenticationMethod(@UserIdInt userId: Int): AuthenticationMethodModel {
         return withContext(backgroundDispatcher) {
             when (getSecurityMode.apply(userId)) {
+                // TODO: AuthenticationMethodModel.BiometricSecondFactorPin?
+                KeyguardSecurityModel.SecurityMode.BiometricSecondFactorPin,
                 KeyguardSecurityModel.SecurityMode.PIN -> Pin
                 KeyguardSecurityModel.SecurityMode.SimPin,
                 KeyguardSecurityModel.SecurityMode.SimPuk -> Sim

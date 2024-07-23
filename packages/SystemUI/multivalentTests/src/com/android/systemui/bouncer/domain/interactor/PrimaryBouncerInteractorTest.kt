@@ -182,6 +182,7 @@ class PrimaryBouncerInteractorTest : SysuiTestCase() {
         verify(mPrimaryBouncerCallbackInteractor).dispatchVisibilityChanged(View.INVISIBLE)
         verify(repository).setPrimaryStartDisappearAnimation(null)
         verify(repository).setPanelExpansion(EXPANSION_HIDDEN)
+        verify(keyguardUpdateMonitor).clearFingerprintRecognized()
     }
 
     @Test

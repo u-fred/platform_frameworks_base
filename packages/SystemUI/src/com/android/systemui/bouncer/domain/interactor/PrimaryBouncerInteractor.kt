@@ -224,6 +224,7 @@ constructor(
         repository.setPrimaryShow(false)
         repository.setPanelExpansion(EXPANSION_HIDDEN)
         primaryBouncerCallbackInteractor.dispatchVisibilityChanged(View.INVISIBLE)
+        keyguardUpdateMonitor.clearFingerprintRecognized()
         Trace.endSection()
     }
 

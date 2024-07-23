@@ -107,6 +107,7 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -318,6 +319,15 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
                 verify(viewFlipperController).getSecurityView(eq(mode), any(), any())
             }
         }
+    }
+
+    @Test
+    fun showSecurityScreen_previousBiometricSecondFactorPin_clearsHardwareAuthTokens() {
+        underTest.showSecurityScreen(SecurityMode.BiometricSecondFactorPin)
+
+        underTest.showSecurityScreen(SecurityMode.PIN)
+
+        verify(keyguardUpdateMonitor).clearFingerprintRecognized()
     }
 
     @Test
@@ -618,6 +628,24 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
 
         // THEN we will not show the password screen.
         verify(viewFlipperController).getSecurityView(eq(SecurityMode.SimPin), any(), any())
+    }
+
+    @Test
+    fun showNextSecurityScreenOrFinish_BiometricUnlockedWithSecondFactorEnabled_DoesNotFinish() {
+        whenever(keyguardUpdateMonitor.getUserHasTrust(anyInt())).thenReturn(false)
+        whenever(keyguardUpdateMonitor.getUserUnlockedWithBiometric(TARGET_USER_ID))
+                .thenReturn(true)
+        whenever(lockPatternUtils.isBiometricSecondFactorEnabled(TARGET_USER_ID)).thenReturn(true)
+        underTest.showSecurityScreen(SecurityMode.PIN)
+
+        val finish = underTest.showNextSecurityScreenOrFinish(
+                /* authenticated= */ true,
+                TARGET_USER_ID,
+                /* bypassSecondaryLockScreen= */ true,
+                SecurityMode.SimPin
+        )
+
+        Assert.assertFalse(finish)
     }
 
     @Test
@@ -944,7 +972,7 @@ class KeyguardSecurityContainerControllerTest : SysuiTestCase() {
         verify(userSwitcherController)
             .addUserSwitchCallback(capture(userSwitchCallbackArgumentCaptor))
         userSwitchCallbackArgumentCaptor.value.onUserSwitched()
-        verify(viewFlipperController).asynchronouslyInflateView(any(), any(), any())
+        verify(viewFlipperController, times(2)).asynchronouslyInflateView(any(), any(), any())
     }
 
     private val registeredSwipeListener: KeyguardSecurityContainer.SwipeListener

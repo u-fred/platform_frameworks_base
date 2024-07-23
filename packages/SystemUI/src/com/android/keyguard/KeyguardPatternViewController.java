@@ -18,6 +18,7 @@ package com.android.keyguard;
 
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.systemui.flags.Flags.LOCKSCREEN_ENABLE_LANDSCAPE;
 
 import android.content.res.ColorStateList;
@@ -34,6 +35,7 @@ import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockPatternView;
 import com.android.internal.widget.LockPatternView.Cell;
 import com.android.internal.widget.LockscreenCredential;
+import com.android.internal.widget.WrappedLockPatternUtils;
 import com.android.keyguard.EmergencyButtonController.EmergencyButtonCallback;
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode;
 import com.android.systemui.classifier.FalsingClassifier;
@@ -126,7 +128,7 @@ public class KeyguardPatternViewController
             mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL);
             mLatencyTracker.onActionStart(ACTION_CHECK_CREDENTIAL_UNLOCKED);
             mPendingLockCheck = LockPatternChecker.checkCredential(
-                    mLockPatternUtils,
+                    new WrappedLockPatternUtils(mLockPatternUtils, Primary),
                     LockscreenCredential.createPattern(pattern),
                     userId,
                     new LockPatternChecker.OnCheckCallback() {
@@ -166,7 +168,7 @@ public class KeyguardPatternViewController
                 boolean isValidPattern) {
             boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
             if (matched) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, Primary, true, 0);
                 if (dismissKeyguard) {
                     mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Correct);
                     mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
@@ -175,7 +177,7 @@ public class KeyguardPatternViewController
             } else {
                 mLockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
                 if (isValidPattern) {
-                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                    getKeyguardSecurityCallback().reportUnlockAttempt(userId, Primary, false, timeoutMs);
                     if (timeoutMs > 0) {
                         long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
                                 userId, timeoutMs);

@@ -18,6 +18,8 @@ package com.android.keyguard;
 
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL;
 import static com.android.internal.util.LatencyTracker.ACTION_CHECK_CREDENTIAL_UNLOCKED;
+import static com.android.internal.widget.LockDomain.Primary;
+import static com.android.internal.widget.LockDomain.Secondary;
 import static com.android.keyguard.KeyguardAbsKeyInputView.MINIMUM_PASSWORD_LENGTH_BEFORE_REPORT;
 
 import android.content.res.ColorStateList;
@@ -28,9 +30,11 @@ import android.util.PluralsMessageFormatter;
 import android.view.KeyEvent;
 
 import com.android.internal.util.LatencyTracker;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternChecker;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockscreenCredential;
+import com.android.internal.widget.WrappedLockPatternUtils;
 import com.android.keyguard.EmergencyButtonController.EmergencyButtonCallback;
 import com.android.keyguard.KeyguardAbsKeyInputView.KeyDownListener;
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode;
@@ -55,6 +59,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     protected AsyncTask<?, ?, ?> mPendingLockCheck;
     protected boolean mResumed;
     protected boolean mLockedOut;
+    protected final LockDomain mLockDomain;
 
     private final KeyDownListener mKeyDownListener = (keyCode, keyEvent) -> {
         // Fingerprint sensor sends a KeyEvent.KEYCODE_UNKNOWN.
@@ -89,6 +94,11 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mLatencyTracker = latencyTracker;
         mFalsingCollector = falsingCollector;
         mEmergencyButtonController = emergencyButtonController;
+        if (securityMode == SecurityMode.BiometricSecondFactorPin) {
+            mLockDomain = Secondary;
+        } else {
+            mLockDomain = Primary;
+        }
     }
 
     abstract void resetState();
@@ -105,7 +115,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
         mEmergencyButtonController.setEmergencyButtonCallback(mEmergencyButtonCallback);
         // if the user is currently locked out, enforce it.
         long deadline = mLockPatternUtils.getLockoutAttemptDeadline(
-                mSelectedUserInteractor.getSelectedUserId());
+                mSelectedUserInteractor.getSelectedUserId(), mLockDomain);
         if (shouldLockout(deadline)) {
             handleAttemptLockout(deadline);
         }
@@ -178,20 +188,28 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
     void onPasswordChecked(int userId, boolean matched, int timeoutMs, boolean isValidPassword) {
         boolean dismissKeyguard = mSelectedUserInteractor.getSelectedUserId() == userId;
         if (matched) {
-            getKeyguardSecurityCallback().reportUnlockAttempt(userId, true, 0);
+            getKeyguardSecurityCallback().reportUnlockAttempt(userId, mLockDomain,
+                    true, 0);
             if (dismissKeyguard) {
                 mDismissing = true;
                 mLatencyTracker.onActionStart(LatencyTracker.ACTION_LOCKSCREEN_UNLOCK);
-                getKeyguardSecurityCallback().dismiss(true, userId, getSecurityMode());
+                // bypassSecondaryLockscreen for secondary as it's not done on normal fingerprint
+                // unlock.
+                getKeyguardSecurityCallback().dismiss(true, userId,
+                        mLockDomain == Secondary, getSecurityMode());
             }
         } else {
             mView.resetPasswordText(true /* animate */, false /* announce deletion if no match */);
             if (isValidPassword) {
-                getKeyguardSecurityCallback().reportUnlockAttempt(userId, false, timeoutMs);
+                getKeyguardSecurityCallback().reportUnlockAttempt(userId, mLockDomain,
+                        false, timeoutMs);
                 if (timeoutMs > 0) {
                     long deadline = mLockPatternUtils.setLockoutAttemptDeadline(
-                            userId, timeoutMs);
-                    handleAttemptLockout(deadline);
+                            userId, mLockDomain, timeoutMs);
+                    if (mLockDomain == Primary) {
+                        handleAttemptLockout(deadline);
+                    }
+
                 }
             }
             if (timeoutMs == 0) {
@@ -228,7 +246,7 @@ public abstract class KeyguardAbsKeyInputViewController<T extends KeyguardAbsKey
 
         mKeyguardUpdateMonitor.setCredentialAttempted();
         mPendingLockCheck = LockPatternChecker.checkCredential(
-                mLockPatternUtils,
+                new WrappedLockPatternUtils(mLockPatternUtils, mLockDomain),
                 password,
                 userId,
                 new LockPatternChecker.OnCheckCallback() {

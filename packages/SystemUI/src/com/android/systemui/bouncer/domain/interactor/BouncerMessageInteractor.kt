@@ -18,6 +18,7 @@ package com.android.systemui.bouncer.domain.interactor
 
 import android.hardware.biometrics.BiometricSourceType
 import android.os.CountDownTimer
+import com.android.internal.widget.LockDomain
 import com.android.keyguard.KeyguardSecurityModel
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode
 import com.android.keyguard.KeyguardUpdateMonitor
@@ -254,11 +255,16 @@ constructor(
         countDownTimerUtil.startNewTimer(secondsBeforeLockoutReset * 1000, 1000, callback)
     }
 
-    fun onPrimaryAuthIncorrectAttempt() {
+    fun onAuthIncorrectAttempt(lockDomain: LockDomain) {
         if (!Flags.revampedBouncerMessages()) return
 
+        val fingerprintAllowed : Boolean = if (lockDomain == LockDomain.Primary) {
+            isFingerprintAuthCurrentlyAllowed.value
+        } else {
+            false
+        }
         repository.setMessage(
-            incorrectSecurityInput(currentSecurityMode, isFingerprintAuthCurrentlyAllowed.value)
+            incorrectSecurityInput(currentSecurityMode, fingerprintAllowed)
         )
     }
 
