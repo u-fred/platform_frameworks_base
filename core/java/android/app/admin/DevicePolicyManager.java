@@ -66,6 +66,7 @@ import static android.net.NetworkCapabilities.NET_ENTERPRISE_ID_1;
 import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
 
 import static com.android.internal.util.function.pooled.PooledLambda.obtainMessage;
+import static com.android.internal.widget.LockDomain.Primary;
 
 import android.Manifest.permission;
 import android.accounts.Account;
@@ -158,6 +159,7 @@ import com.android.internal.os.BackgroundThread;
 import com.android.internal.os.Zygote;
 import com.android.internal.util.ArrayUtils;
 import com.android.internal.util.Preconditions;
+import com.android.internal.widget.LockDomain;
 import com.android.org.conscrypt.TrustedCertificateStore;
 
 import java.io.ByteArrayInputStream;
@@ -4717,9 +4719,16 @@ public class DevicePolicyManager {
     /** @hide per-user version */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     public int getPasswordQuality(@Nullable ComponentName admin, int userHandle) {
+        return getPasswordQuality(admin, userHandle, Primary);
+    }
+
+    /** @hide */
+    public int getPasswordQuality(@Nullable ComponentName admin, int userHandle,
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
-                return mService.getPasswordQuality(admin, userHandle, mParentInstance);
+                return mService.getPasswordQuality(admin, userHandle, lockDomain,
+                        mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5367,7 +5376,7 @@ public class DevicePolicyManager {
      * @hide
      */
     public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle) {
-        return getPasswordMinimumMetrics(userHandle, false);
+        return getPasswordMinimumMetrics(userHandle,false);
     }
 
     /**
@@ -5379,9 +5388,21 @@ public class DevicePolicyManager {
      */
     public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
             boolean deviceWideOnly) {
+        return getPasswordMinimumMetrics(userHandle, Primary, deviceWideOnly);
+
+    }
+
+    /**
+     * @param deviceWideOnly Ignored if lockDomain is Secondary.
+     *
+     * @hide
+     */
+    public PasswordMetrics getPasswordMinimumMetrics(@UserIdInt int userHandle,
+            LockDomain lockDomain, boolean deviceWideOnly) {
         if (mService != null) {
             try {
-                return mService.getPasswordMinimumMetrics(userHandle, deviceWideOnly);
+                return mService.getPasswordMinimumMetrics(userHandle, lockDomain,
+                        deviceWideOnly);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5552,9 +5573,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle) {
+        return getPasswordHistoryLength(admin, userHandle, Primary);
+    }
+
+    /** @hide */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public int getPasswordHistoryLength(@Nullable ComponentName admin, int userHandle,
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
-                return mService.getPasswordHistoryLength(admin, userHandle, mParentInstance);
+                return mService.getPasswordHistoryLength(admin, userHandle, lockDomain,
+                        mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -5809,12 +5838,24 @@ public class DevicePolicyManager {
      */
     @PasswordComplexity
     public int getAggregatedPasswordComplexityForUser(int userId, boolean deviceWideOnly) {
+        return getAggregatedPasswordComplexityForUser(userId, Primary, deviceWideOnly);
+    }
+
+    /**
+     * @param deviceWideOnly ignored if LockDomain is Secondary.
+     *
+     * @hide
+     */
+    @PasswordComplexity
+    public int getAggregatedPasswordComplexityForUser(int userId, LockDomain lockDomain,
+            boolean deviceWideOnly) {
         if (mService == null) {
             return PASSWORD_COMPLEXITY_NONE;
         }
 
         try {
-            return mService.getAggregatedPasswordComplexityForUser(userId, deviceWideOnly);
+            return mService.getAggregatedPasswordComplexityForUser(userId, lockDomain,
+                    deviceWideOnly);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -5902,10 +5943,15 @@ public class DevicePolicyManager {
      */
     @UnsupportedAppUsage
     public int getCurrentFailedPasswordAttempts(int userHandle) {
+        return getCurrentFailedPasswordAttempts(userHandle, Primary);
+    }
+
+    /** @hide */
+    public int getCurrentFailedPasswordAttempts(int userHandle, LockDomain lockDomain) {
         if (mService != null) {
             try {
                 return mService.getCurrentFailedPasswordAttempts(
-                        mContext.getPackageName(), userHandle, mParentInstance);
+                        mContext.getPackageName(), lockDomain, userHandle, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -6003,10 +6049,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle) {
+        return getMaximumFailedPasswordsForWipe(admin, userHandle, Primary);
+    }
+
+    /** @hide */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public int getMaximumFailedPasswordsForWipe(@Nullable ComponentName admin, int userHandle,
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
                 return mService.getMaximumFailedPasswordsForWipe(
-                        admin, userHandle, mParentInstance);
+                        admin, userHandle, lockDomain, mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9104,9 +9157,18 @@ public class DevicePolicyManager {
      */
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId) {
+        reportPasswordChanged(metrics, userId, Primary);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportPasswordChanged(PasswordMetrics metrics, @UserIdInt int userId,
+            LockDomain lockDomain) {
         if (mService != null) {
             try {
-                mService.reportPasswordChanged(metrics, userId);
+                mService.reportPasswordChanged(metrics, userId, lockDomain);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9119,9 +9181,18 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportFailedPasswordAttempt(int userHandle) {
+        reportFailedPasswordAttempt(userHandle, Primary);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportFailedPasswordAttempt(int userHandle, LockDomain lockDomain) {
         if (mService != null) {
             try {
-                mService.reportFailedPasswordAttempt(userHandle, mParentInstance);
+                mService.reportFailedPasswordAttempt(userHandle, lockDomain,
+                        mParentInstance);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -9134,9 +9205,17 @@ public class DevicePolicyManager {
     @UnsupportedAppUsage
     @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
     public void reportSuccessfulPasswordAttempt(int userHandle) {
+        reportSuccessfulPasswordAttempt(userHandle, Primary);
+    }
+
+    /**
+     * @hide
+     */
+    @RequiresFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+    public void reportSuccessfulPasswordAttempt(int userHandle, LockDomain lockDomain) {
         if (mService != null) {
             try {
-                mService.reportSuccessfulPasswordAttempt(userHandle);
+                mService.reportSuccessfulPasswordAttempt(userHandle, lockDomain);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
