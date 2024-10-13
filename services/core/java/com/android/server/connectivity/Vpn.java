@@ -416,6 +416,13 @@ public class Vpn {
     @VisibleForTesting protected boolean mLockdown = false;
 
     /**
+     * Whether to allows DNS traffic to the VPN's DNS servers to leak outside the tunnel. Required
+     * by some providers. Has no effect unless {@link mAlwaysOn} and {@link mLockdown} is on.
+     */
+    @GuardedBy("this")
+    @VisibleForTesting protected boolean mDnsCompatMode = false;
+
+    /**
      * Set of packages in addition to the VPN app itself that can access the network directly when
      * VPN is not connected even if {@code mLockdown} is set.
      */
@@ -777,6 +784,13 @@ public class Vpn {
     }
 
     /**
+     * Returns whether VPN DNS compat mode is enabled.
+     */
+    public synchronized boolean getDnsCompatMode() {
+        return mAlwaysOn;
+    }
+
+    /**
      * Checks if a VPN app supports always-on mode.
      *
      * <p>In order to support the always-on feature, an app has to either have an installed
@@ -900,6 +914,17 @@ public class Vpn {
         return packageName != null && !VpnConfig.LEGACY_VPN.equals(packageName);
     }
 
+ //   public synchronized boolean setVpnDnsCompatModeEnabled(String packageName, boolean enabled) {
+
+   // }
+
+    public synchronized boolean setAlwaysOnPackage(
+            @Nullable String packageName,
+            boolean lockdown,
+            @Nullable List<String> lockdownAllowlist) {
+        return setAlwaysOnPackage(packageName, lockdown, lockdownAllowlist, false);
+    }
+
     /**
      * Configures an always-on VPN connection through a specific application. This connection is
      * automatically granted and persisted after a reboot.
@@ -920,7 +945,8 @@ public class Vpn {
     public synchronized boolean setAlwaysOnPackage(
             @Nullable String packageName,
             boolean lockdown,
-            @Nullable List<String> lockdownAllowlist) {
+            @Nullable List<String> lockdownAllowlist,
+            boolean dnsCompatMode) {
         enforceControlPermissionOrInternalCaller();
         // Store mPackage since it might be reset or might be replaced with the other VPN app.
         final String oldPackage = mPackage;
@@ -932,7 +958,7 @@ public class Vpn {
         // Also notify the new package if there was a provider change.
         final boolean shouldNotifyNewPkg = isVpnApp(packageName) && isPackageChanged;
 
-        if (!setAlwaysOnPackageInternal(packageName, lockdown, lockdownAllowlist)) {
+        if (!setAlwaysOnPackageInternal(packageName, lockdown, lockdownAllowlist, dnsCompatMode)) {
             return false;
         }
 
@@ -973,7 +999,7 @@ public class Vpn {
     @GuardedBy("this")
     private boolean setAlwaysOnPackageInternal(
             @Nullable String packageName, boolean lockdown,
-            @Nullable List<String> lockdownAllowlist) {
+            @Nullable List<String> lockdownAllowlist, boolean dnsCompatMode) {
         if (VpnConfig.LEGACY_VPN.equals(packageName)) {
             Log.w(TAG, "Not setting legacy VPN \"" + packageName + "\" as always-on.");
             return false;
@@ -1024,10 +1050,14 @@ public class Vpn {
             // Lockdown forces the VPN to be non-bypassable (see #agentConnect) because it makes
             // no sense for a VPN to be bypassable when connected but not when not connected.
             // As such, changes in lockdown need to restart the agent.
+            // TODO: Check if compat mode changed
             if (mNetworkAgent != null && oldLockdownState != mLockdown) {
+                Log.d("VdcDebug", "lockdown state changed, starting new agent");
                 startNewNetworkAgent(mNetworkAgent, "Lockdown mode changed");
             }
         } else {
+            // TODO: Test this with Proton and Mullvad. What happens when one is connected and
+            //  set Always on for other?
             // Prepare this app. The notification will update as a side-effect of updateState().
             // It also calls setVpnForcedLocked().
             prepareInternal(packageName);
@@ -1070,6 +1100,8 @@ public class Vpn {
             mSystemServices.settingsSecurePutStringForUser(
                     LOCKDOWN_ALLOWLIST_SETTING_NAME,
                     String.join(",", mLockdownAllowlist), mUserId);
+            mSystemServices.settingsSecurePutIntForUser(Settings.Secure.VPN_DNS_COMPAT_MODE_ENABLED,
+                    (mAlwaysOn && mLockdown && mDnsCompatMode ? 1 : 0), mUserId);
         } finally {
             Binder.restoreCallingIdentity(token);
         }
@@ -1089,7 +1121,7 @@ public class Vpn {
             final List<String> allowedPackages = TextUtils.isEmpty(allowlistString)
                     ? Collections.emptyList() : Arrays.asList(allowlistString.split(","));
             setAlwaysOnPackageInternal(
-                    alwaysOnPackage, alwaysOnLockdown, allowedPackages);
+                    alwaysOnPackage, alwaysOnLockdown, allowedPackages, false);
         } finally {
             Binder.restoreCallingIdentity(token);
         }
@@ -1596,6 +1628,7 @@ public class Vpn {
                 .setVpnRequiresValidation(mConfig.requiresInternetValidation)
                 .setLocalRoutesExcludedForVpn(mConfig.excludeLocalRoutes)
                 .setLegacyExtraInfo("VPN:" + mPackage)
+                .setVpnDnsCompatModeEnabled(mDnsCompatMode) // TODO: Conditions on setting this?
                 .build();
 
         capsBuilder.setOwnerUid(mOwnerUID);
@@ -1629,6 +1662,7 @@ public class Vpn {
                 networkAgentConfig, mNetworkProvider, validationCallback);
         final long token = Binder.clearCallingIdentity();
         try {
+            // TODO:
             mNetworkAgent.register();
         } catch (final Exception e) {
             // If register() throws, don't keep an unregistered agent.
@@ -2421,6 +2455,7 @@ public class Vpn {
      * permission check only when the caller is trusted (or the call is initiated by the system).
      */
     public void startLegacyVpn(VpnProfile profile) {
+        Log.w("LegacyVpnDebug", "startLegacyVpn1");
         enforceControlPermission();
         final long token = Binder.clearCallingIdentity();
         try {
@@ -2489,6 +2524,7 @@ public class Vpn {
      * Callers are responsible for checking permissions if needed.
      */
     public void startLegacyVpnPrivileged(VpnProfile profileToStart) {
+        Log.w("LegacyVpnDebug", "startLegacyVpnPrivileged");
         final VpnProfile profile = profileToStart.clone();
         UserInfo user = mUserManager.getUserInfo(mUserId);
         if (user.isRestricted() || mUserManager.hasUserRestriction(UserManager.DISALLOW_CONFIG_VPN,

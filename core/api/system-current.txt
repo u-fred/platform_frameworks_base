@@ -10889,6 +10889,7 @@ package android.os {
   }
 
   public class Binder implements android.os.IBinder {
+    method @Nullable public final android.os.IBinder getExtension();
     method public int handleShellCommand(@NonNull android.os.ParcelFileDescriptor, @NonNull android.os.ParcelFileDescriptor, @NonNull android.os.ParcelFileDescriptor, @NonNull String[]);
     method public final void markVintfStability();
     method public static void setProxyTransactListener(@Nullable android.os.Binder.ProxyTransactListener);
@@ -11097,6 +11098,10 @@ package android.os {
     method public final void writeStringVector(java.util.ArrayList<java.lang.String>);
     method public final void writeStrongBinder(android.os.IHwBinder);
     field public static final int STATUS_SUCCESS = 0; // 0x0
+  }
+
+  public interface IBinder {
+    method @Nullable public default android.os.IBinder getExtension() throws android.os.RemoteException;
   }
 
   public interface IHwBinder {

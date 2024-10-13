@@ -437,6 +437,7 @@ public class VpnManagerService extends IVpnManager.Stub {
     @SuppressWarnings("AndroidFrameworkCompatChange")  // This is not an app-visible API.
     @Override
     public void startLegacyVpn(VpnProfile profile) {
+        Log.d("LegacyVpnDebug", "startLegacyVpn");
         if (Build.VERSION.DEVICE_INITIAL_SDK_INT >= Build.VERSION_CODES.S
                 && VpnProfile.isLegacyType(profile.type)) {
             throw new UnsupportedOperationException("Legacy VPN is deprecated");
@@ -598,6 +599,35 @@ public class VpnManagerService extends IVpnManager.Stub {
             }
             return vpn.isAlwaysOnPackageSupported(packageName);
         }
+    }
+
+    // TODO: Synchronized method or synchronized on mVpns?
+    public boolean setVpnDnsCompatModeEnabled(int userId, String packageName,
+            boolean enabled) {
+        synchronized (mVpns) {
+            Vpn vpn = mVpns.get(userId);
+            if (vpn == null) {
+                logw("User " + userId + " has no Vpn configuration");
+                return false;
+            }
+
+        }
+
+        /*
+        if (isCurrentPreparedPackage(packageName)) {
+            updateAlwaysOnNotification(mNetworkInfo.getDetailedState());
+            setVpnForcedLocked(mLockdown);
+
+            // Lockdown forces the VPN to be non-bypassable (see #agentConnect) because it makes
+            // no sense for a VPN to be bypassable when connected but not when not connected.
+            // As such, changes in lockdown need to restart the agent.
+            // TODO: Check if compat mode changed
+            if (mNetworkAgent != null && oldLockdownState != mLockdown) {
+                Log.d("VdcDebug", "lockdown state changed, starting new agent");
+                startNewNetworkAgent(mNetworkAgent, "Lockdown mode changed");
+            }
+         */
+        return true;
     }
 
     @Override

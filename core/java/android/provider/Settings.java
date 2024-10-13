@@ -8105,6 +8105,16 @@ public final class Settings {
         @Readable
         public static final String ALWAYS_ON_VPN_LOCKDOWN = "always_on_vpn_lockdown";
 
+        // TODO: Keep all comments in sync.
+        /**
+         * Whether VPN DNS compat mode is enabled. This mode..
+         * @see #ALWAYS_ON_VPN_LOCKDOWN
+         *
+         * @hide
+         */
+        @Readable
+        public static final String VPN_DNS_COMPAT_MODE_ENABLED = "vpn_dns_compat_mode_enabled";
+
         /**
          * Comma separated list of packages that are allowed to access the network when VPN is in
          * lockdown mode but not running.

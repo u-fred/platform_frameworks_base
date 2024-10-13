@@ -2469,6 +2469,8 @@ UnflaggedApi: android.os.BaseBundle#getNumber(String):
     New API must be flagged with @FlaggedApi: method android.os.BaseBundle.getNumber(String)
 UnflaggedApi: android.os.BugreportParams#BUGREPORT_MODE_ONBOARDING:
     New API must be flagged with @FlaggedApi: field android.os.BugreportParams.BUGREPORT_MODE_ONBOARDING
+UnflaggedApi: android.os.IBinder#getExtension():
+    New API must be flagged with @FlaggedApi: method android.os.IBinder.getExtension()
 UnflaggedApi: android.permission.PermissionManager#updatePermissionState(String, int):
     New API must be flagged with @FlaggedApi: method android.permission.PermissionManager.updatePermissionState(String,int)
 UnflaggedApi: android.provider.Settings#ACTION_APP_PERMISSIONS_SETTINGS:
