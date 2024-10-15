@@ -1097,6 +1097,8 @@ RequiresPermission: android.webkit.WebSettings#setGeolocationEnabled(boolean):
 
 StaticUtils: ExtensionCaptureRequest:
     Fully-static utility classes must not have constructor
+StaticUtils: android.ext.ConnectivityUtil:
+    Fully-static utility classes must not have constructor
 StaticUtils: android.hardware.camera2.ExtensionCaptureRequest:
     Fully-static utility classes must not have constructor
 StaticUtils: android.hardware.camera2.ExtensionCaptureResult:
@@ -1441,6 +1443,14 @@ UnflaggedApi: android.database.sqlite.SQLiteRawStatement#reset():
     New API must be flagged with @FlaggedApi: method android.database.sqlite.SQLiteRawStatement.reset()
 UnflaggedApi: android.database.sqlite.SQLiteRawStatement#step():
     New API must be flagged with @FlaggedApi: method android.database.sqlite.SQLiteRawStatement.step()
+UnflaggedApi: android.ext.ConnectivityUtil:
+    New API must be flagged with @FlaggedApi: class android.ext.ConnectivityUtil
+UnflaggedApi: android.ext.ConnectivityUtil#ConnectivityUtil():
+    New API must be flagged with @FlaggedApi: constructor android.ext.ConnectivityUtil()
+UnflaggedApi: android.ext.ConnectivityUtil#isRegularAppWithLockdownVpnEnabled(android.content.Context, int):
+    New API must be flagged with @FlaggedApi: method android.ext.ConnectivityUtil.isRegularAppWithLockdownVpnEnabled(android.content.Context,int)
+UnflaggedApi: android.ext.ConnectivityUtil#isSystem(android.content.Context, int):
+    New API must be flagged with @FlaggedApi: method android.ext.ConnectivityUtil.isSystem(android.content.Context,int)
 UnflaggedApi: android.graphics.Gainmap#Gainmap(android.graphics.Gainmap, android.graphics.Bitmap):
     New API must be flagged with @FlaggedApi: constructor android.graphics.Gainmap(android.graphics.Gainmap,android.graphics.Bitmap)
 UnflaggedApi: android.graphics.Path#computeBounds(android.graphics.RectF):
