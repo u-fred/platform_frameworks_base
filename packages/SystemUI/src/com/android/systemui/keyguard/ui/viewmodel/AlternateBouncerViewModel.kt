@@ -81,6 +81,7 @@ constructor(
     val scrimAlpha = transitionToAlternateBouncerProgress.map { it * alternateBouncerScrimAlpha }
 
     /** An observable for the scrim color. Change color for easier debugging. */
+    // TODO:
     val scrimColor: Flow<Int> = flowOf(Color.BLACK)
 
     val registerForDismissGestures: Flow<Boolean> =

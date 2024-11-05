@@ -24,6 +24,8 @@
     <!-- Instructions telling the user to enter their PIN password to unlock the keyguard [CHAR LIMIT=48] -->
     <string name="keyguard_enter_pin">Enter PIN</string>
 
+    <string name="keyguard_enter_biometric_second_factor_pin">Enter second factor PIN</string>
+
     <!-- Instructions telling the user to enter their biometric second factor PIN password to unlock the keyguard [CHAR LIMIT=30] -->
     <string name="keyguard_enter_your_biometric_second_factor_pin">Enter your second factor PIN</string>
 

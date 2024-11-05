@@ -140,7 +140,7 @@ public final class LockPatternChecker {
      * @param flags See {@link LockPatternUtils.VerifyFlag}
      * @param callback The callback to be invoked with the verification result.
      */
-    public static AsyncTask<?, ?, ?> verifyTiedProfileChallenge(final LockPatternUtils utils,
+    public static AsyncTask<?, ?, ?> verifyTiedProfileChallenge(final WrappedLockPatternUtils utils,
             final LockscreenCredential credential,
             final int userId,
             final @LockPatternUtils.VerifyFlag int flags,

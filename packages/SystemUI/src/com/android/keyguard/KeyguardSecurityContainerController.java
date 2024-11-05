@@ -1222,10 +1222,10 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
         if (timeoutMs > 0) {
             mLockPatternUtils.reportPasswordLockout(timeoutMs, userId, lockDomain);
 
-            if (!com.android.systemui.Flags.revampedBouncerMessages()) {
-                DialogInterface.OnClickListener onClick = null;
+           // if (!com.android.systemui.Flags.revampedBouncerMessages()) {
+                //DialogInterface.OnClickListener onClick = null;
                 if (lockDomain == Secondary) {
-                    onClick = (dialog, which) -> {
+                    DialogInterface.OnClickListener onClick = (dialog, which) -> {
                         // This will usually be a no-op because
                         // onDevicePolicyManagerStateChanged will have fired, but keep it in
                         // case.
@@ -1234,11 +1234,13 @@ public class KeyguardSecurityContainerController extends ViewController<Keyguard
                         mUpdateMonitor.clearFingerprintRecognized();
                         showPrimarySecurityScreen(false);
                     };
+                    // TODO: Adjust showTimeoutDialog now that it is only used downstream.
+                    mView.showTimeoutDialog(userId, lockDomain, timeoutMs, mLockPatternUtils,
+                            mCurrentSecurityMode, onClick);
                 }
-                mView.showTimeoutDialog(userId, lockDomain, timeoutMs, mLockPatternUtils,
-                        mCurrentSecurityMode, onClick);
+
             }
-        }
+       // }
     }
 
     private void getCurrentSecurityController(

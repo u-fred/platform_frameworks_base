@@ -7,6 +7,8 @@ import android.annotation.Nullable;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.PasswordMetrics;
 import android.content.Context;
+import android.os.RemoteException;
+import android.provider.Settings;
 
 // TODO: Verify exceptions thrown when calling method with Secondary where Secondary it not
 //  supported.
@@ -67,6 +69,17 @@ public class WrappedLockPatternUtils {
 
     public void reportFailedPasswordAttempt(int userId) {
         mInner.reportFailedPasswordAttempt(userId, mLockDomain);
+    }
+
+    public void reportSuccessfulPasswordAttempt(int userId, boolean forUnlock) {
+        mInner.reportSuccessfulPasswordAttempt(userId, mLockDomain, forUnlock);
+    }
+
+    public void userPresent(int userId) {
+        if (mLockDomain == Secondary) {
+            throw new IllegalStateException();
+        }
+        mInner.userPresent(userId);
     }
 
     @Deprecated
@@ -214,6 +227,14 @@ public class WrappedLockPatternUtils {
 
     public boolean checkUserSupportsBiometricSecondFactor(int userId, boolean throwIfNotSupport) {
         return mInner.checkUserSupportsBiometricSecondFactor(userId, throwIfNotSupport);
+    }
+
+    public boolean isBiometricKeyguardEnabled(int userId) {
+        return mInner.isBiometricKeyguardEnabled(userId);
+    }
+
+    public boolean setBiometricKeyguardEnabled(int userId, boolean enabled) {
+        return mInner.setBiometricKeyguardEnabled(userId, enabled);
     }
 
 }
